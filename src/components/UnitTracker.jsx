@@ -65,6 +65,7 @@ export function UnitTracker({
   id = 'unit-tracker-export',
   tokenData,
   trackerData,
+  side = 'front', // 'front' | 'back'
   width = 475,
   onSquareClick
 }) {
@@ -77,11 +78,50 @@ export function UnitTracker({
     triangleNumber = 3,
     footerName = 'CUSTOM UNIT TRACKER',
     customImageUrl = null,
-    bgColor = '#e2e8f0',
+    bgColor = '#ffffff',
+    camoColor = '#4a5568',
     showCamo = true,
     initialHpSquare = 12, // 1 to 20
-    placedDice = {} // { [squareNum]: [dieObject1, dieObject2] }
+    placedDice = {}, // { [squareNum]: [dieObject1, dieObject2] }
+    backBgColor = null,
+    customBackImageUrl = null
   } = trackerData || {};
+
+  // Backside rendering
+  if (side === 'back') {
+    const effectiveBackBg = backBgColor || tokenData?.bgColor || '#2b6cb0';
+
+    return (
+      <div
+        id={id}
+        style={{
+          width: `${width}px`,
+          height: `${height}px`,
+          backgroundColor: effectiveBackBg,
+          border: '6px solid #000000',
+          borderRadius: '2px',
+          boxSizing: 'border-box',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          padding: '16px'
+        }}
+      >
+        {customBackImageUrl ? (
+          <img
+            src={customBackImageUrl}
+            alt="Tracker Back"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        ) : (
+          <LandToken tokenData={tokenData} side="back" size={Math.min(width, height) * 0.75} />
+        )}
+      </div>
+    );
+  }
 
   // 20 vertical long squares (4 rows of 5)
   const squares = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -92,7 +132,7 @@ export function UnitTracker({
       style={{
         width: `${width}px`,
         height: `${height}px`,
-        backgroundColor: '#ffffff',
+        backgroundColor: bgColor || '#ffffff',
         border: '6px solid #000000',
         borderRadius: '2px',
         boxSizing: 'border-box',
@@ -100,7 +140,7 @@ export function UnitTracker({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '16px 14px 12px 14px',
+        padding: '24px 14px 12px 14px', // Increased top padding so attachment text never overlays title
         fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
         color: '#000000',
         overflow: 'hidden',
@@ -117,18 +157,18 @@ export function UnitTracker({
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            opacity: 0.12,
+            opacity: 0.15,
             zIndex: 0
           }}
         >
-          <pattern id="camo-pattern" width="120" height="120" patternUnits="userSpaceOnUse">
-            <path d="M 0,20 Q 30,0 60,30 T 120,20 L 120,60 Q 90,80 60,50 T 0,70 Z" fill="#4a5568" />
-            <path d="M 20,80 Q 50,60 80,90 T 120,100 L 120,120 L 0,120 Z" fill="#2d3748" />
-            <circle cx="30" cy="40" r="15" fill="#718096" />
-            <circle cx="90" cy="30" r="22" fill="#a0aec0" />
-            <circle cx="70" cy="100" r="18" fill="#4a5568" />
+          <pattern id="camo-pattern-tracker" width="120" height="120" patternUnits="userSpaceOnUse">
+            <path d="M 0,20 Q 30,0 60,30 T 120,20 L 120,60 Q 90,80 60,50 T 0,70 Z" fill={camoColor} />
+            <path d="M 20,80 Q 50,60 80,90 T 120,100 L 120,120 L 0,120 Z" fill={camoColor} />
+            <circle cx="30" cy="40" r="15" fill={camoColor} />
+            <circle cx="90" cy="30" r="22" fill={camoColor} />
+            <circle cx="70" cy="100" r="18" fill={camoColor} />
           </pattern>
-          <rect width="100%" height="100%" fill="url(#camo-pattern)" />
+          <rect width="100%" height="100%" fill="url(#camo-pattern-tracker)" />
         </svg>
       )}
 
@@ -143,8 +183,8 @@ export function UnitTracker({
           alignItems: 'center',
           gap: '6px',
           zIndex: 10,
-          background: '#ffffff',
-          padding: '0 6px'
+          background: bgColor || '#ffffff',
+          padding: '0 8px'
         }}
       >
         <span style={{ fontSize: '0.65rem', color: '#000000' }}>▲</span>
@@ -156,17 +196,19 @@ export function UnitTracker({
 
       {/* Header Area */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', zIndex: 1 }}>
-        {/* Upper Left Token Preview or Custom Image */}
-        <div style={{ flexShrink: 0, border: '1.5px solid #000000', borderRadius: '4px', overflow: 'hidden', width: 82, height: 82, background: '#ffffff' }}>
+        {/* Upper Left Token Area: No border, big token preview scaled to fit 82x82 */}
+        <div style={{ flexShrink: 0, width: 82, height: 82, position: 'relative', overflow: 'hidden' }}>
           {customImageUrl ? (
             <img src={customImageUrl} alt="Token" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <LandToken tokenData={tokenData} side="front" size={82} />
+            <div style={{ transform: 'scale(0.3416667)', transformOrigin: 'top left', width: 240, height: 240 }}>
+              <LandToken tokenData={tokenData} side="front" size={240} />
+            </div>
           )}
         </div>
 
         {/* Title, Description & White Triangle with Number */}
-        <div style={{ flex: 1, paddingLeft: '6px', paddingTop: '2px' }}>
+        <div style={{ flex: 1, paddingLeft: '6px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div style={{ paddingRight: '4px' }}>
               <h2
@@ -196,7 +238,7 @@ export function UnitTracker({
               </p>
             </div>
 
-            {/* White Triangle with Border & Number inside */}
+            {/* White Triangle with Thinner Border & Number inside */}
             <div
               style={{
                 position: 'relative',
@@ -209,7 +251,7 @@ export function UnitTracker({
               }}
             >
               <svg width="38" height="38" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <polygon points="20,2 38,36 2,36" fill="#ffffff" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
+                <polygon points="20,2 38,36 2,36" fill="#ffffff" stroke="#000000" strokeWidth="1" strokeLinejoin="round" />
               </svg>
               <span
                 style={{

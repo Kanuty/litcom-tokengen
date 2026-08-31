@@ -26,24 +26,46 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
 
 /**
  * Downloads the Unit Tracker as PNG image in 9.5 : 13.5 aspect ratio.
- * @param {string} elementId - DOM ID of unit tracker container
- * @param {string} filename - Output PNG filename
+ * @param {string} frontElementId - DOM ID of unit tracker front container
+ * @param {string} backElementId - DOM ID of unit tracker back container
+ * @param {string} exportFace - 'front' | 'back' | 'both'
+ * @param {string} baseFilename - Output PNG base filename
  */
-export async function downloadUnitTrackerAsPNG(elementId = 'unit-tracker-export', filename = 'unit-tracker.png') {
-  const element = document.getElementById(elementId);
-  if (!element) {
-    console.error(`Unit Tracker element with id ${elementId} not found`);
-    return;
+export async function downloadUnitTrackerAsPNG(
+  frontElementId = 'unit-tracker-export-front',
+  backElementId = 'unit-tracker-export-back',
+  exportFace = 'both',
+  baseFilename = 'unit-tracker'
+) {
+  const downloadSingle = async (elementId, filename) => {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      console.error(`Unit Tracker element with id ${elementId} not found`);
+      return;
+    }
+    try {
+      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error(`Error generating unit tracker image (${filename}):`, err);
+    }
+  };
+
+  if (exportFace === 'front' || exportFace === 'both') {
+    await downloadSingle(frontElementId, `${baseFilename}-front.png`);
   }
 
-  try {
-    const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = dataUrl;
-    link.click();
-  } catch (err) {
-    console.error('Error generating unit tracker image:', err);
+  if (exportFace === 'back' || exportFace === 'both') {
+    if (exportFace === 'both') {
+      setTimeout(async () => {
+        await downloadSingle(backElementId, `${baseFilename}-back.png`);
+      }, 300);
+    } else {
+      await downloadSingle(backElementId, `${baseFilename}-back.png`);
+    }
   }
 }
 

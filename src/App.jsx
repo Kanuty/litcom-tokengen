@@ -27,19 +27,25 @@ function App() {
   const [exportFace, setExportFace] = useState('both');
 
   // Unit Tracker state
+  const [trackerType, setTrackerType] = useState('standard'); // 'standard' | 'carrier'
+  const [trackerExportFace, setTrackerExportFace] = useState('both'); // 'front' | 'back' | 'both'
   const [trackerData, setTrackerData] = useState({
     title: 'MRIC SECTION',
     description: 'The Medium Range Intercept Capability (MRIC) section is an integrated air and missile defense (IAMD) unit, equipped with the Tamir interceptor missile and non-kinetic capabilities.',
     triangleNumber: 2,
     footerName: 'USMC UNIT TRACKER',
     customImageUrl: null,
+    bgColor: '#ffffff',
+    camoColor: '#4a5568',
     showCamo: true,
     initialHpSquare: 2,
     placedDice: {
       10: [
         { type: 'purple', bigValue: 12, smallValue: '9' }
       ]
-    }
+    },
+    backBgColor: '#2b6cb0',
+    customBackImageUrl: null
   });
 
   const [clickMode, setClickMode] = useState('dice'); // 'dice' or 'hp'
@@ -51,6 +57,17 @@ function App() {
       const reader = new FileReader();
       reader.onload = (evt) => {
         setTrackerData((prev) => ({ ...prev, customImageUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBackImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setTrackerData((prev) => ({ ...prev, customBackImageUrl: evt.target.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -70,7 +87,7 @@ function App() {
 
   const handleDownloadTrackerPNG = () => {
     const name = trackerData.footerName ? trackerData.footerName.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'unit-tracker';
-    downloadUnitTrackerAsPNG('unit-tracker-export', `${name}.png`);
+    downloadUnitTrackerAsPNG('unit-tracker-export-front', 'unit-tracker-export-back', trackerExportFace, name);
   };
 
   // Toggle or add dice / HP placement on square click
@@ -201,6 +218,22 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
               <div>
                 <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  Tracker Type
+                </label>
+                <select
+                  value={trackerType}
+                  onChange={(e) => setTrackerType(e.target.value)}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
+                >
+                  <option value="standard">Standard Unit Tracker</option>
+                  <option value="carrier" disabled>
+                    Carrier Unit Tracker (Disabled / Coming Soon)
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                   Tracker Title
                 </label>
                 <input
@@ -269,10 +302,10 @@ function App() {
               </div>
 
               {/* Custom Token Image & Camouflage Pattern Options */}
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '180px' }}>
                   <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
-                    Token Image (Optional Upload)
+                    Front Token Image (Optional Upload)
                   </label>
                   <input
                     type="file"
@@ -299,9 +332,74 @@ function App() {
                   )}
                 </div>
 
+                <div style={{ flex: 1, minWidth: '180px' }}>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Backside Image (Optional Upload)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBackImageUpload}
+                    style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}
+                  />
+                  {trackerData.customBackImageUrl && (
+                    <button
+                      onClick={() => setTrackerData({ ...trackerData, customBackImageUrl: null })}
+                      style={{
+                        marginTop: '0.4rem',
+                        fontSize: '0.75rem',
+                        padding: '2px 6px',
+                        background: '#dc2626',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Reset Backside Image
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Color Customization (Base Color, Camo Color, Backside BG Color) */}
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
                   <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
-                    Camouflage Overlay
+                    Base Card Color
+                  </label>
+                  <input
+                    type="color"
+                    value={trackerData.bgColor}
+                    onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Camo Color
+                  </label>
+                  <input
+                    type="color"
+                    value={trackerData.camoColor}
+                    onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Backside Color
+                  </label>
+                  <input
+                    type="color"
+                    value={trackerData.backBgColor}
+                    onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Camo Overlay
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#fff' }}>
                     <input
@@ -401,6 +499,26 @@ function App() {
                 )}
               </div>
 
+              <div>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  Tracker Export Side
+                </label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  {['front', 'back', 'both'].map((f) => (
+                    <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#fff', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="trackerExportFace"
+                        value={f}
+                        checked={trackerExportFace === f}
+                        onChange={(e) => setTrackerExportFace(e.target.value)}
+                      />
+                      {f.toUpperCase()}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={handleDownloadTrackerPNG}
                 style={{
@@ -422,18 +540,34 @@ function App() {
                   marginTop: '0.5rem'
                 }}
               >
-                <span>📥</span> EXPORT UNIT TRACKER IMAGE (9.5 x 13.5)
+                <span>📥</span> EXPORT UNIT TRACKER ({trackerExportFace.toUpperCase()})
               </button>
             </div>
 
-            {/* Tracker Preview Render */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <UnitTracker
-                tokenData={tokenData}
-                trackerData={trackerData}
-                width={420}
-                onSquareClick={handleSquareClick}
-              />
+            {/* Tracker Preview Render (Front & Back) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}>
+              <div>
+                <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.5rem 0', textAlign: 'center' }}>FRONT SIDE</h3>
+                <UnitTracker
+                  id="unit-tracker-export-front"
+                  tokenData={tokenData}
+                  trackerData={trackerData}
+                  side="front"
+                  width={420}
+                  onSquareClick={handleSquareClick}
+                />
+              </div>
+
+              <div>
+                <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.5rem 0', textAlign: 'center' }}>BACK SIDE</h3>
+                <UnitTracker
+                  id="unit-tracker-export-back"
+                  tokenData={tokenData}
+                  trackerData={trackerData}
+                  side="back"
+                  width={420}
+                />
+              </div>
             </div>
           </div>
         </div>
