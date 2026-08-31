@@ -25,6 +25,56 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
 }
 
 /**
+ * Downloads the Unit Tracker as PNG image in 9.5 : 13.5 aspect ratio.
+ * @param {string} frontElementId - DOM ID of unit tracker front container
+ * @param {string} backElementId - DOM ID of unit tracker back container
+ * @param {string} exportFace - 'front' | 'back' | 'both'
+ * @param {string} baseFilename - Output PNG base filename
+ */
+export async function downloadUnitTrackerAsPNG(
+  frontElementId = 'unit-tracker-export-front',
+  backElementId = 'unit-tracker-export-back',
+  exportFace = 'both',
+  titleSlug = 'unit-tracker',
+  footerSlug = 'usmc-unit-tracker'
+) {
+  const downloadSingle = async (elementId, side) => {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      console.error(`Unit Tracker element with id ${elementId} not found`);
+      return;
+    }
+    const cleanTitle = (titleSlug || 'unit-tracker').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const cleanFooter = (footerSlug || 'usmc-unit-tracker').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const filename = `${cleanTitle}-${side}-${cleanFooter}.png`;
+
+    try {
+      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error(`Error generating unit tracker image (${filename}):`, err);
+    }
+  };
+
+  if (exportFace === 'front' || exportFace === 'both') {
+    await downloadSingle(frontElementId, 'front');
+  }
+
+  if (exportFace === 'back' || exportFace === 'both') {
+    if (exportFace === 'both') {
+      setTimeout(async () => {
+        await downloadSingle(backElementId, 'back');
+      }, 300);
+    } else {
+      await downloadSingle(backElementId, 'back');
+    }
+  }
+}
+
+/**
  * Generates and downloads a printable PDF containing front and back side tokens formatted on A4 page.
  * @param {string} frontElementId - DOM ID of front token element
  * @param {string} backElementId - DOM ID of back token element
