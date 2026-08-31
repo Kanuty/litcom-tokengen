@@ -29,18 +29,32 @@ function App() {
   // Unit Tracker state
   const [trackerData, setTrackerData] = useState({
     title: 'MRIC SECTION',
-    description: 'Medium Range Interdiction Capability Section',
-    triangleNumber: 3,
-    footerName: 'CUSTOM UNIT TRACKER',
-    initialHpSquare: 12,
+    description: 'The Medium Range Intercept Capability (MRIC) section is an integrated air and missile defense (IAMD) unit, equipped with the Tamir interceptor missile and non-kinetic capabilities.',
+    triangleNumber: 2,
+    footerName: 'USMC UNIT TRACKER',
+    customImageUrl: null,
+    showCamo: true,
+    initialHpSquare: 2,
     placedDice: {
-      12: [
-        { type: 'red', bigValue: 10, smallValue: '4' }
+      10: [
+        { type: 'purple', bigValue: 12, smallValue: '9' }
       ]
     }
   });
 
+  const [clickMode, setClickMode] = useState('dice'); // 'dice' or 'hp'
   const [selectedDieIndex, setSelectedDieIndex] = useState(0);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setTrackerData((prev) => ({ ...prev, customImageUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleDownloadPNG = () => {
     const name = tokenData.unitName || 'token';
@@ -61,42 +75,54 @@ function App() {
 
   // Toggle or add dice / HP placement on square click
   const handleSquareClick = (squareNum) => {
-    const currentPlaced = { ...trackerData.placedDice };
-    const currentList = currentPlaced[squareNum] || [];
+    if (clickMode === 'hp') {
+      // Set HP marker to clicked square
+      setTrackerData((prev) => ({
+        ...prev,
+        initialHpSquare: prev.initialHpSquare === squareNum ? null : squareNum
+      }));
+    } else {
+      // Place or remove die
+      const currentPlaced = { ...trackerData.placedDice };
+      const currentList = currentPlaced[squareNum] || [];
+      const availableDie = tokenData.dice[selectedDieIndex] || tokenData.dice[0];
 
-    // Selected die from tokenData.dice
-    const availableDie = tokenData.dice[selectedDieIndex] || tokenData.dice[0];
+      if (availableDie) {
+        const existsIndex = currentList.findIndex(
+          (d) => d.type === availableDie.type && d.bigValue === availableDie.bigValue && d.smallValue === availableDie.smallValue
+        );
 
-    if (availableDie) {
-      // Check if die already placed on this square; if yes, cycle or remove, else add
-      const existsIndex = currentList.findIndex(
-        (d) => d.type === availableDie.type && d.bigValue === availableDie.bigValue && d.smallValue === availableDie.smallValue
-      );
-
-      if (existsIndex >= 0) {
-        // Remove this die
-        const updated = [...currentList];
-        updated.splice(existsIndex, 1);
-        if (updated.length === 0) {
-          delete currentPlaced[squareNum];
+        if (existsIndex >= 0) {
+          const updated = [...currentList];
+          updated.splice(existsIndex, 1);
+          if (updated.length === 0) {
+            delete currentPlaced[squareNum];
+          } else {
+            currentPlaced[squareNum] = updated;
+          }
         } else {
-          currentPlaced[squareNum] = updated;
+          currentPlaced[squareNum] = [...currentList, availableDie];
         }
-      } else {
-        // Add die
-        currentPlaced[squareNum] = [...currentList, availableDie];
-      }
 
-      setTrackerData({
-        ...trackerData,
-        placedDice: currentPlaced
-      });
+        setTrackerData((prev) => ({
+          ...prev,
+          placedDice: currentPlaced
+        }));
+      }
     }
   };
 
   return (
     <div className="app-container">
-      <header className="app-header">
+      <nav className="sticky-nav">
+        <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
+        <div className="nav-links">
+          <a href="#token-generator" className="nav-link">🎯 TOKEN GENERATOR</a>
+          <a href="#unit-tracker" className="nav-link">📋 UNIT TRACKER</a>
+        </div>
+      </nav>
+
+      <header className="app-header" id="token-generator">
         <h1>Littoral Commander Token & Tracker Generator</h1>
         <p>Unofficial tool for rapid design of custom tokens and unit trackers</p>
       </header>
@@ -119,7 +145,7 @@ function App() {
       </main>
 
       {/* UNIT TRACKER SECTION */}
-      <section className="unit-tracker-section" style={{ marginTop: '2.5rem' }}>
+      <section className="unit-tracker-section" id="unit-tracker" style={{ marginTop: '2.5rem' }}>
         <div
           style={{
             background: 'var(--panel-bg)',
@@ -189,11 +215,20 @@ function App() {
                 <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                   Description (under title)
                 </label>
-                <input
-                  type="text"
+                <textarea
+                  rows="3"
                   value={trackerData.description}
                   onChange={(e) => setTrackerData({ ...trackerData, description: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    background: '#0d1322',
+                    color: 'var(--accent-cyan)',
+                    border: '1px solid #1e293b',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
                 />
               </div>
 
@@ -223,13 +258,59 @@ function App() {
                     type="number"
                     min="1"
                     max="20"
-                    value={trackerData.initialHpSquare}
+                    value={trackerData.initialHpSquare || ''}
                     onChange={(e) => {
                       const val = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
                       setTrackerData({ ...trackerData, initialHpSquare: val });
                     }}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
                   />
+                </div>
+              </div>
+
+              {/* Custom Token Image & Camouflage Pattern Options */}
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Token Image (Optional Upload)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}
+                  />
+                  {trackerData.customImageUrl && (
+                    <button
+                      onClick={() => setTrackerData({ ...trackerData, customImageUrl: null })}
+                      style={{
+                        marginTop: '0.4rem',
+                        fontSize: '0.75rem',
+                        padding: '2px 6px',
+                        background: '#dc2626',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Reset to Token Preview
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Camouflage Overlay
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#fff' }}>
+                    <input
+                      type="checkbox"
+                      checked={trackerData.showCamo}
+                      onChange={(e) => setTrackerData({ ...trackerData, showCamo: e.target.checked })}
+                    />
+                    Enable Camo
+                  </label>
                 </div>
               </div>
 
@@ -245,39 +326,78 @@ function App() {
                 />
               </div>
 
-              {/* Dice Placement Selector & Instructions */}
+              {/* Grid Interactive Placement Control */}
               <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
                 <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
-                  Interactive Dice Placement on Grid Squares
+                  Interactive Grid Placement Mode
                 </label>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.8rem 0' }}>
-                  Select one of your unit token dice below, then click any numbered square on the tracker to toggle placing that die on it!
-                </p>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
+                  <button
+                    onClick={() => setClickMode('dice')}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      border: clickMode === 'dice' ? '2px solid #00f0ff' : '1px solid #334155',
+                      background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : '#111827',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🎲 Place Token Dice
+                  </button>
+                  <button
+                    onClick={() => setClickMode('hp')}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      border: clickMode === 'hp' ? '2px solid #00f0ff' : '1px solid #334155',
+                      background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : '#111827',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ⬛ Set HP Square Marker
+                  </button>
+                </div>
 
-                {tokenData.dice && tokenData.dice.length > 0 ? (
-                  <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                    {tokenData.dice.map((die, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => setSelectedDieIndex(idx)}
-                        style={{
-                          padding: '0.4rem 0.8rem',
-                          borderRadius: '4px',
-                          border: selectedDieIndex === idx ? '2px solid #00f0ff' : '1px solid #334155',
-                          background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#111827',
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem'
-                        }}
-                      >
-                        Die #{idx + 1} ({die.type.toUpperCase()}: {die.bigValue}
-                        <sup>{die.smallValue}</sup>)
+                {clickMode === 'dice' && (
+                  <div>
+                    <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.8rem 0' }}>
+                      Select a die type below, then click any numbered square on the tracker to place/remove it!
+                    </p>
+                    {tokenData.dice && tokenData.dice.length > 0 ? (
+                      <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {tokenData.dice.map((die, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => setSelectedDieIndex(idx)}
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              borderRadius: '4px',
+                              border: selectedDieIndex === idx ? '2px solid #00f0ff' : '1px solid #334155',
+                              background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#111827',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            Die #{idx + 1} ({die.type.toUpperCase()})
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <span style={{ color: '#f87171', fontSize: '0.85rem' }}>No dice defined on unit token.</span>
+                    )}
                   </div>
-                ) : (
-                  <span style={{ color: '#f87171', fontSize: '0.85rem' }}>No dice defined on unit token.</span>
+                )}
+
+                {clickMode === 'hp' && (
+                  <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0 }}>
+                    Click any numbered square (1–20) on the preview to place or move the black Initial HP square!
+                  </p>
                 )}
               </div>
 
