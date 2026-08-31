@@ -35,14 +35,19 @@ export async function downloadUnitTrackerAsPNG(
   frontElementId = 'unit-tracker-export-front',
   backElementId = 'unit-tracker-export-back',
   exportFace = 'both',
-  baseFilename = 'unit-tracker'
+  titleSlug = 'unit-tracker',
+  footerSlug = 'usmc-unit-tracker'
 ) {
-  const downloadSingle = async (elementId, filename) => {
+  const downloadSingle = async (elementId, side) => {
     const element = document.getElementById(elementId);
     if (!element) {
       console.error(`Unit Tracker element with id ${elementId} not found`);
       return;
     }
+    const cleanTitle = (titleSlug || 'unit-tracker').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const cleanFooter = (footerSlug || 'usmc-unit-tracker').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const filename = `${cleanTitle}-${side}-${cleanFooter}.png`;
+
     try {
       const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
       const link = document.createElement('a');
@@ -55,16 +60,16 @@ export async function downloadUnitTrackerAsPNG(
   };
 
   if (exportFace === 'front' || exportFace === 'both') {
-    await downloadSingle(frontElementId, `${baseFilename}-front.png`);
+    await downloadSingle(frontElementId, 'front');
   }
 
   if (exportFace === 'back' || exportFace === 'both') {
     if (exportFace === 'both') {
       setTimeout(async () => {
-        await downloadSingle(backElementId, `${baseFilename}-back.png`);
+        await downloadSingle(backElementId, 'back');
       }, 300);
     } else {
-      await downloadSingle(backElementId, `${baseFilename}-back.png`);
+      await downloadSingle(backElementId, 'back');
     }
   }
 }
