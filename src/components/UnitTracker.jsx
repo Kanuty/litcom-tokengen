@@ -1,12 +1,10 @@
 import React from 'react';
 import { LandToken } from './LandToken';
 
-// MiniDie component to render token dice inside tracker squares
+// MiniDie component to render token dice inside tracker squares (without numbers)
 export function MiniDie({ die, size = 24 }) {
   if (!die) return null;
   const diceType = die.type || 'red';
-  const bigVal = die.bigValue ?? 10;
-  const smallVal = die.smallValue ?? '0';
 
   let defaultBg = '#c83232';
   if (diceType === 'green') defaultBg = '#2e7d32';
@@ -27,10 +25,7 @@ export function MiniDie({ die, size = 24 }) {
         position: 'relative',
         display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        color: '#ffffff',
-        fontWeight: 'bold',
-        fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif"
+        justifyContent: 'center'
       }}
     >
       <svg
@@ -62,32 +57,6 @@ export function MiniDie({ die, size = 24 }) {
           <circle cx="50" cy="50" r="45" fill={diceBg} stroke={strokeC} strokeWidth={strokeW} />
         )}
       </svg>
-      <div
-        style={{
-          zIndex: 1,
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'center',
-          lineHeight: 1,
-          marginTop: '-1px'
-        }}
-      >
-        <span style={{ fontSize: size * 0.44, fontWeight: 900, textShadow: '1px 1px 2px rgba(0,0,0,0.6)' }}>
-          {bigVal}
-        </span>
-        <span
-          style={{
-            fontSize: size * 0.22,
-            fontWeight: 800,
-            verticalAlign: 'top',
-            alignSelf: 'flex-start',
-            marginLeft: '0.5px',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.6)'
-          }}
-        >
-          {smallVal}
-        </span>
-      </div>
     </div>
   );
 }
@@ -107,6 +76,9 @@ export function UnitTracker({
     description = 'Medium Range Interdiction Capability Section',
     triangleNumber = 3,
     footerName = 'CUSTOM UNIT TRACKER',
+    customImageUrl = null,
+    bgColor = '#e2e8f0',
+    showCamo = true,
     initialHpSquare = 12, // 1 to 20
     placedDice = {} // { [squareNum]: [dieObject1, dieObject2] }
   } = trackerData || {};
@@ -135,30 +107,62 @@ export function UnitTracker({
         userSelect: 'none'
       }}
     >
-      {/* Attachments on border (2 small triangles pointing up on top border) */}
+      {/* Camouflage Pattern Background Overlay */}
+      {showCamo && (
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            opacity: 0.12,
+            zIndex: 0
+          }}
+        >
+          <pattern id="camo-pattern" width="120" height="120" patternUnits="userSpaceOnUse">
+            <path d="M 0,20 Q 30,0 60,30 T 120,20 L 120,60 Q 90,80 60,50 T 0,70 Z" fill="#4a5568" />
+            <path d="M 20,80 Q 50,60 80,90 T 120,100 L 120,120 L 0,120 Z" fill="#2d3748" />
+            <circle cx="30" cy="40" r="15" fill="#718096" />
+            <circle cx="90" cy="30" r="22" fill="#a0aec0" />
+            <circle cx="70" cy="100" r="18" fill="#4a5568" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#camo-pattern)" />
+        </svg>
+      )}
+
+      {/* Attachments on border (centered ▲ ATTACHMENT ▲) */}
       <div
         style={{
           position: 'absolute',
           top: '-1px',
-          left: '32%',
+          left: '50%',
+          transform: 'translateX(-50%)',
           display: 'flex',
-          gap: '8px',
-          zIndex: 10
+          alignItems: 'center',
+          gap: '6px',
+          zIndex: 10,
+          background: '#ffffff',
+          padding: '0 6px'
         }}
       >
-        <svg width="14" height="10" viewBox="0 0 10 8">
-          <polygon points="5,0 10,8 0,8" fill="#000000" />
-        </svg>
-        <svg width="14" height="10" viewBox="0 0 10 8">
-          <polygon points="5,0 10,8 0,8" fill="#000000" />
-        </svg>
+        <span style={{ fontSize: '0.65rem', color: '#000000' }}>▲</span>
+        <span style={{ fontSize: '0.65rem', fontWeight: '900', letterSpacing: '1.5px', color: '#000000' }}>
+          ATTACHMENT
+        </span>
+        <span style={{ fontSize: '0.65rem', color: '#000000' }}>▲</span>
       </div>
 
       {/* Header Area */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-        {/* Upper Left Token Preview */}
-        <div style={{ flexShrink: 0, border: '1.5px solid #000000', borderRadius: '4px', overflow: 'hidden' }}>
-          <LandToken tokenData={tokenData} side="front" size={82} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', zIndex: 1 }}>
+        {/* Upper Left Token Preview or Custom Image */}
+        <div style={{ flexShrink: 0, border: '1.5px solid #000000', borderRadius: '4px', overflow: 'hidden', width: 82, height: 82, background: '#ffffff' }}>
+          {customImageUrl ? (
+            <img src={customImageUrl} alt="Token" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <LandToken tokenData={tokenData} side="front" size={82} />
+          )}
         </div>
 
         {/* Title, Description & White Triangle with Number */}
@@ -181,10 +185,11 @@ export function UnitTracker({
               <p
                 style={{
                   margin: '4px 0 0 0',
-                  fontSize: '0.72rem',
-                  color: '#333333',
-                  lineHeight: 1.25,
-                  fontWeight: '600'
+                  fontSize: '0.68rem',
+                  color: '#1a202c',
+                  lineHeight: 1.2,
+                  fontWeight: '500',
+                  textAlign: 'left'
                 }}
               >
                 {description}
@@ -230,7 +235,8 @@ export function UnitTracker({
           gridTemplateRows: 'repeat(4, 1fr)',
           gap: '8px 10px',
           flex: 1,
-          margin: '14px 0 8px 0'
+          margin: '14px 0 8px 0',
+          zIndex: 1
         }}
       >
         {squares.map((num) => {
@@ -243,14 +249,14 @@ export function UnitTracker({
               onClick={() => onSquareClick && onSquareClick(num)}
               style={{
                 border: '2px solid #000000',
-                borderRadius: '3px',
+                borderRadius: '2px',
                 backgroundColor: '#ffffff',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '4px 2px',
+                padding: '2px',
                 cursor: onSquareClick ? 'pointer' : 'default',
                 boxSizing: 'border-box'
               }}
@@ -258,44 +264,49 @@ export function UnitTracker({
               {/* Upper half: Markers (Initial HP black square and/or Token Dice) */}
               <div
                 style={{
-                  flex: 1,
+                  height: '42%',
                   width: '100%',
                   display: 'flex',
                   flexWrap: 'wrap',
-                  alignItems: 'center',
+                  alignItems: 'flex-start',
                   justifyContent: 'center',
                   gap: '2px',
-                  paddingTop: '2px'
+                  boxSizing: 'border-box',
+                  overflow: 'hidden'
                 }}
               >
                 {isInitialHp && (
                   <div
                     title="Initial HP"
                     style={{
-                      width: '20px',
-                      height: '20px',
+                      width: '18px',
+                      height: '18px',
                       backgroundColor: '#000000',
-                      borderRadius: '2px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.4)'
+                      borderRadius: '1px'
                     }}
                   />
                 )}
 
                 {diceOnSquare.map((dieObj, dIdx) => (
-                  <MiniDie key={dIdx} die={dieObj} size={22} />
+                  <MiniDie key={dIdx} die={dieObj} size={20} />
                 ))}
               </div>
 
-              {/* Lower half: Number centered horizontally */}
+              {/* Lower half: Double-sized grey military number centered horizontally */}
               <div
                 style={{
+                  height: '58%',
                   width: '100%',
-                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontWeight: '900',
-                  fontSize: '1rem',
+                  fontSize: '2.1rem',
+                  fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
                   lineHeight: 1,
-                  color: '#000000',
-                  paddingBottom: '2px'
+                  color: '#8c939d',
+                  paddingBottom: '2px',
+                  boxSizing: 'border-box'
                 }}
               >
                 {num}
