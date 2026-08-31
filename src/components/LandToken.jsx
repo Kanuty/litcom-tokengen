@@ -537,6 +537,137 @@ function RenderFlag({ flagKey, customUrl }) {
     );
   }
 
+  if (flagKey === 'south_korea') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        <g transform="translate(50,30) rotate(-33)">
+          <path d="M 0 -15 A 15 15 0 0 1 0 15 A 7.5 7.5 0 0 1 0 0 A 7.5 7.5 0 0 0 0 -15" fill="#cd2e3a" />
+          <path d="M 0 15 A 15 15 0 0 1 0 -15 A 7.5 7.5 0 0 1 0 0 A 7.5 7.5 0 0 0 0 15" fill="#0047a0" />
+        </g>
+        <rect x="18" y="10" width="3" height="12" fill="#000" transform="rotate(-33 19.5 16)" />
+        <rect x="23" y="10" width="3" height="12" fill="#000" transform="rotate(-33 24.5 16)" />
+        <rect x="28" y="10" width="3" height="12" fill="#000" transform="rotate(-33 29.5 16)" />
+        <rect x="68" y="38" width="3" height="12" fill="#000" transform="rotate(-33 69.5 44)" />
+        <rect x="73" y="38" width="3" height="12" fill="#000" transform="rotate(-33 74.5 44)" />
+        <rect x="78" y="38" width="3" height="12" fill="#000" transform="rotate(-33 79.5 44)" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'north_korea') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#024fa2" />
+        <rect y="10" width="100" height="40" fill="#ffffff" />
+        <rect y="12" width="100" height="36" fill="#ed1c24" />
+        <circle cx="35" cy="30" r="13" fill="#ffffff" />
+        <polygon points="35,18 38.5,27 48,27 40,32.5 43,42 35,36 27,42 30,32.5 22,27 31.5,27" fill="#ed1c24" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'taiwan') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#fe0000" />
+        <rect width="50" height="30" fill="#000095" />
+        <circle cx="25" cy="15" r="8" fill="#ffffff" />
+        <circle cx="25" cy="15" r="9.5" fill="none" stroke="#ffffff" strokeWidth="2" strokeDasharray="2,2" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'vietnam') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#da251d" />
+        <polygon points="50,14 54.7,28.5 70,28.5 57.6,37.5 62.4,52 50,43 37.6,52 42.4,37.5 30,28.5 45.3,28.5" fill="#ffff00" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'greece') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#0d5eaf" />
+        {[1, 3, 5, 7].map((i) => (
+          <rect key={i} y={i * (60 / 9)} width="100" height={60 / 9} fill="#ffffff" />
+        ))}
+        <rect width="33.3" height="33.3" fill="#0d5eaf" />
+        <rect x="13.3" y="0" width="6.7" height="33.3" fill="#ffffff" />
+        <rect x="0" y="13.3" width="33.3" height="6.7" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'turkey') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#e30a17" />
+        <circle cx="40" cy="30" r="15" fill="#ffffff" />
+        <circle cx="44" cy="30" r="12" fill="#e30a17" />
+        <polygon points="62,30 56.5,27.5 57.5,21.5 52,24.5 48.5,19.5 48,25.5 42,27 47,30.5 46.5,36.5 51.5,33" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'norway') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ba0c2f" />
+        <rect x="24" y="0" width="16" height="60" fill="#ffffff" />
+        <rect x="0" y="22" width="100" height="16" fill="#ffffff" />
+        <rect x="28" y="0" width="8" height="60" fill="#00205b" />
+        <rect x="0" y="26" width="100" height="8" fill="#00205b" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'denmark') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#c8102e" />
+        <rect x="30" y="0" width="10" height="60" fill="#ffffff" />
+        <rect x="0" y="25" width="100" height="10" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'belgium') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="33.33" height="60" fill="#000000" />
+        <rect x="33.33" width="33.34" height="60" fill="#fdae17" />
+        <rect x="66.67" width="33.33" height="60" fill="#ef3340" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'netherlands') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#ae1c28" />
+        <rect y="20" width="100" height="20" fill="#ffffff" />
+        <rect y="40" width="100" height="20" fill="#21468b" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'un') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#4b92db" />
+        <circle cx="50" cy="30" r="18" fill="none" stroke="#ffffff" strokeWidth="1.5" />
+        <circle cx="50" cy="30" r="12" fill="none" stroke="#ffffff" strokeWidth="1" />
+        <circle cx="50" cy="30" r="6" fill="none" stroke="#ffffff" strokeWidth="1" />
+        <line x1="50" y1="12" x2="50" y2="48" stroke="#ffffff" strokeWidth="1" />
+        <line x1="32" y1="30" x2="68" y2="30" stroke="#ffffff" strokeWidth="1" />
+        <path d="M 32 40 Q 50 50 68 40" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
   return null;
 }
 
