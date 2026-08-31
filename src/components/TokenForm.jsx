@@ -72,7 +72,7 @@ export function TokenForm({ tokenData, onChange }) {
         >
           <option value="land">Land Unit</option>
           <option value="naval">Naval Unit</option>
-          <option value="misc" disabled>Misc Token (Coming soon)</option>
+          <option value="misc">Misc Token</option>
         </select>
       </div>
 
@@ -191,33 +191,169 @@ export function TokenForm({ tokenData, onChange }) {
         </select>
       </div>
 
-      {/* Unit Name & Movement */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-        <div>
-          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
-            Unit Name / Designation
-          </label>
-          <input
-            type="text"
-            value={tokenData.unitName ?? '1-1 CHARLIE'}
-            onChange={(e) => handleChange('unitName', e.target.value)}
-            placeholder="e.g. 1-1 CHARLIE"
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </div>
+      {/* Unit Name & Movement (For Land and Naval Tokens) */}
+      {tokenData.category !== 'misc' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+          <div>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
+              Unit Name / Designation
+            </label>
+            <input
+              type="text"
+              value={tokenData.unitName ?? '1-1 CHARLIE'}
+              onChange={(e) => handleChange('unitName', e.target.value)}
+              placeholder="e.g. 1-1 CHARLIE"
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
 
-        <div>
-          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
-            Movement Range
-          </label>
-          <input
-            type="number"
-            value={tokenData.movementRange ?? 3}
-            onChange={(e) => handleChange('movementRange', parseInt(e.target.value) || 0)}
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
+          <div>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
+              Movement Range
+            </label>
+            <input
+              type="number"
+              value={tokenData.movementRange ?? 3}
+              onChange={(e) => handleChange('movementRange', parseInt(e.target.value) || 0)}
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Misc Token Controls */}
+      {tokenData.category === 'misc' && (
+        <div style={{ borderTop: '1px solid #1f293d', paddingTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <h4 style={{ margin: 0, color: '#00f0ff' }}>Misc Token Controls</h4>
+
+          <div>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>
+              Misc Token Sub-Type
+            </label>
+            <select
+              value={tokenData.miscType || 'task_force'}
+              onChange={(e) => handleChange('miscType', e.target.value)}
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="task_force">1. Task Force (Banner + Name)</option>
+              <option value="text_number">2. Top Text + Center Number</option>
+              <option value="text_image">3. Top Text + Center Image</option>
+              <option value="image_number">4. Center Image + Top-Right Number</option>
+            </select>
+          </div>
+
+          {tokenData.miscType === 'task_force' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Banner Title
+                </label>
+                <input
+                  type="text"
+                  value={tokenData.miscBannerText ?? 'TASK FORCE'}
+                  onChange={(e) => handleChange('miscBannerText', e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Task Force Name
+                </label>
+                <input
+                  type="text"
+                  value={tokenData.unitName ?? 'NEW YORK'}
+                  onChange={(e) => handleChange('unitName', e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Banner Color
+                </label>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={tokenData.miscBannerColor || '#ffffff'}
+                    onChange={(e) => handleChange('miscBannerColor', e.target.value)}
+                    style={{ width: '36px', height: '32px', border: 'none', cursor: 'pointer' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscBannerColor', '#ffffff')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000', border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    White
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscBannerColor', '#facc15')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    Yellow
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(tokenData.miscType === 'text_number' || tokenData.miscType === 'text_image') && (
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                Top Text Label
+              </label>
+              <input
+                type="text"
+                value={tokenData.miscTopText ?? (tokenData.miscType === 'text_number' ? 'ISR' : 'MILDEC')}
+                onChange={(e) => handleChange('miscTopText', e.target.value)}
+                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+              />
+            </div>
+          )}
+
+          {(tokenData.miscType === 'text_number' || tokenData.miscType === 'image_number') && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>
+                  Number (0-9)
+                </label>
+                {tokenData.miscType === 'image_number' && (
+                  <label style={{ fontSize: '0.8rem', color: '#00f0ff', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={tokenData.miscNumberShow !== false}
+                      onChange={(e) => handleChange('miscNumberShow', e.target.checked)}
+                      style={{ marginRight: '4px' }}
+                    />
+                    Show Number
+                  </label>
+                )}
+              </div>
+              <input
+                type="number"
+                min="0"
+                max="9"
+                value={tokenData.miscNumber ?? 4}
+                onChange={(e) => handleChange('miscNumber', parseInt(e.target.value) || 0)}
+                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+              />
+            </div>
+          )}
+
+          {(tokenData.miscType === 'text_image' || tokenData.miscType === 'image_number') && (
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem', color: '#00f0ff' }}>
+                Center Image Upload
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload('customMiscImage', e)}
+                style={{ width: '100%', padding: '0.3rem', borderRadius: '4px', background: '#0d1322', color: '#9ca3af' }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Reverse Face Image / Flag Controls */}
       <div style={{ borderTop: '1px solid #1f293d', paddingTop: '0.8rem' }}>
@@ -259,7 +395,6 @@ export function TokenForm({ tokenData, onChange }) {
             <option value="taiwan">Taiwan Flag</option>
             <option value="turkey">Turkey Flag</option>
             <option value="ukraine">Ukraine Flag</option>
-            <option value="un">United Nations Flag</option>
             <option value="usa">USA Flag</option>
             <option value="vietnam">Vietnam Flag</option>
             <option value="custom">Custom Uploaded Image</option>
