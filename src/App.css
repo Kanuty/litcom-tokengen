@@ -63,6 +63,9 @@ body {
   .app-main {
     grid-template-columns: 1fr 420px;
   }
+  .tracker-grid {
+    grid-template-columns: 1fr 420px !important;
+  }
 }
 
 .form-section {
