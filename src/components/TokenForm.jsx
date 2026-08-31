@@ -72,8 +72,44 @@ export function TokenForm({ tokenData, onChange }) {
         >
           <option value="land">Land Unit</option>
           <option value="naval">Naval Unit</option>
-          <option value="misc" disabled>Misc Token (Coming soon)</option>
+          <option value="misc">Misc Token</option>
         </select>
+      </div>
+
+      {/* Global Text Color */}
+      <div>
+        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>
+          Global Text Color
+        </label>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <input
+            type="color"
+            value={tokenData.textColor || '#ffffff'}
+            onChange={(e) => handleChange('textColor', e.target.value)}
+            style={{ width: '36px', height: '32px', border: 'none', cursor: 'pointer' }}
+            title="Choose Text Color"
+          />
+          <input
+            type="text"
+            value={tokenData.textColor || '#ffffff'}
+            onChange={(e) => handleChange('textColor', e.target.value)}
+            style={{ width: '80px', padding: '0.3rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '0.85rem' }}
+          />
+          <button
+            type="button"
+            onClick={() => handleChange('textColor', '#ffffff')}
+            style={{ padding: '4px 10px', fontSize: '11px', background: '#ffffff', color: '#000000', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            White
+          </button>
+          <button
+            type="button"
+            onClick={() => handleChange('textColor', '#facc15')}
+            style={{ padding: '4px 10px', fontSize: '11px', background: '#facc15', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Yellow
+          </button>
+        </div>
       </div>
 
       {/* Colors Section */}
@@ -191,33 +227,199 @@ export function TokenForm({ tokenData, onChange }) {
         </select>
       </div>
 
-      {/* Unit Name & Movement */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-        <div>
-          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
-            Unit Name / Designation
-          </label>
-          <input
-            type="text"
-            value={tokenData.unitName ?? '1-1 CHARLIE'}
-            onChange={(e) => handleChange('unitName', e.target.value)}
-            placeholder="e.g. 1-1 CHARLIE"
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </div>
+      {/* Unit Name & Movement (For Land and Naval Tokens) */}
+      {tokenData.category !== 'misc' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+          <div>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
+              Unit Name / Designation
+            </label>
+            <input
+              type="text"
+              value={tokenData.unitName ?? '1-1 CHARLIE'}
+              onChange={(e) => handleChange('unitName', e.target.value)}
+              placeholder="e.g. 1-1 CHARLIE"
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
 
-        <div>
-          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
-            Movement Range
-          </label>
-          <input
-            type="number"
-            value={tokenData.movementRange ?? 3}
-            onChange={(e) => handleChange('movementRange', parseInt(e.target.value) || 0)}
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
+          <div>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
+              Movement Range
+            </label>
+            <input
+              type="number"
+              value={tokenData.movementRange ?? 3}
+              onChange={(e) => handleChange('movementRange', parseInt(e.target.value) || 0)}
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Misc Token Controls */}
+      {tokenData.category === 'misc' && (
+        <div style={{ borderTop: '1px solid #1f293d', paddingTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <h4 style={{ margin: 0, color: '#00f0ff' }}>Misc Token Controls</h4>
+
+          <div>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>
+              Misc Token Sub-Type
+            </label>
+            <select
+              value={tokenData.miscType || 'task_force'}
+              onChange={(e) => handleChange('miscType', e.target.value)}
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="task_force">1. Task Force (Banner + Name)</option>
+              <option value="text_number">2. Top Text + Center Number</option>
+              <option value="text_image">3. Top Text + Center Image</option>
+              <option value="image_number">4. Center Image + Top-Right Number</option>
+            </select>
+          </div>
+
+          {tokenData.miscType === 'task_force' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Banner Title
+                </label>
+                <input
+                  type="text"
+                  value={tokenData.miscBannerText ?? 'TASK FORCE'}
+                  onChange={(e) => handleChange('miscBannerText', e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Task Force Name
+                </label>
+                <input
+                  type="text"
+                  value={tokenData.unitName ?? 'NEW YORK'}
+                  onChange={(e) => handleChange('unitName', e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Banner Color
+                </label>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={tokenData.miscBannerColor || '#ffffff'}
+                    onChange={(e) => handleChange('miscBannerColor', e.target.value)}
+                    style={{ width: '36px', height: '32px', border: 'none', cursor: 'pointer' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscBannerColor', '#ffffff')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000', border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    White
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscBannerColor', '#facc15')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    Yellow
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(tokenData.miscType === 'text_number' || tokenData.miscType === 'text_image') && (
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                Top Text Label
+              </label>
+              <input
+                type="text"
+                value={tokenData.miscTopText ?? (tokenData.miscType === 'text_number' ? 'ISR' : 'MILDEC')}
+                onChange={(e) => handleChange('miscTopText', e.target.value)}
+                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+              />
+            </div>
+          )}
+
+          {(tokenData.miscType === 'text_number' || tokenData.miscType === 'image_number') && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                  <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>
+                    Number (0-9)
+                  </label>
+                  {tokenData.miscType === 'image_number' && (
+                    <label style={{ fontSize: '0.8rem', color: '#00f0ff', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={tokenData.miscNumberShow !== false}
+                        onChange={(e) => handleChange('miscNumberShow', e.target.checked)}
+                        style={{ marginRight: '4px' }}
+                      />
+                      Show Number
+                    </label>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  max="9"
+                  value={tokenData.miscNumber ?? 4}
+                  onChange={(e) => handleChange('miscNumber', parseInt(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Number Color
+                </label>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={tokenData.miscNumberColor || '#ffffff'}
+                    onChange={(e) => handleChange('miscNumberColor', e.target.value)}
+                    style={{ width: '36px', height: '32px', border: 'none', cursor: 'pointer' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscNumberColor', '#ffffff')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000', border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    White
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscNumberColor', '#facc15')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    Yellow
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(tokenData.miscType === 'text_image' || tokenData.miscType === 'image_number') && (
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem', color: '#00f0ff' }}>
+                Center Image Upload
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload('customMiscImage', e)}
+                style={{ width: '100%', padding: '0.3rem', borderRadius: '4px', background: '#0d1322', color: '#9ca3af' }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Reverse Face Image / Flag Controls */}
       <div style={{ borderTop: '1px solid #1f293d', paddingTop: '0.8rem' }}>
@@ -231,10 +433,36 @@ export function TokenForm({ tokenData, onChange }) {
             style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
           >
             <option value="none">None (Solid Background)</option>
-            <option value="nato">NATO Flag</option>
-            <option value="usa">USA Flag</option>
-            <option value="russia">Russia Flag</option>
+            <option value="australia">Australia Flag</option>
+            <option value="belarus">Belarus Flag</option>
+            <option value="belgium">Belgium Flag</option>
             <option value="china">China Flag</option>
+            <option value="belarus_democratic">Democratic Belarus Flag</option>
+            <option value="denmark">Denmark Flag</option>
+            <option value="estonia">Estonia Flag</option>
+            <option value="ue">EU / UE Flag</option>
+            <option value="finland">Finland Flag</option>
+            <option value="france">France Flag</option>
+            <option value="germany">Germany Flag</option>
+            <option value="great_britain">Great Britain Flag</option>
+            <option value="greece">Greece Flag</option>
+            <option value="italy">Italy Flag</option>
+            <option value="japan">Japan Flag</option>
+            <option value="latvia">Latvia Flag</option>
+            <option value="lithuania">Lithuania Flag</option>
+            <option value="nato">NATO Flag</option>
+            <option value="netherlands">Netherlands Flag</option>
+            <option value="north_korea">North Korea Flag</option>
+            <option value="norway">Norway Flag</option>
+            <option value="poland">Poland Flag</option>
+            <option value="russia">Russia Flag</option>
+            <option value="south_korea">South Korea Flag</option>
+            <option value="sweden">Sweden Flag</option>
+            <option value="taiwan">Taiwan Flag</option>
+            <option value="turkey">Turkey Flag</option>
+            <option value="ukraine">Ukraine Flag</option>
+            <option value="usa">USA Flag</option>
+            <option value="vietnam">Vietnam Flag</option>
             <option value="custom">Custom Uploaded Image</option>
           </select>
 
@@ -305,21 +533,36 @@ export function TokenForm({ tokenData, onChange }) {
               onChange={(e) => handleChange('symbolType', e.target.value)}
               style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
             >
-              <option value="infantry">Infantry (X)</option>
-              <option value="armor">Armor / Tank (Oval)</option>
-              <option value="recon">Reconnaissance (Slash)</option>
-              <option value="artillery">Artillery (Dot)</option>
-              <option value="rocket_artillery">Rocket Artillery (Dot + Arrow)</option>
-              <option value="mechanized_artillery">Mechanized Artillery (Oval + Dot)</option>
               <option value="air_defense">Air Defense (Arc Curve)</option>
               <option value="anti_tank">Anti-Tank / Anti-Armor (Chevron)</option>
-              <option value="sof">Special Operation Forces (SOF)</option>
+              <option value="armor">Armor / Tank (Oval)</option>
+              <option value="artillery">Artillery (Dot)</option>
               <option value="engineer">Engineer (Bridge)</option>
+              <option value="infantry">Infantry (X)</option>
+              <option value="mechanized_artillery">Mechanized Artillery (Oval + Dot)</option>
+              <option value="recon">Reconnaissance (Slash)</option>
+              <option value="rocket_artillery">Rocket Artillery (Dot + Arrow)</option>
+              <option value="sof">Special Operation Forces (SOF)</option>
               <option value="supply">Supply (Horizontal Bar)</option>
-              <option value="none">None / Custom</option>
+              <option value="custom">Custom Image (Uploaded)</option>
+              <option value="none">None</option>
             </select>
           </div>
         </div>
+
+        {tokenData.symbolType === 'custom' && (
+          <div style={{ marginBottom: '0.8rem' }}>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem', color: '#00f0ff' }}>
+              Upload Custom NATO Symbol Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFileUpload('customNatoImage', e)}
+              style={{ width: '100%', padding: '0.3rem', borderRadius: '4px', background: '#0d1322', color: '#9ca3af' }}
+            />
+          </div>
+        )}
 
         {/* Stackable Modifiers */}
         <div style={{ marginBottom: '0.8rem' }}>

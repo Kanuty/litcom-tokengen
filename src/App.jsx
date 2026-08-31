@@ -42,7 +42,7 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1>Littoral Commander Token Generator</h1>
-        <p>For rapid design of custom tokens</p>
+        <p>Unofficial tool for rapid design of custom tokens</p>
       </header>
 
       <main className="app-main">
