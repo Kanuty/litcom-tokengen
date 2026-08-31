@@ -95,8 +95,8 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
 
       {/* Offscreen / Export Container so both front and back always exist in DOM for PNG export */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', pointerEvents: 'none' }}>
-        <LandToken id="token-preview-front" tokenData={tokenData} side="front" size={300} />
-        <LandToken id="token-preview-back" tokenData={tokenData} side="back" size={300} />
+        <LandToken id="token-preview-front" tokenData={tokenData} side="front" size={tokenData.tokenSize || 250} />
+        <LandToken id="token-preview-back" tokenData={tokenData} side="back" size={tokenData.tokenSize || 250} />
       </div>
 
       {/* Token Container for Active Tab Preview */}
@@ -116,7 +116,7 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
         <LandToken
           tokenData={tokenData}
           side={activeTab}
-          size={tokenData.tokenSize || 250}
+          size={250}
         />
       </div>
 

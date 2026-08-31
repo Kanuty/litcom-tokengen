@@ -3,9 +3,10 @@ import React from 'react';
 // Render NATO Symbol according to frame affiliation, symbol type, and stackable modifiers
 export function NatoSymbol({
   affiliation = 'friendly', // 'friendly' | 'hostile' | 'neutral'
-  symbolType = 'infantry',  // 'infantry' | 'armor' | 'recon' | 'artillery' | 'rocket_artillery' | 'mechanized_artillery' | 'air_defense' | 'anti_tank' | 'sof' | 'engineer' | 'supply' | 'none'
+  symbolType = 'infantry',  // 'infantry' | 'armor' | 'recon' | 'artillery' | 'rocket_artillery' | 'mechanized_artillery' | 'air_defense' | 'anti_tank' | 'sof' | 'engineer' | 'supply' | 'custom' | 'none'
   modifiers = [],           // ['mountain', 'airborne', 'airmobile', 'tracked', 'wheeled', 'amphibious', 'motorized', 'ew', 'light']
-  size = 240
+  size = 240,
+  customNatoImage = ''
 }) {
   const width = size * 0.44;
   const height = size * 0.36;
@@ -125,6 +126,20 @@ export function NatoSymbol({
     symbolContent.push(
       <line key="supply" x1="10" y1="50" x2="90" y2="50" stroke="#ffffff" strokeWidth="5" />
     );
+  } else if (symbolType === 'custom') {
+    if (customNatoImage) {
+      symbolContent.push(
+        <image
+          key="custom"
+          href={customNatoImage}
+          x="10"
+          y="10"
+          width="80"
+          height="60"
+          preserveAspectRatio="xMidYMid meet"
+        />
+      );
+    }
   }
 
   // Modifiers inside/outside frame
@@ -300,6 +315,228 @@ function RenderFlag({ flagKey, customUrl }) {
     );
   }
 
+  if (flagKey === 'poland') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="30" fill="#ffffff" />
+        <rect y="30" width="100" height="30" fill="#dc143c" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'ukraine') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="30" fill="#0057b7" />
+        <rect y="30" width="100" height="30" fill="#ffd700" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'sweden') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#006aa7" />
+        <rect x="30" y="0" width="12" height="60" fill="#fecc02" />
+        <rect x="0" y="24" width="100" height="12" fill="#fecc02" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'finland') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        <rect x="30" y="0" width="12" height="60" fill="#002f6c" />
+        <rect x="0" y="24" width="100" height="12" fill="#002f6c" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'lithuania') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#fdb913" />
+        <rect y="20" width="100" height="20" fill="#006a44" />
+        <rect y="40" width="100" height="20" fill="#c1272d" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'latvia') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="24" fill="#9e1b32" />
+        <rect y="24" width="100" height="12" fill="#ffffff" />
+        <rect y="36" width="100" height="24" fill="#9e1b32" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'estonia') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#0072ce" />
+        <rect y="20" width="100" height="20" fill="#000000" />
+        <rect y="40" width="100" height="20" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'france') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="33.33" height="60" fill="#00209f" />
+        <rect x="33.33" width="33.34" height="60" fill="#ffffff" />
+        <rect x="66.67" width="33.33" height="60" fill="#ed2939" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'great_britain' || flagKey === 'uk') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <clipPath id="gb-flag-clip">
+          <rect width="100" height="60" />
+        </clipPath>
+        <g clipPath="url(#gb-flag-clip)">
+          <rect width="100" height="60" fill="#012169" />
+          <line x1="0" y1="0" x2="100" y2="60" stroke="#ffffff" strokeWidth="12" />
+          <line x1="100" y1="0" x2="0" y2="60" stroke="#ffffff" strokeWidth="12" />
+          <line x1="0" y1="0" x2="50" y2="30" stroke="#c8102e" strokeWidth="4" transform="translate(-2, 2)" />
+          <line x1="50" y1="30" x2="100" y2="60" stroke="#c8102e" strokeWidth="4" transform="translate(2, -2)" />
+          <line x1="100" y1="0" x2="50" y2="30" stroke="#c8102e" strokeWidth="4" transform="translate(2, 2)" />
+          <line x1="50" y1="30" x2="0" y2="60" stroke="#c8102e" strokeWidth="4" transform="translate(-2, -2)" />
+          <rect x="40" y="0" width="20" height="60" fill="#ffffff" />
+          <rect x="0" y="20" width="100" height="20" fill="#ffffff" />
+          <rect x="44" y="0" width="12" height="60" fill="#c8102e" />
+          <rect x="0" y="24" width="100" height="12" fill="#c8102e" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'australia') {
+    const star7 = (cx, cy, rOuter, rInner) => {
+      let pts = [];
+      for (let i = 0; i < 14; i++) {
+        const angle = (i * Math.PI) / 7 - Math.PI / 2;
+        const r = i % 2 === 0 ? rOuter : rInner;
+        pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+      }
+      return pts.join(' ');
+    };
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#012169" />
+        <g>
+          <clipPath id="aus-gb-clip">
+            <rect width="50" height="30" />
+          </clipPath>
+          <g clipPath="url(#aus-gb-clip)">
+            <rect width="50" height="30" fill="#012169" />
+            <line x1="0" y1="0" x2="50" y2="30" stroke="#ffffff" strokeWidth="6" />
+            <line x1="50" y1="0" x2="0" y2="30" stroke="#ffffff" strokeWidth="6" />
+            <line x1="0" y1="0" x2="25" y2="15" stroke="#c8102e" strokeWidth="2" transform="translate(-1, 1)" />
+            <line x1="25" y1="15" x2="50" y2="30" stroke="#c8102e" strokeWidth="2" transform="translate(1, -1)" />
+            <line x1="50" y1="0" x2="25" y2="15" stroke="#c8102e" strokeWidth="2" transform="translate(1, 1)" />
+            <line x1="25" y1="15" x2="0" y2="30" stroke="#c8102e" strokeWidth="2" transform="translate(-1, -1)" />
+            <rect x="20" y="0" width="10" height="30" fill="#ffffff" />
+            <rect x="0" y="10" width="50" height="10" fill="#ffffff" />
+            <rect x="22" y="0" width="6" height="30" fill="#c8102e" />
+            <rect x="0" y="12" width="50" height="6" fill="#c8102e" />
+          </g>
+        </g>
+        <polygon points={star7(25, 45, 7, 3.2)} fill="#ffffff" />
+        <polygon points={star7(75, 12, 4.5, 2)} fill="#ffffff" />
+        <polygon points={star7(88, 26, 4.5, 2)} fill="#ffffff" />
+        <polygon points={star7(75, 48, 4.5, 2)} fill="#ffffff" />
+        <polygon points={star7(62, 30, 4.5, 2)} fill="#ffffff" />
+        <polygon points="80,35 81,37.5 83.5,37.5 81.5,39 82.2,41.5 80,40 77.8,41.5 78.5,39 76.5,37.5 79,37.5" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'japan') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        <circle cx="50" cy="30" r="18" fill="#bc002d" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'germany') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#000000" />
+        <rect y="20" width="100" height="20" fill="#dd0000" />
+        <rect y="40" width="100" height="20" fill="#ffce00" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'italy') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="33.33" height="60" fill="#009246" />
+        <rect x="33.33" width="33.34" height="60" fill="#ffffff" />
+        <rect x="66.67" width="33.33" height="60" fill="#ce2b37" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'ue' || flagKey === 'eu') {
+    const stars = [];
+    const cx = 50;
+    const cy = 30;
+    const radius = 17;
+    for (let i = 0; i < 12; i++) {
+      const angle = (i * Math.PI) / 6 - Math.PI / 2;
+      const sx = cx + radius * Math.cos(angle);
+      const sy = cy + radius * Math.sin(angle);
+      const rOuter = 3;
+      const rInner = 1.3;
+      let pts = [];
+      for (let j = 0; j < 10; j++) {
+        const a = (j * Math.PI) / 5 - Math.PI / 2;
+        const r = j % 2 === 0 ? rOuter : rInner;
+        pts.push(`${sx + r * Math.cos(a)},${sy + r * Math.sin(a)}`);
+      }
+      stars.push(<polygon key={i} points={pts.join(' ')} fill="#ffcc00" />);
+    }
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#003399" />
+        <g>{stars}</g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'belarus') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect x="12" y="0" width="88" height="40" fill="#c8312b" />
+        <rect x="12" y="40" width="88" height="20" fill="#48974d" />
+        <rect x="0" y="0" width="12" height="60" fill="#ffffff" />
+        <path
+          d="M 6 0 L 12 6 L 6 12 L 0 6 Z M 6 12 L 12 18 L 6 24 L 0 18 Z M 6 24 L 12 30 L 6 36 L 0 30 Z M 6 36 L 12 42 L 6 48 L 0 42 Z M 6 48 L 12 54 L 6 60 L 0 54 Z"
+          fill="#c8312b"
+        />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'belarus_democratic') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#ffffff" />
+        <rect y="20" width="100" height="20" fill="#d62612" />
+        <rect y="40" width="100" height="20" fill="#ffffff" />
+      </svg>
+    );
+  }
+
   return null;
 }
 
@@ -340,6 +577,7 @@ export function LandToken({
     backFlag = 'none',
     customBackImage = '',
     customShipImage = '',
+    customNatoImage = '',
     dice = [
       { type: 'red', bigValue: 10, smallValue: '4' },
       { type: 'red', bigValue: 12, smallValue: '9' }
@@ -588,6 +826,7 @@ export function LandToken({
               symbolType={symbolType}
               modifiers={modifiers}
               size={size}
+              customNatoImage={customNatoImage}
             />
           </div>
 
