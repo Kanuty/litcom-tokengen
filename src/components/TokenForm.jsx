@@ -76,6 +76,42 @@ export function TokenForm({ tokenData, onChange }) {
         </select>
       </div>
 
+      {/* Global Text Color */}
+      <div>
+        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>
+          Global Text Color
+        </label>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <input
+            type="color"
+            value={tokenData.textColor || '#ffffff'}
+            onChange={(e) => handleChange('textColor', e.target.value)}
+            style={{ width: '36px', height: '32px', border: 'none', cursor: 'pointer' }}
+            title="Choose Text Color"
+          />
+          <input
+            type="text"
+            value={tokenData.textColor || '#ffffff'}
+            onChange={(e) => handleChange('textColor', e.target.value)}
+            style={{ width: '80px', padding: '0.3rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '0.85rem' }}
+          />
+          <button
+            type="button"
+            onClick={() => handleChange('textColor', '#ffffff')}
+            style={{ padding: '4px 10px', fontSize: '11px', background: '#ffffff', color: '#000000', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            White
+          </button>
+          <button
+            type="button"
+            onClick={() => handleChange('textColor', '#facc15')}
+            style={{ padding: '4px 10px', fontSize: '11px', background: '#facc15', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Yellow
+          </button>
+        </div>
+      </div>
+
       {/* Colors Section */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
         <div>
@@ -311,31 +347,61 @@ export function TokenForm({ tokenData, onChange }) {
           )}
 
           {(tokenData.miscType === 'text_number' || tokenData.miscType === 'image_number') && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
-                <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>
-                  Number (0-9)
-                </label>
-                {tokenData.miscType === 'image_number' && (
-                  <label style={{ fontSize: '0.8rem', color: '#00f0ff', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={tokenData.miscNumberShow !== false}
-                      onChange={(e) => handleChange('miscNumberShow', e.target.checked)}
-                      style={{ marginRight: '4px' }}
-                    />
-                    Show Number
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                  <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>
+                    Number (0-9)
                   </label>
-                )}
+                  {tokenData.miscType === 'image_number' && (
+                    <label style={{ fontSize: '0.8rem', color: '#00f0ff', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={tokenData.miscNumberShow !== false}
+                        onChange={(e) => handleChange('miscNumberShow', e.target.checked)}
+                        style={{ marginRight: '4px' }}
+                      />
+                      Show Number
+                    </label>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  max="9"
+                  value={tokenData.miscNumber ?? 4}
+                  onChange={(e) => handleChange('miscNumber', parseInt(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
               </div>
-              <input
-                type="number"
-                min="0"
-                max="9"
-                value={tokenData.miscNumber ?? 4}
-                onChange={(e) => handleChange('miscNumber', parseInt(e.target.value) || 0)}
-                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
-              />
+
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.2rem', fontSize: '0.8rem' }}>
+                  Number Color
+                </label>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={tokenData.miscNumberColor || '#ffffff'}
+                    onChange={(e) => handleChange('miscNumberColor', e.target.value)}
+                    style={{ width: '36px', height: '32px', border: 'none', cursor: 'pointer' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscNumberColor', '#ffffff')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000', border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    White
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('miscNumberColor', '#facc15')}
+                    style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    Yellow
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

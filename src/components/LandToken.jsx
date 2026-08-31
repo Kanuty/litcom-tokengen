@@ -730,6 +730,7 @@ export function LandToken({
     bgColor = '#2b6cb0',
     stripeColor = '#ffffff',
     hexColor = '#7e8388',
+    textColor = '#ffffff',
     fontFamily = "'Trebuchet MS', 'Arial Bold', sans-serif",
     echelon = '••',
     affiliation = 'friendly',
@@ -782,6 +783,7 @@ export function LandToken({
     const miscBannerColor = tokenData.miscBannerColor || '#ffffff';
     const miscTopText = tokenData.miscTopText ?? (miscType === 'text_number' ? 'ISR' : 'MILDEC');
     const miscNumber = tokenData.miscNumber ?? 4;
+    const miscNumberColor = tokenData.miscNumberColor || textColor || '#ffffff';
     const miscNumberShow = tokenData.miscNumberShow !== false;
     const customMiscImage = tokenData.customMiscImage || '';
 
@@ -803,21 +805,20 @@ export function LandToken({
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: fontFamily,
-          userSelect: 'none',
-          padding: size * 0.05
+          userSelect: 'none'
         }}
       >
         {miscType === 'task_force' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.04, width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.08, width: '100%' }}>
             <div
               style={{
+                width: '100%',
                 backgroundColor: miscBannerColor,
-                color: '#000000',
-                padding: `${size * 0.02}px ${size * 0.06}px`,
-                borderRadius: '3px',
+                color: bgColor || '#2b6cb0',
+                padding: `${size * 0.03}px 0`,
                 fontWeight: 900,
-                fontSize: size * 0.11,
-                letterSpacing: '1px',
+                fontSize: size * 0.12,
+                letterSpacing: '1.5px',
                 textTransform: 'uppercase',
                 textAlign: 'center',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
@@ -827,13 +828,14 @@ export function LandToken({
             </div>
             <div
               style={{
-                color: '#ffffff',
+                color: textColor,
                 fontWeight: 900,
-                fontSize: size * 0.12,
+                fontSize: size * 0.13,
                 letterSpacing: '1px',
                 textTransform: 'uppercase',
                 textAlign: 'center',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                padding: `0 ${size * 0.04}px`
               }}
             >
               {unitName || 'NEW YORK'}
@@ -842,27 +844,27 @@ export function LandToken({
         )}
 
         {miscType === 'text_number' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100%', padding: `${size * 0.06}px 0` }}>
             <div
               style={{
-                color: '#ffffff',
+                color: textColor,
                 fontWeight: 900,
                 fontSize: size * 0.14,
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                marginBottom: size * 0.02
+                textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
               }}
             >
               {miscTopText}
             </div>
             <div
               style={{
-                color: '#ffffff',
+                color: miscNumberColor,
                 fontWeight: 900,
-                fontSize: size * 0.44,
-                lineHeight: 0.9,
-                textShadow: '2px 2px 6px rgba(0,0,0,0.8)'
+                fontSize: size * 0.58,
+                lineHeight: 0.85,
+                textShadow: '2px 2px 6px rgba(0,0,0,0.8)',
+                marginBottom: size * 0.02
               }}
             >
               {miscNumber}
@@ -871,21 +873,20 @@ export function LandToken({
         )}
 
         {miscType === 'text_image' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '90%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100%', padding: `${size * 0.05}px 0` }}>
             <div
               style={{
-                color: '#ffffff',
+                color: textColor,
                 fontWeight: 900,
                 fontSize: size * 0.14,
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                marginTop: size * 0.02
+                textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
               }}
             >
               {miscTopText}
             </div>
-            <div style={{ width: '85%', height: '65%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '85%', height: '70%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {customMiscImage ? (
                 <img src={customMiscImage} alt="Misc Center" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
@@ -896,14 +897,14 @@ export function LandToken({
         )}
 
         {miscType === 'image_number' && (
-          <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: size * 0.05 }}>
             {miscNumberShow && (
               <div
                 style={{
                   position: 'absolute',
-                  top: size * 0.03,
-                  right: size * 0.05,
-                  color: '#facc15',
+                  top: size * 0.04,
+                  right: size * 0.06,
+                  color: miscNumberColor,
                   fontWeight: 900,
                   fontSize: size * 0.22,
                   textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
@@ -917,7 +918,7 @@ export function LandToken({
               {customMiscImage ? (
                 <img src={customMiscImage} alt="Misc Center" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
-                <DefaultSoldiersSilhouette color="#facc15" />
+                <DefaultSoldiersSilhouette color={textColor} />
               )}
             </div>
           </div>
@@ -1065,7 +1066,7 @@ export function LandToken({
         >
           <div
             style={{
-              color: '#ffffff',
+              color: textColor,
               fontSize: size * 0.11,
               fontWeight: '900',
               letterSpacing: '1px',
@@ -1122,7 +1123,7 @@ export function LandToken({
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div
               style={{
-                color: '#ffffff',
+                color: textColor,
                 fontSize: size * 0.08,
                 fontWeight: 'bold',
                 lineHeight: 1,
@@ -1210,7 +1211,7 @@ export function LandToken({
         <div
           style={{
             textAlign: 'center',
-            color: '#ffffff',
+            color: textColor,
             fontWeight: '900',
             fontSize: size * 0.085,
             letterSpacing: '0.5px',
