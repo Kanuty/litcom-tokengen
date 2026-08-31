@@ -74,6 +74,28 @@ function App() {
     }
   };
 
+  const handleJetIconUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setTrackerData((prev) => ({ ...prev, customJetIconUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleHelicopterIconUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setTrackerData((prev) => ({ ...prev, customHelicopterIconUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleBackImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -249,7 +271,7 @@ function App() {
             {/* Tracker Form Controls */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
               <div>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem', fontSize: '1.15rem' }}>
                   Tracker Type
                 </label>
                 <select
@@ -269,8 +291,108 @@ function App() {
                 </select>
               </div>
 
+              {/* Aircraft Icon Options (Carrier Mode) */}
+              {trackerData.trackerType === 'carrier' && (
+                <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block' }}>
+                    ✈️ Embarked Aircraft Display Options
+                  </label>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.82rem', display: 'block', marginBottom: '0.3rem' }}>
+                      Visible Aircraft Types
+                    </label>
+                    <select
+                      value={
+                        trackerData.showJetIcon && trackerData.showHelicopterIcon
+                          ? 'both'
+                          : trackerData.showJetIcon
+                          ? 'jet'
+                          : trackerData.showHelicopterIcon
+                          ? 'helicopter'
+                          : 'none'
+                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTrackerData((prev) => ({
+                          ...prev,
+                          showJetIcon: val === 'both' || val === 'jet',
+                          showHelicopterIcon: val === 'both' || val === 'helicopter'
+                        }));
+                      }}
+                      style={{ width: '100%', padding: '0.48rem', borderRadius: '4px' }}
+                    >
+                      <option value="both">Both (Airplane & Helicopter)</option>
+                      <option value="jet">Airplane Only</option>
+                      <option value="helicopter">Helicopter Only</option>
+                      <option value="none">None</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                    <div>
+                      <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.8rem' }}>
+                        Custom Airplane Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleJetIconUpload}
+                        style={{ width: '100%', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                      />
+                      {trackerData.customJetIconUrl && (
+                        <button
+                          onClick={() => setTrackerData({ ...trackerData, customJetIconUrl: null })}
+                          style={{
+                            marginTop: '0.3rem',
+                            fontSize: '0.72rem',
+                            padding: '2px 6px',
+                            background: '#dc2626',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Reset Default Airplane
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.8rem' }}>
+                        Custom Helicopter Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleHelicopterIconUpload}
+                        style={{ width: '100%', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                      />
+                      {trackerData.customHelicopterIconUrl && (
+                        <button
+                          onClick={() => setTrackerData({ ...trackerData, customHelicopterIconUrl: null })}
+                          style={{
+                            marginTop: '0.3rem',
+                            fontSize: '0.72rem',
+                            padding: '2px 6px',
+                            background: '#dc2626',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Reset Default Helicopter
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                   Tracker Title
                 </label>
                 <input
@@ -282,7 +404,7 @@ function App() {
               </div>
 
               <div>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                   Description (under title)
                 </label>
                 <textarea
@@ -304,7 +426,7 @@ function App() {
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                     Triangle Number (1-50)
                   </label>
                   <input
@@ -321,7 +443,7 @@ function App() {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                     Reversed ▲ Number (1-50)
                   </label>
                   <input
@@ -338,7 +460,7 @@ function App() {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                     Initial HP Square (1-20)
                   </label>
                   <input
@@ -363,7 +485,7 @@ function App() {
               {/* Grid Interactive Placement Control (Relocated to top of controls) */}
               <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>
                     Interactive Grid Placement Mode
                   </label>
                   <button
@@ -473,7 +595,7 @@ function App() {
               {/* Custom Token Image & Camouflage Pattern Options */}
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '180px' }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                     Front Token Image (Optional Upload)
                   </label>
                   <input
@@ -502,7 +624,7 @@ function App() {
                 </div>
 
                 <div style={{ flex: 1, minWidth: '180px' }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                     Backside Image (Optional Upload)
                   </label>
                   <input
@@ -533,7 +655,7 @@ function App() {
 
               {/* Color & Styling Customization */}
               <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.6rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.6rem' }}>
                   🎨 Colors & Background Styling
                 </label>
 
@@ -615,7 +737,7 @@ function App() {
 
               {/* Text Elements Coloring */}
               <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.6rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.6rem' }}>
                   ✒️ Text Elements Coloring
                 </label>
 
@@ -699,7 +821,7 @@ function App() {
               </div>
 
               <div>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                   Bottom Right Tracker Name
                 </label>
                 <input
@@ -711,7 +833,7 @@ function App() {
               </div>
 
               <div>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                   Tracker Export Side
                 </label>
                 <div style={{ display: 'flex', gap: '1rem' }}>
