@@ -256,24 +256,19 @@ function RenderFlag({ flagKey, customUrl }) {
   }
 
   if (flagKey === 'usa') {
-    // 50 stars in 9 rows (alternating 6 and 5 stars) inside blue canton
     const stars = [];
     const rows = [6, 5, 6, 5, 6, 5, 6, 5, 6];
     const cantonW = 40;
     const cantonH = 32.3;
-    const rowH = cantonH / 10;
 
     rows.forEach((count, rIdx) => {
-      const y = (rIdx + 1) * rowH;
-      const colW = count === 6 ? cantonW / 7 : cantonW / 6;
+      const y = (rIdx + 1) * (cantonH / 10);
+      const colW = cantonW / 7;
+      const xOffset = count === 6 ? colW : colW * 1.5;
       for (let c = 0; c < count; c++) {
-        const x = count === 6 ? (c + 1) * colW : (c + 0.5) * colW + (colW * 0.5);
+        const x = xOffset + c * colW;
         stars.push(
-          <polygon
-            key={`${rIdx}-${c}`}
-            points={`${x},${y - 1} ${x + 0.3},${y - 0.3} ${x + 1},${y - 0.3} ${x + 0.5},${y + 0.2} ${x + 0.7},${y + 0.9} ${x},${y + 0.5} ${x - 0.7},${y + 0.9} ${x - 0.5},${y + 0.2} ${x - 1},${y - 0.3} ${x - 0.3},${y - 0.3}`}
-            fill="#ffffff"
-          />
+          <circle key={`${rIdx}-${c}`} cx={x} cy={y} r="0.8" fill="#ffffff" />
         );
       }
     });
@@ -582,7 +577,7 @@ function RenderFlag({ flagKey, customUrl }) {
     return (
       <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
         <rect width="100" height="60" fill="#da251d" />
-        <polygon points="50,14 54.7,28.5 70,28.5 57.6,37.5 62.4,52 50,43 37.6,52 42.4,37.5 30,28.5 45.3,28.5" fill="#ffff00" />
+        <polygon points="50,14 53.6,25.1 65.2,25.1 55.8,31.9 59.4,43.0 50,36.1 40.6,43.0 44.2,31.9 34.8,25.1 46.4,25.1" fill="#ffff00" />
       </svg>
     );
   }
@@ -605,9 +600,12 @@ function RenderFlag({ flagKey, customUrl }) {
     return (
       <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
         <rect width="100" height="60" fill="#e30a17" />
-        <circle cx="40" cy="30" r="15" fill="#ffffff" />
-        <circle cx="44" cy="30" r="12" fill="#e30a17" />
-        <polygon points="62,30 56.5,27.5 57.5,21.5 52,24.5 48.5,19.5 48,25.5 42,27 47,30.5 46.5,36.5 51.5,33" fill="#ffffff" />
+        <circle cx="38" cy="30" r="15" fill="#ffffff" />
+        <circle cx="42" cy="30" r="12" fill="#e30a17" />
+        <polygon
+          points="58,30 52.5,27.8 48,33 49.2,26.5 44,22.5 50.5,22.5 53,16.5 55.5,22.5 62,22.5 56.8,26.5"
+          fill="#ffffff"
+        />
       </svg>
     );
   }
@@ -669,6 +667,41 @@ function RenderFlag({ flagKey, customUrl }) {
   }
 
   return null;
+}
+
+// Default Missile Truck SVG for Misc MILDEC token
+function DefaultMissileTruckSilhouette({ color = '#ffffff' }) {
+  return (
+    <svg viewBox="0 0 120 60" style={{ width: '85%', height: '85%' }}>
+      <rect x="10" y="32" width="75" height="18" rx="3" fill={color} />
+      <rect x="85" y="24" width="25" height="26" rx="4" fill={color} />
+      <rect x="92" y="27" width="12" height="10" fill="#090d16" />
+      <circle cx="25" cy="50" r="7" fill={color} />
+      <circle cx="25" cy="50" r="3" fill="#090d16" />
+      <circle cx="45" cy="50" r="7" fill={color} />
+      <circle cx="45" cy="50" r="3" fill="#090d16" />
+      <circle cx="65" cy="50" r="7" fill={color} />
+      <circle cx="65" cy="50" r="3" fill="#090d16" />
+      <circle cx="98" cy="50" r="7" fill={color} />
+      <circle cx="98" cy="50" r="3" fill="#090d16" />
+      <polygon points="15,28 75,10 80,16 20,34" fill={color} />
+      <line x1="20" y1="32" x2="60" y2="28" stroke="#090d16" strokeWidth="2" />
+    </svg>
+  );
+}
+
+// Default Soldiers Silhouette for Misc Infantry/Dismount token
+function DefaultSoldiersSilhouette({ color = '#facc15' }) {
+  return (
+    <svg viewBox="0 0 100 80" style={{ width: '85%', height: '85%' }}>
+      <circle cx="68" cy="22" r="6" fill={color} />
+      <path d="M 60 28 L 78 28 L 75 52 L 68 52 L 72 70 L 64 70 L 62 48 L 56 48 Z" fill={color} />
+      <polygon points="68,34 88,30 86,26 66,30" fill={color} />
+      <circle cx="35" cy="38" r="6" fill={color} />
+      <path d="M 28 44 L 44 44 L 40 60 L 52 70 L 42 72 L 32 60 L 22 70 L 15 68 L 26 56 Z" fill={color} />
+      <polygon points="32,46 10,42 12,38 34,42" fill={color} />
+    </svg>
+  );
 }
 
 // Default Warship Silhouette SVG
@@ -742,7 +775,158 @@ export function LandToken({
     );
   }
 
-  // Render Front side
+  // Render Misc Tokens Front Side
+  if (category === 'misc' && side === 'front') {
+    const miscType = tokenData.miscType || 'task_force';
+    const miscBannerText = tokenData.miscBannerText ?? 'TASK FORCE';
+    const miscBannerColor = tokenData.miscBannerColor || '#ffffff';
+    const miscTopText = tokenData.miscTopText ?? (miscType === 'text_number' ? 'ISR' : 'MILDEC');
+    const miscNumber = tokenData.miscNumber ?? 4;
+    const miscNumberShow = tokenData.miscNumberShow !== false;
+    const customMiscImage = tokenData.customMiscImage || '';
+
+    return (
+      <div
+        id={id}
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: bgColor,
+          borderRadius: size * 0.08,
+          border: '3px solid rgba(0,0,0,0.7)',
+          boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)',
+          position: 'relative',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: fontFamily,
+          userSelect: 'none',
+          padding: size * 0.05
+        }}
+      >
+        {miscType === 'task_force' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.04, width: '100%' }}>
+            <div
+              style={{
+                backgroundColor: miscBannerColor,
+                color: '#000000',
+                padding: `${size * 0.02}px ${size * 0.06}px`,
+                borderRadius: '3px',
+                fontWeight: 900,
+                fontSize: size * 0.11,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              }}
+            >
+              {miscBannerText}
+            </div>
+            <div
+              style={{
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: size * 0.12,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+              }}
+            >
+              {unitName || 'NEW YORK'}
+            </div>
+          </div>
+        )}
+
+        {miscType === 'text_number' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <div
+              style={{
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: size * 0.14,
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                marginBottom: size * 0.02
+              }}
+            >
+              {miscTopText}
+            </div>
+            <div
+              style={{
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: size * 0.44,
+                lineHeight: 0.9,
+                textShadow: '2px 2px 6px rgba(0,0,0,0.8)'
+              }}
+            >
+              {miscNumber}
+            </div>
+          </div>
+        )}
+
+        {miscType === 'text_image' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '90%' }}>
+            <div
+              style={{
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: size * 0.14,
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                marginTop: size * 0.02
+              }}
+            >
+              {miscTopText}
+            </div>
+            <div style={{ width: '85%', height: '65%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {customMiscImage ? (
+                <img src={customMiscImage} alt="Misc Center" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <DefaultMissileTruckSilhouette color="#ffffff" />
+              )}
+            </div>
+          </div>
+        )}
+
+        {miscType === 'image_number' && (
+          <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {miscNumberShow && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: size * 0.03,
+                  right: size * 0.05,
+                  color: '#facc15',
+                  fontWeight: 900,
+                  fontSize: size * 0.22,
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
+                  zIndex: 2
+                }}
+              >
+                {miscNumber}
+              </div>
+            )}
+            <div style={{ width: '85%', height: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+              {customMiscImage ? (
+                <img src={customMiscImage} alt="Misc Center" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <DefaultSoldiersSilhouette color="#facc15" />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Render Front side for Land and Naval
   // Helper for Dice rendering
   const renderDice = (d, index) => {
     const diceType = d.type || 'red';
