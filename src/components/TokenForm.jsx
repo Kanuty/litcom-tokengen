@@ -235,6 +235,22 @@ export function TokenForm({ tokenData, onChange }) {
             <option value="usa">USA Flag</option>
             <option value="russia">Russia Flag</option>
             <option value="china">China Flag</option>
+            <option value="poland">Poland Flag</option>
+            <option value="ukraine">Ukraine Flag</option>
+            <option value="sweden">Sweden Flag</option>
+            <option value="finland">Finland Flag</option>
+            <option value="lithuania">Lithuania Flag</option>
+            <option value="latvia">Latvia Flag</option>
+            <option value="estonia">Estonia Flag</option>
+            <option value="france">France Flag</option>
+            <option value="great_britain">Great Britain Flag</option>
+            <option value="australia">Australia Flag</option>
+            <option value="japan">Japan Flag</option>
+            <option value="germany">Germany Flag</option>
+            <option value="italy">Italy Flag</option>
+            <option value="ue">EU / UE Flag</option>
+            <option value="belarus">Belarus Flag</option>
+            <option value="belarus_democratic">Democratic Belarus Flag</option>
             <option value="custom">Custom Uploaded Image</option>
           </select>
 
@@ -316,10 +332,25 @@ export function TokenForm({ tokenData, onChange }) {
               <option value="sof">Special Operation Forces (SOF)</option>
               <option value="engineer">Engineer (Bridge)</option>
               <option value="supply">Supply (Horizontal Bar)</option>
-              <option value="none">None / Custom</option>
+              <option value="custom">Custom Image (Uploaded)</option>
+              <option value="none">None</option>
             </select>
           </div>
         </div>
+
+        {tokenData.symbolType === 'custom' && (
+          <div style={{ marginBottom: '0.8rem' }}>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem', color: '#00f0ff' }}>
+              Upload Custom NATO Symbol Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFileUpload('customNatoImage', e)}
+              style={{ width: '100%', padding: '0.3rem', borderRadius: '4px', background: '#0d1322', color: '#9ca3af' }}
+            />
+          </div>
+        )}
 
         {/* Stackable Modifiers */}
         <div style={{ marginBottom: '0.8rem' }}>
