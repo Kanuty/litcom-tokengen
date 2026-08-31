@@ -25,6 +25,29 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
 }
 
 /**
+ * Downloads the Unit Tracker as PNG image in 9.5 : 13.5 aspect ratio.
+ * @param {string} elementId - DOM ID of unit tracker container
+ * @param {string} filename - Output PNG filename
+ */
+export async function downloadUnitTrackerAsPNG(elementId = 'unit-tracker-export', filename = 'unit-tracker.png') {
+  const element = document.getElementById(elementId);
+  if (!element) {
+    console.error(`Unit Tracker element with id ${elementId} not found`);
+    return;
+  }
+
+  try {
+    const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    link.click();
+  } catch (err) {
+    console.error('Error generating unit tracker image:', err);
+  }
+}
+
+/**
  * Generates and downloads a printable PDF containing front and back side tokens formatted on A4 page.
  * @param {string} frontElementId - DOM ID of front token element
  * @param {string} backElementId - DOM ID of back token element

@@ -11,10 +11,11 @@ export function NatoSymbol({
   const width = size * 0.44;
   const height = size * 0.36;
 
+  const rawId = React.useId();
   // Frame path and clip path definitions based on affiliation
   let frame = null;
   let clipPathShape = null;
-  const clipId = `nato-clip-${affiliation}-${Math.random().toString(36).substr(2, 5)}`;
+  const clipId = `nato-clip-${affiliation}-${rawId.replace(/:/g, '')}`;
 
   if (affiliation === 'friendly') {
     frame = <rect x="5" y="10" width="90" height="60" rx="3" fill="none" stroke="#ffffff" strokeWidth="5" />;
