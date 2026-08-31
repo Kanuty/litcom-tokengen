@@ -73,9 +73,16 @@ export function UnitTracker({
   const height = width * (13.5 / 9.5);
 
   const {
+    trackerType = 'standard', // 'standard' | 'carrier'
     title = 'MRIC SECTION',
     description = 'Medium Range Interdiction Capability Section',
     triangleNumber = 3,
+    reverseTriangleNumber = 6,
+    showReverseTriangle = true,
+    showJetIcon = true,
+    showHelicopterIcon = true,
+    customJetIconUrl = null,
+    customHelicopterIconUrl = null,
     footerName = 'CUSTOM UNIT TRACKER',
     customImageUrl = null,
     bgColor = '#ffffff',
@@ -96,6 +103,8 @@ export function UnitTracker({
     squareNumberColor = '#8c939d',
     squareBgColor = '#ffffff'
   } = trackerData || {};
+
+  const isCarrier = trackerType === 'carrier';
 
   // Backside rendering
   if (side === 'back') {
@@ -278,36 +287,148 @@ export function UnitTracker({
               </p>
             </div>
 
-            {/* White Triangle with Thinner Border & Number inside */}
+            {/* Triangles Area (Top Right) */}
             <div
               style={{
-                position: 'relative',
-                width: '38px',
-                height: '38px',
-                flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                gap: '2px',
+                border: isCarrier || showReverseTriangle ? '1px solid #000000' : 'none',
+                padding: isCarrier || showReverseTriangle ? '2px 4px' : '0',
+                background: isCarrier || showReverseTriangle ? '#ffffff' : 'transparent',
+                borderRadius: '2px',
+                flexShrink: 0
               }}
             >
-              <svg width="38" height="38" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <polygon points="20,2 38,36 2,36" fill="#ffffff" stroke="#000000" strokeWidth="1" strokeLinejoin="round" />
-              </svg>
-              <span
+              {/* White Upright Triangle with Number */}
+              <div
                 style={{
                   position: 'relative',
-                  top: '4px',
-                  fontSize: '0.85rem',
-                  fontWeight: '900',
-                  color: triangleNumberColor
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                {triangleNumber}
-              </span>
+                <svg width="34" height="34" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
+                  <polygon points="20,2 38,36 2,36" fill="#ffffff" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round" />
+                </svg>
+                <span
+                  style={{
+                    position: 'relative',
+                    top: '3px',
+                    fontSize: '0.8rem',
+                    fontWeight: '900',
+                    color: triangleNumberColor
+                  }}
+                >
+                  {triangleNumber}
+                </span>
+              </div>
+
+              {/* Reversed Solid Black Triangle with Upright White Number (Carrier Mode / Option) */}
+              {(isCarrier || showReverseTriangle) && (
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '34px',
+                    height: '34px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <svg width="34" height="34" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <polygon points="2,4 38,4 20,38" fill="#000000" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round" />
+                  </svg>
+                  <span
+                    style={{
+                      position: 'relative',
+                      top: '-3px',
+                      fontSize: '0.8rem',
+                      fontWeight: '900',
+                      color: '#ffffff'
+                    }}
+                  >
+                    {reverseTriangleNumber}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* EMBARKED UNITS Box (Carrier Mode) */}
+      {isCarrier && (
+        <div
+          style={{
+            margin: '8px 0 0 0',
+            border: '2px solid #000000',
+            borderRadius: '2px',
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            padding: '6px 12px',
+            minHeight: '85px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 1
+          }}
+        >
+          {/* Label centered at top inside box */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '4px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '0.75rem',
+              fontWeight: '900',
+              letterSpacing: '1.2px',
+              color: '#000000',
+              textTransform: 'uppercase'
+            }}
+          >
+            EMBARKED UNITS
+          </div>
+
+          <div style={{ flex: 1 }} />
+
+          {/* Right side Jet & Helicopter icons */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', paddingTop: '12px' }}>
+            {showJetIcon && (
+              customJetIconUrl ? (
+                <img src={customJetIconUrl} alt="Jet" style={{ width: '38px', height: '24px', objectFit: 'contain' }} />
+              ) : (
+                <svg viewBox="0 0 100 100" width="36" height="24" fill="#000000">
+                  <path d="M50 5 L58 35 L95 55 L95 65 L58 55 L58 80 L72 90 L72 98 L50 90 L28 98 L28 90 L42 80 L42 55 L5 65 L5 55 L42 35 Z" />
+                </svg>
+              )
+            )}
+
+            {showHelicopterIcon && (
+              customHelicopterIconUrl ? (
+                <img src={customHelicopterIconUrl} alt="Helicopter" style={{ width: '42px', height: '22px', objectFit: 'contain' }} />
+              ) : (
+                <svg viewBox="0 0 100 60" width="42" height="22" fill="#000000">
+                  <rect x="10" y="5" width="80" height="4" rx="2" />
+                  <rect x="48" y="9" width="4" height="7" />
+                  <path d="M25 20 C25 15, 70 15, 75 25 C80 32, 70 42, 50 42 C30 42, 20 35, 25 20 Z" />
+                  <path d="M60 20 C65 20, 72 23, 70 28 C65 28, 60 25, 60 20 Z" fill="#ffffff" />
+                  <path d="M30 28 L5 25 L5 30 L30 35 Z" />
+                  <path d="M2 18 L7 18 L7 37 L2 37 Z" />
+                  <rect x="0" y="26" width="10" height="3" />
+                  <rect x="30" y="47" width="40" height="3" rx="1.5" />
+                  <rect x="38" y="41" width="3" height="7" />
+                  <rect x="58" y="41" width="3" height="7" />
+                </svg>
+              )
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Grid of 20 vertical long squares (4 rows x 5 columns) */}
       <div

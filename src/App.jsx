@@ -27,12 +27,18 @@ function App() {
   const [exportFace, setExportFace] = useState('both');
 
   // Unit Tracker state
-  const [trackerType, setTrackerType] = useState('standard'); // 'standard' | 'carrier'
   const [trackerExportFace, setTrackerExportFace] = useState('both'); // 'front' | 'back' | 'both'
   const [trackerData, setTrackerData] = useState({
+    trackerType: 'standard', // 'standard' | 'carrier'
     title: 'MRIC SECTION',
     description: 'The Medium Range Intercept Capability (MRIC) section is an integrated air and missile defense (IAMD) unit, equipped with the Tamir interceptor missile and non-kinetic capabilities.',
     triangleNumber: 2,
+    reverseTriangleNumber: 6,
+    showReverseTriangle: false,
+    showJetIcon: true,
+    showHelicopterIcon: true,
+    customJetIconUrl: null,
+    customHelicopterIconUrl: null,
     footerName: 'USMC UNIT TRACKER',
     customImageUrl: null,
     bgColor: '#ffffff',
@@ -92,8 +98,13 @@ function App() {
   };
 
   const handleDownloadTrackerPNG = () => {
-    const name = trackerData.footerName ? trackerData.footerName.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'unit-tracker';
-    downloadUnitTrackerAsPNG('unit-tracker-export-front', 'unit-tracker-export-back', trackerExportFace, name);
+    downloadUnitTrackerAsPNG(
+      'unit-tracker-export-front',
+      'unit-tracker-export-back',
+      trackerExportFace,
+      trackerData.title,
+      trackerData.footerName
+    );
   };
 
   // Clear all dice & HP square markers
@@ -242,14 +253,19 @@ function App() {
                   Tracker Type
                 </label>
                 <select
-                  value={trackerType}
-                  onChange={(e) => setTrackerType(e.target.value)}
+                  value={trackerData.trackerType}
+                  onChange={(e) => {
+                    const newType = e.target.value;
+                    setTrackerData({
+                      ...trackerData,
+                      trackerType: newType,
+                      showReverseTriangle: newType === 'carrier' ? true : trackerData.showReverseTriangle
+                    });
+                  }}
                   style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
                 >
                   <option value="standard">Standard Unit Tracker</option>
-                  <option value="carrier" disabled>
-                    Carrier Unit Tracker (Disabled / Coming Soon)
-                  </option>
+                  <option value="carrier">Carrier Unit Tracker (Embarked Aircraft Box)</option>
                 </select>
               </div>
 
@@ -306,6 +322,23 @@ function App() {
 
                 <div style={{ flex: 1 }}>
                   <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                    Reversed ▲ Number (1-50)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={trackerData.reverseTriangleNumber}
+                    onChange={(e) => {
+                      const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                      setTrackerData({ ...trackerData, reverseTriangleNumber: val });
+                    }}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
                     Initial HP Square (1-20)
                   </label>
                   <input
@@ -325,6 +358,116 @@ function App() {
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
                   />
                 </div>
+              </div>
+
+              {/* Grid Interactive Placement Control (Relocated to top of controls) */}
+              <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
+                    Interactive Grid Placement Mode
+                  </label>
+                  <button
+                    onClick={handleClearAllMarkers}
+                    style={{
+                      fontSize: '0.78rem',
+                      padding: '0.3rem 0.6rem',
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🗑️ Clear All Markers
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
+                  <button
+                    onClick={() => setClickMode('dice')}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      border: clickMode === 'dice' ? '2px solid #00f0ff' : '1px solid #334155',
+                      background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : '#111827',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🎲 Place Token / Supply Dice
+                  </button>
+                  <button
+                    onClick={() => setClickMode('hp')}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      border: clickMode === 'hp' ? '2px solid #00f0ff' : '1px solid #334155',
+                      background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : '#111827',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ⬛ Set HP Square Marker
+                  </button>
+                </div>
+
+                {clickMode === 'dice' && (
+                  <div>
+                    <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.8rem 0' }}>
+                      Select a die type or Supply die below, then click any numbered square on the tracker to place/remove it!
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {/* Supply die (Blue Circle) */}
+                      <div
+                        onClick={() => setSelectedDieIndex('supply')}
+                        style={{
+                          padding: '0.4rem 0.8rem',
+                          borderRadius: '4px',
+                          border: selectedDieIndex === 'supply' ? '2px solid #00f0ff' : '1px solid #334155',
+                          background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : '#111827',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <span style={{ color: '#3b82f6' }}>🔵</span> Supply Circle Die
+                      </div>
+
+                      {tokenData.dice && tokenData.dice.map((die, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setSelectedDieIndex(idx)}
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '4px',
+                            border: selectedDieIndex === idx ? '2px solid #00f0ff' : '1px solid #334155',
+                            background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#111827',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          Die #{idx + 1} ({die.type.toUpperCase()})
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {clickMode === 'hp' && (
+                  <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0 }}>
+                    Click any numbered square (1–20) on the preview to place or move the black Initial HP square!
+                  </p>
+                )}
               </div>
 
               {/* Custom Token Image & Camouflage Pattern Options */}
@@ -565,116 +708,6 @@ function App() {
                   onChange={(e) => setTrackerData({ ...trackerData, footerName: e.target.value })}
                   style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
                 />
-              </div>
-
-              {/* Grid Interactive Placement Control */}
-              <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
-                    Interactive Grid Placement Mode
-                  </label>
-                  <button
-                    onClick={handleClearAllMarkers}
-                    style={{
-                      fontSize: '0.78rem',
-                      padding: '0.3rem 0.6rem',
-                      background: '#dc2626',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    🗑️ Clear All Markers
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
-                  <button
-                    onClick={() => setClickMode('dice')}
-                    style={{
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '4px',
-                      border: clickMode === 'dice' ? '2px solid #00f0ff' : '1px solid #334155',
-                      background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : '#111827',
-                      color: '#fff',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    🎲 Place Token / Supply Dice
-                  </button>
-                  <button
-                    onClick={() => setClickMode('hp')}
-                    style={{
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '4px',
-                      border: clickMode === 'hp' ? '2px solid #00f0ff' : '1px solid #334155',
-                      background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : '#111827',
-                      color: '#fff',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    ⬛ Set HP Square Marker
-                  </button>
-                </div>
-
-                {clickMode === 'dice' && (
-                  <div>
-                    <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.8rem 0' }}>
-                      Select a die type or Supply die below, then click any numbered square on the tracker to place/remove it!
-                    </p>
-
-                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      {/* Supply die (Blue Circle) */}
-                      <div
-                        onClick={() => setSelectedDieIndex('supply')}
-                        style={{
-                          padding: '0.4rem 0.8rem',
-                          borderRadius: '4px',
-                          border: selectedDieIndex === 'supply' ? '2px solid #00f0ff' : '1px solid #334155',
-                          background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : '#111827',
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.4rem'
-                        }}
-                      >
-                        <span style={{ color: '#3b82f6' }}>🔵</span> Supply Circle Die
-                      </div>
-
-                      {tokenData.dice && tokenData.dice.map((die, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => setSelectedDieIndex(idx)}
-                          style={{
-                            padding: '0.4rem 0.8rem',
-                            borderRadius: '4px',
-                            border: selectedDieIndex === idx ? '2px solid #00f0ff' : '1px solid #334155',
-                            background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#111827',
-                            color: '#ffffff',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            fontSize: '0.85rem'
-                          }}
-                        >
-                          Die #{idx + 1} ({die.type.toUpperCase()})
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {clickMode === 'hp' && (
-                  <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0 }}>
-                    Click any numbered square (1–20) on the preview to place or move the black Initial HP square!
-                  </p>
-                )}
               </div>
 
               <div>
