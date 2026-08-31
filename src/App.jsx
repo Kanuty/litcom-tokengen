@@ -39,17 +39,23 @@ function App() {
     camoColor: '#4a5568',
     showCamo: true,
     initialHpSquare: 2,
-    placedDice: {
-      10: [
-        { type: 'purple', bigValue: 12, smallValue: '9' }
-      ]
-    },
+    placedDice: {}, // Default empty as requested
     backBgColor: '#2b6cb0',
-    customBackImageUrl: null
+    backCamoColor: '#1a365d',
+    showBackCamo: true,
+    customBackImageUrl: null,
+    showSquareBorders: true,
+    titleColor: '#000000',
+    descriptionColor: '#1a202c',
+    triangleNumberColor: '#000000',
+    footerNameColor: '#000000',
+    attachmentTextColor: '#000000',
+    squareNumberColor: '#8c939d',
+    squareBgColor: '#ffffff'
   });
 
   const [clickMode, setClickMode] = useState('dice'); // 'dice' or 'hp'
-  const [selectedDieIndex, setSelectedDieIndex] = useState(0);
+  const [selectedDieIndex, setSelectedDieIndex] = useState('supply'); // 'supply' or index of tokenData.dice
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -90,6 +96,15 @@ function App() {
     downloadUnitTrackerAsPNG('unit-tracker-export-front', 'unit-tracker-export-back', trackerExportFace, name);
   };
 
+  // Clear all dice & HP square markers
+  const handleClearAllMarkers = () => {
+    setTrackerData((prev) => ({
+      ...prev,
+      initialHpSquare: null,
+      placedDice: {}
+    }));
+  };
+
   // Toggle or add dice / HP placement on square click
   const handleSquareClick = (squareNum) => {
     if (clickMode === 'hp') {
@@ -102,7 +117,13 @@ function App() {
       // Place or remove die
       const currentPlaced = { ...trackerData.placedDice };
       const currentList = currentPlaced[squareNum] || [];
-      const availableDie = tokenData.dice[selectedDieIndex] || tokenData.dice[0];
+
+      let availableDie = null;
+      if (selectedDieIndex === 'supply') {
+        availableDie = { type: 'supply', color: '#1976d2' };
+      } else {
+        availableDie = tokenData.dice[selectedDieIndex] || tokenData.dice[0];
+      }
 
       if (availableDie) {
         const existsIndex = currentList.findIndex(
@@ -293,8 +314,13 @@ function App() {
                     max="20"
                     value={trackerData.initialHpSquare || ''}
                     onChange={(e) => {
-                      const val = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
-                      setTrackerData({ ...trackerData, initialHpSquare: val });
+                      const raw = e.target.value;
+                      if (raw === '') {
+                        setTrackerData({ ...trackerData, initialHpSquare: null });
+                      } else {
+                        const val = Math.min(20, Math.max(1, parseInt(raw) || 1));
+                        setTrackerData({ ...trackerData, initialHpSquare: val });
+                      }
                     }}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '4px' }}
                   />
@@ -362,53 +388,170 @@ function App() {
                 </div>
               </div>
 
-              {/* Color Customization (Base Color, Camo Color, Backside BG Color) */}
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
-                    Base Card Color
-                  </label>
-                  <input
-                    type="color"
-                    value={trackerData.bgColor}
-                    onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
-                  />
+              {/* Color & Styling Customization */}
+              <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.6rem' }}>
+                  🎨 Colors & Background Styling
+                </label>
+
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.8rem', display: 'block', marginBottom: '0.2rem' }}>
+                      Base Card Color
+                    </label>
+                    <input
+                      type="color"
+                      value={trackerData.bgColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.8rem', display: 'block', marginBottom: '0.2rem' }}>
+                      Front Camo Color
+                    </label>
+                    <input
+                      type="color"
+                      value={trackerData.camoColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.8rem', display: 'block', marginBottom: '0.2rem' }}>
+                      Backside BG Color
+                    </label>
+                    <input
+                      type="color"
+                      value={trackerData.backBgColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.8rem', display: 'block', marginBottom: '0.2rem' }}>
+                      Backside Camo Color
+                    </label>
+                    <input
+                      type="color"
+                      value={trackerData.backCamoColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, backCamoColor: e.target.value })}
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
-                    Camo Color
-                  </label>
-                  <input
-                    type="color"
-                    value={trackerData.camoColor}
-                    onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
-                    Backside Color
-                  </label>
-                  <input
-                    type="color"
-                    value={trackerData.backBgColor}
-                    onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
-                    Camo Overlay
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#fff' }}>
+                <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
                       type="checkbox"
                       checked={trackerData.showCamo}
                       onChange={(e) => setTrackerData({ ...trackerData, showCamo: e.target.checked })}
                     />
-                    Enable Camo
+                    Front Camo
                   </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={trackerData.showBackCamo}
+                      onChange={(e) => setTrackerData({ ...trackerData, showBackCamo: e.target.checked })}
+                    />
+                    Backside Camo
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={trackerData.showSquareBorders}
+                      onChange={(e) => setTrackerData({ ...trackerData, showSquareBorders: e.target.checked })}
+                    />
+                    Longsquare Borders
+                  </label>
+                </div>
+              </div>
+
+              {/* Text Elements Coloring */}
+              <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.6rem' }}>
+                  ✒️ Text Elements Coloring
+                </label>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.8rem' }}>
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.78rem', display: 'block', marginBottom: '0.2rem' }}>Title</label>
+                    <input
+                      type="color"
+                      value={trackerData.titleColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, titleColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.78rem', display: 'block', marginBottom: '0.2rem' }}>Description</label>
+                    <input
+                      type="color"
+                      value={trackerData.descriptionColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, descriptionColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.78rem', display: 'block', marginBottom: '0.2rem' }}>Triangle Num</label>
+                    <input
+                      type="color"
+                      value={trackerData.triangleNumberColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, triangleNumberColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.78rem', display: 'block', marginBottom: '0.2rem' }}>Attachment Text</label>
+                    <input
+                      type="color"
+                      value={trackerData.attachmentTextColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, attachmentTextColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.78rem', display: 'block', marginBottom: '0.2rem' }}>Footer Name</label>
+                    <input
+                      type="color"
+                      value={trackerData.footerNameColor}
+                      onChange={(e) => setTrackerData({ ...trackerData, footerNameColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ color: '#9ca3af', fontSize: '0.78rem', display: 'block', marginBottom: '0.2rem' }}>Square Numbers</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <input
+                        type="color"
+                        value={trackerData.squareNumberColor === 'bgColor' ? trackerData.bgColor : trackerData.squareNumberColor}
+                        onChange={(e) => setTrackerData({ ...trackerData, squareNumberColor: e.target.value })}
+                      />
+                      <button
+                        title="Set square numbers color to background color"
+                        onClick={() =>
+                          setTrackerData({
+                            ...trackerData,
+                            squareNumberColor: trackerData.squareNumberColor === 'bgColor' ? '#8c939d' : 'bgColor'
+                          })
+                        }
+                        style={{
+                          fontSize: '0.7rem',
+                          padding: '2px 4px',
+                          background: trackerData.squareNumberColor === 'bgColor' ? '#00f0ff' : '#334155',
+                          color: trackerData.squareNumberColor === 'bgColor' ? '#000' : '#fff',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {trackerData.squareNumberColor === 'bgColor' ? 'BG Color' : 'Match BG'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -426,9 +569,27 @@ function App() {
 
               {/* Grid Interactive Placement Control */}
               <div style={{ background: '#0a0e17', padding: '1rem', borderRadius: '6px', border: '1px solid #1f293d' }}>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
-                  Interactive Grid Placement Mode
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
+                    Interactive Grid Placement Mode
+                  </label>
+                  <button
+                    onClick={handleClearAllMarkers}
+                    style={{
+                      fontSize: '0.78rem',
+                      padding: '0.3rem 0.6rem',
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🗑️ Clear All Markers
+                  </button>
+                </div>
+
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
                   <button
                     onClick={() => setClickMode('dice')}
@@ -442,7 +603,7 @@ function App() {
                       fontWeight: 'bold'
                     }}
                   >
-                    🎲 Place Token Dice
+                    🎲 Place Token / Supply Dice
                   </button>
                   <button
                     onClick={() => setClickMode('hp')}
@@ -463,32 +624,49 @@ function App() {
                 {clickMode === 'dice' && (
                   <div>
                     <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.8rem 0' }}>
-                      Select a die type below, then click any numbered square on the tracker to place/remove it!
+                      Select a die type or Supply die below, then click any numbered square on the tracker to place/remove it!
                     </p>
-                    {tokenData.dice && tokenData.dice.length > 0 ? (
-                      <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {tokenData.dice.map((die, idx) => (
-                          <div
-                            key={idx}
-                            onClick={() => setSelectedDieIndex(idx)}
-                            style={{
-                              padding: '0.4rem 0.8rem',
-                              borderRadius: '4px',
-                              border: selectedDieIndex === idx ? '2px solid #00f0ff' : '1px solid #334155',
-                              background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#111827',
-                              color: '#ffffff',
-                              cursor: 'pointer',
-                              fontWeight: 'bold',
-                              fontSize: '0.85rem'
-                            }}
-                          >
-                            Die #{idx + 1} ({die.type.toUpperCase()})
-                          </div>
-                        ))}
+
+                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {/* Supply die (Blue Circle) */}
+                      <div
+                        onClick={() => setSelectedDieIndex('supply')}
+                        style={{
+                          padding: '0.4rem 0.8rem',
+                          borderRadius: '4px',
+                          border: selectedDieIndex === 'supply' ? '2px solid #00f0ff' : '1px solid #334155',
+                          background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : '#111827',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <span style={{ color: '#3b82f6' }}>🔵</span> Supply Circle Die
                       </div>
-                    ) : (
-                      <span style={{ color: '#f87171', fontSize: '0.85rem' }}>No dice defined on unit token.</span>
-                    )}
+
+                      {tokenData.dice && tokenData.dice.map((die, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setSelectedDieIndex(idx)}
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '4px',
+                            border: selectedDieIndex === idx ? '2px solid #00f0ff' : '1px solid #334155',
+                            background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#111827',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          Die #{idx + 1} ({die.type.toUpperCase()})
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { LandToken } from './LandToken';
 
-// MiniDie component to render token dice inside tracker squares (without numbers)
+// MiniDie component to render token dice / supply dice inside tracker squares (without numbers)
 export function MiniDie({ die, size = 24 }) {
   if (!die) return null;
   const diceType = die.type || 'red';
@@ -9,7 +9,7 @@ export function MiniDie({ die, size = 24 }) {
   let defaultBg = '#c83232';
   if (diceType === 'green') defaultBg = '#2e7d32';
   if (diceType === 'purple') defaultBg = '#7b1fa2';
-  if (diceType === 'blue') defaultBg = '#1976d2';
+  if (diceType === 'blue' || diceType === 'supply') defaultBg = '#1976d2';
 
   const diceBg = die.color || defaultBg;
   const borderThick = die.hasThickBorder ? true : false;
@@ -53,7 +53,7 @@ export function MiniDie({ die, size = 24 }) {
             strokeWidth={strokeW}
           />
         )}
-        {diceType === 'blue' && (
+        {(diceType === 'blue' || diceType === 'supply') && (
           <circle cx="50" cy="50" r="45" fill={diceBg} stroke={strokeC} strokeWidth={strokeW} />
         )}
       </svg>
@@ -81,15 +81,26 @@ export function UnitTracker({
     bgColor = '#ffffff',
     camoColor = '#4a5568',
     showCamo = true,
-    initialHpSquare = 12, // 1 to 20
-    placedDice = {}, // { [squareNum]: [dieObject1, dieObject2] }
-    backBgColor = null,
-    customBackImageUrl = null
+    initialHpSquare = null,
+    placedDice = {},
+    backBgColor = '#2b6cb0',
+    backCamoColor = '#1a365d',
+    showBackCamo = true,
+    customBackImageUrl = null,
+    showSquareBorders = true,
+    titleColor = '#000000',
+    descriptionColor = '#1a202c',
+    triangleNumberColor = '#000000',
+    footerNameColor = '#000000',
+    attachmentTextColor = '#000000',
+    squareNumberColor = '#8c939d',
+    squareBgColor = '#ffffff'
   } = trackerData || {};
 
   // Backside rendering
   if (side === 'back') {
     const effectiveBackBg = backBgColor || tokenData?.bgColor || '#2b6cb0';
+    const effectiveBackCamoColor = backCamoColor || camoColor || '#1a365d';
 
     return (
       <div
@@ -110,14 +121,37 @@ export function UnitTracker({
           padding: '16px'
         }}
       >
-        {customBackImageUrl ? (
+        {/* Camouflage Pattern Background Overlay for Backside */}
+        {showBackCamo && (
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              opacity: 0.2,
+              zIndex: 0
+            }}
+          >
+            <pattern id="camo-pattern-tracker-back" width="120" height="120" patternUnits="userSpaceOnUse">
+              <path d="M 0,20 Q 30,0 60,30 T 120,20 L 120,60 Q 90,80 60,50 T 0,70 Z" fill={effectiveBackCamoColor} />
+              <path d="M 20,80 Q 50,60 80,90 T 120,100 L 120,120 L 0,120 Z" fill={effectiveBackCamoColor} />
+              <circle cx="30" cy="40" r="15" fill={effectiveBackCamoColor} />
+              <circle cx="90" cy="30" r="22" fill={effectiveBackCamoColor} />
+              <circle cx="70" cy="100" r="18" fill={effectiveBackCamoColor} />
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#camo-pattern-tracker-back)" />
+          </svg>
+        )}
+
+        {customBackImageUrl && (
           <img
             src={customBackImageUrl}
             alt="Tracker Back"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
           />
-        ) : (
-          <LandToken tokenData={tokenData} side="back" size={Math.min(width, height) * 0.75} />
         )}
       </div>
     );
@@ -125,6 +159,12 @@ export function UnitTracker({
 
   // 20 vertical long squares (4 rows of 5)
   const squares = Array.from({ length: 20 }, (_, i) => i + 1);
+
+  // Determine effective square number color
+  const effectiveNumColor =
+    squareNumberColor === 'bgColor'
+      ? bgColor
+      : squareNumberColor || '#8c939d';
 
   return (
     <div
@@ -140,7 +180,7 @@ export function UnitTracker({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '24px 14px 12px 14px', // Increased top padding so attachment text never overlays title
+        padding: '24px 14px 12px 14px',
         fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
         color: '#000000',
         overflow: 'hidden',
@@ -187,11 +227,11 @@ export function UnitTracker({
           padding: '0 8px'
         }}
       >
-        <span style={{ fontSize: '0.65rem', color: '#000000' }}>▲</span>
-        <span style={{ fontSize: '0.65rem', fontWeight: '900', letterSpacing: '1.5px', color: '#000000' }}>
+        <span style={{ fontSize: '0.65rem', color: attachmentTextColor }}>▲</span>
+        <span style={{ fontSize: '0.65rem', fontWeight: '900', letterSpacing: '1.5px', color: attachmentTextColor }}>
           ATTACHMENT
         </span>
-        <span style={{ fontSize: '0.65rem', color: '#000000' }}>▲</span>
+        <span style={{ fontSize: '0.65rem', color: attachmentTextColor }}>▲</span>
       </div>
 
       {/* Header Area */}
@@ -216,7 +256,7 @@ export function UnitTracker({
                   margin: 0,
                   fontSize: '1.25rem',
                   fontWeight: '900',
-                  color: '#000000',
+                  color: titleColor,
                   letterSpacing: '0.5px',
                   lineHeight: 1.1,
                   textTransform: 'uppercase'
@@ -228,7 +268,7 @@ export function UnitTracker({
                 style={{
                   margin: '4px 0 0 0',
                   fontSize: '0.68rem',
-                  color: '#1a202c',
+                  color: descriptionColor,
                   lineHeight: 1.2,
                   fontWeight: '500',
                   textAlign: 'left'
@@ -259,7 +299,7 @@ export function UnitTracker({
                   top: '4px',
                   fontSize: '0.85rem',
                   fontWeight: '900',
-                  color: '#000000'
+                  color: triangleNumberColor
                 }}
               >
                 {triangleNumber}
@@ -290,9 +330,9 @@ export function UnitTracker({
               key={num}
               onClick={() => onSquareClick && onSquareClick(num)}
               style={{
-                border: '2px solid #000000',
+                border: showSquareBorders ? '2px solid #000000' : 'none',
                 borderRadius: '2px',
-                backgroundColor: '#ffffff',
+                backgroundColor: squareBgColor || '#ffffff',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -334,7 +374,7 @@ export function UnitTracker({
                 ))}
               </div>
 
-              {/* Lower half: Double-sized grey military number centered horizontally */}
+              {/* Lower half: Military number centered horizontally */}
               <div
                 style={{
                   height: '58%',
@@ -346,7 +386,7 @@ export function UnitTracker({
                   fontSize: '2.1rem',
                   fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
                   lineHeight: 1,
-                  color: '#8c939d',
+                  color: effectiveNumColor,
                   paddingBottom: '2px',
                   boxSizing: 'border-box'
                 }}
@@ -365,7 +405,7 @@ export function UnitTracker({
             fontSize: '0.72rem',
             fontWeight: '900',
             letterSpacing: '1px',
-            color: '#000000',
+            color: footerNameColor,
             textTransform: 'uppercase'
           }}
         >
