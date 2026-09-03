@@ -55,10 +55,33 @@ export function saveItem(item) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
   } catch (e) {
     console.error('Failed to save item to localStorage:', e);
-    alert('Failed to save to local storage. Your storage space might be full.');
   }
 
   return updatedItems;
+}
+
+/**
+ * Update the name of a saved item by ID
+ * @param {string} id
+ * @param {string} newName
+ * @returns {Array} Updated array of saved items
+ */
+export function updateItemName(id, newName) {
+  const items = getSavedItems();
+  const existingIndex = items.findIndex((i) => i.id === id);
+  if (existingIndex >= 0) {
+    items[existingIndex] = {
+      ...items[existingIndex],
+      name: newName,
+      updatedAt: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to update item name in localStorage:', e);
+    }
+  }
+  return items;
 }
 
 /**

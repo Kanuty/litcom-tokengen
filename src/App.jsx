@@ -4,7 +4,7 @@ import { TokenPreview } from './components/TokenPreview';
 import { UnitTracker } from './components/UnitTracker';
 import { SavedLibrary } from './components/SavedLibrary';
 import { downloadTokenAsPNG, downloadUnitTrackerAsPNG } from './utils/export';
-import { getSavedItems, saveItem, deleteItem } from './utils/storage';
+import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
 
 function App() {
@@ -70,6 +70,21 @@ function App() {
   // Saved presets state
   const [savedItems, setSavedItems] = useState(() => getSavedItems());
 
+  // Custom styled HUD notification / modal pop-up state
+  const [modalState, setModalState] = useState(null); // { title, message, type: 'info' | 'danger', onConfirm?: fn }
+
+  const showNotification = ({ title, message, type = 'info' }) => {
+    setModalState({ title, message, type });
+  };
+
+  const confirmAction = ({ title, message, onConfirm }) => {
+    setModalState({ title, message, type: 'danger', onConfirm });
+  };
+
+  const closeModal = () => {
+    setModalState(null);
+  };
+
   const refreshSavedItems = () => {
     setSavedItems(getSavedItems());
   };
@@ -85,7 +100,11 @@ function App() {
     });
     setSavedItems(updated);
     setTokenSaveName('');
-    alert(`Token preset "${name}" saved to browser storage!`);
+    showNotification({
+      title: 'TOKEN PRESET SAVED',
+      message: `Token preset "${name}" was successfully saved to browser storage.`,
+      type: 'info'
+    });
   };
 
   const handleSaveTrackerPreset = (e) => {
@@ -99,7 +118,11 @@ function App() {
     });
     setSavedItems(updated);
     setTrackerSaveName('');
-    alert(`Unit Tracker preset "${name}" saved to browser storage!`);
+    showNotification({
+      title: 'UNIT TRACKER PRESET SAVED',
+      message: `Unit Tracker preset "${name}" was successfully saved to browser storage.`,
+      type: 'info'
+    });
   };
 
   const handleLoadItem = (item) => {
@@ -107,15 +130,30 @@ function App() {
       setTokenData(item.data);
       const elem = document.getElementById('token-generator');
       if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      showNotification({
+        title: 'PRESET LOADED',
+        message: `Loaded token configuration "${item.name}".`,
+        type: 'info'
+      });
     } else if (item.type === 'tracker') {
       setTrackerData(item.data);
       const elem = document.getElementById('unit-tracker');
       if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      showNotification({
+        title: 'PRESET LOADED',
+        message: `Loaded Unit Tracker configuration "${item.name}".`,
+        type: 'info'
+      });
     }
   };
 
   const handleDeleteSavedItem = (id) => {
     const updated = deleteItem(id);
+    setSavedItems(updated);
+  };
+
+  const handleUpdateItemName = (id, newName) => {
+    const updated = updateItemName(id, newName);
     setSavedItems(updated);
   };
 
@@ -241,6 +279,135 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* CUSTOM STYLED CYBER-MILITARY HUD MODAL POP-UP */}
+      {modalState && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(5, 8, 15, 0.85)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem'
+          }}
+          onClick={closeModal}
+        >
+          <div
+            style={{
+              background: '#0d1322',
+              border: `2px solid ${modalState.type === 'danger' ? '#ef4444' : '#00f0ff'}`,
+              borderRadius: '8px',
+              padding: '1.8rem',
+              maxWidth: '460px',
+              width: '100%',
+              boxShadow: `0 0 20px ${modalState.type === 'danger' ? 'rgba(239,68,68,0.4)' : 'rgba(0,240,255,0.4)'}`,
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: '-10px',
+                left: '15px',
+                background: '#0a0e17',
+                color: modalState.type === 'danger' ? '#ef4444' : '#00f0ff',
+                fontSize: '0.75rem',
+                padding: '0 8px',
+                letterSpacing: '1.5px',
+                border: `1px solid ${modalState.type === 'danger' ? '#ef4444' : '#00f0ff'}`
+              }}
+            >
+              /// SYSTEM_ALERT
+            </div>
+
+            <h3
+              style={{
+                margin: '0 0 0.8rem 0',
+                color: modalState.type === 'danger' ? '#ef4444' : '#00f0ff',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.8rem',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase'
+              }}
+            >
+              {modalState.title}
+            </h3>
+
+            <p style={{ margin: '0 0 1.5rem 0', color: '#f3f4f6', lineHeight: 1.5, fontSize: '0.95rem' }}>
+              {modalState.message}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem' }}>
+              {modalState.onConfirm ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: '#1e293b',
+                      color: '#cbd5e1',
+                      border: '1px solid #334155',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      modalState.onConfirm();
+                      closeModal();
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: '#ef4444',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    CONFIRM
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  style={{
+                    padding: '0.5rem 1.2rem',
+                    background: '#00f0ff',
+                    color: '#0a0e17',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '0.95rem',
+                    fontFamily: "'Teko', sans-serif",
+                    letterSpacing: '1px'
+                  }}
+                >
+                  ACKNOWLEDGE
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className="sticky-nav">
         <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
         <div className="nav-links">
@@ -260,7 +427,10 @@ function App() {
         items={savedItems}
         onLoadItem={handleLoadItem}
         onDeleteItem={handleDeleteSavedItem}
+        onUpdateItemName={handleUpdateItemName}
         onRefreshItems={refreshSavedItems}
+        showNotification={showNotification}
+        confirmAction={confirmAction}
       />
 
       <main className="app-main" id="token-generator">
