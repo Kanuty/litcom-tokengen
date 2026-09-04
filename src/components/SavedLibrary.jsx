@@ -10,7 +10,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
   const [editNameValue, setEditNameValue] = useState('');
 
   // Filtering & Sorting states
-  const [typeFilter, setTypeFilter] = useState('all'); // 'all' | 'token' | 'tracker'
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all' | 'token' | 'tracker' | 'card'
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('date_desc'); // 'date_desc' | 'date_asc' | 'name_asc' | 'name_desc'
 
@@ -84,6 +84,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
   let processedItems = items.filter((item) => {
     if (typeFilter === 'token' && item.type !== 'token') return false;
     if (typeFilter === 'tracker' && item.type !== 'tracker') return false;
+    if (typeFilter === 'card' && item.type !== 'card') return false;
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchName = item.name.toLowerCase().includes(query);
@@ -258,6 +259,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
               <option value="all">All Presets ({items.length})</option>
               <option value="token">Tokens Only</option>
               <option value="tracker">Army Trackers Only</option>
+              <option value="card">Capability Cards Only</option>
             </select>
           </div>
 
@@ -291,7 +293,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
       {items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '1.2rem', background: 'var(--card-dice-bg)', borderRadius: '6px', border: '1px dashed var(--panel-border)', color: 'var(--text-muted)' }}>
           <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem' }}>No saved presets found in browser storage.</p>
-          <span style={{ fontSize: '0.82rem' }}>Save tokens or unit trackers from below, or import a `.json` configuration file to get started!</span>
+          <span style={{ fontSize: '0.82rem' }}>Save tokens, unit trackers, or capability cards from below, or import a `.json` configuration file to get started!</span>
         </div>
       ) : processedItems.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--card-dice-bg)', borderRadius: '6px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -311,15 +313,18 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
         >
           {processedItems.map((item) => {
             const isToken = item.type === 'token';
+            const isCard = item.type === 'card';
             const categoryLabel = isToken
               ? item.category === 'misc'
                 ? 'Misc Token'
                 : item.category === 'naval'
                 ? 'Naval Unit'
                 : 'Land Unit'
+              : isCard
+              ? 'Capability Card'
               : 'Army Tracker';
 
-            const badgeColor = isToken ? '#3b82f6' : '#10b981';
+            const badgeColor = isToken ? '#3b82f6' : isCard ? '#8b5cf6' : '#10b981';
             const isEditing = editingId === item.id;
 
             return (

@@ -18,7 +18,7 @@ export function getSavedItems() {
 
 /**
  * Save or update an item in localStorage
- * @param {Object} item - { id?, name, type: 'token' | 'tracker', category?, data }
+ * @param {Object} item - { id?, name, type: 'token' | 'tracker' | 'card', category?, data }
  * @returns {Array} Updated array of saved items
  */
 export function saveItem(item) {
@@ -39,9 +39,16 @@ export function saveItem(item) {
       updatedItems = [{ ...item, createdAt: now, updatedAt: now }, ...items];
     }
   } else {
+    const defaultName =
+      item.type === 'token'
+        ? 'Unnamed Token'
+        : item.type === 'card'
+        ? 'Unnamed Capability Card'
+        : 'Unnamed Tracker';
+
     const newItem = {
       id: 'preset_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5),
-      name: item.name || (item.type === 'token' ? 'Unnamed Token' : 'Unnamed Tracker'),
+      name: item.name || defaultName,
       type: item.type || 'token',
       category: item.category || (item.data && item.data.category) || 'land',
       createdAt: now,

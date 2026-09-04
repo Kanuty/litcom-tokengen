@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { TokenForm } from './components/TokenForm';
 import { TokenPreview } from './components/TokenPreview';
 import { UnitTracker } from './components/UnitTracker';
+import { JointCapabilityCard, CARD_TYPES } from './components/JointCapabilityCard';
 import { SavedLibrary } from './components/SavedLibrary';
-import { downloadTokenAsPNG, downloadUnitTrackerAsPNG } from './utils/export';
+import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
 
@@ -134,6 +135,39 @@ function App() {
     squareBgColor: '#ffffff'
   });
 
+  // Joint Capability Cards state
+  const [cardExportFace, setCardExportFace] = useState('both');
+  const [cardPreviewSide, setCardPreviewSide] = useState('front');
+  const [cardSaveName, setCardSaveName] = useState('');
+  const [cardData, setCardData] = useState({
+    title: 'NSM BATTERY',
+    cardType: 'fires', // 'fires' | 'maneuver' | 'interception' | 'info_ops' | 'c5isr' | 'custom'
+    customTypeTitle: '',
+    cost: 2, // 0 to 5
+    showSizeTriangle: true,
+    sizeNumber: 1,
+    customStripColor: '#d32f2f',
+    customImageUrl: null,
+    bodyText: 'Provides long-range anti-ship missile defense against surface combatants in contested littoral zones.',
+    featureTags: { PERSIST: true, INTERCEPT: false, ATTACH: true, NULLIFY: false, FTR: false },
+    showLore: true,
+    loreText: 'Deployed rapidly to sea denial zones in the Indo-Pacific theater.',
+    setNameNumber: 'USMC 999',
+    borderColor: '#00f0ff',
+    borderWidth: 3,
+    bgColor: '#0f172a',
+    cardTextColor: '#f8fafc',
+    topStripTextColor: '#ffffff',
+    loreBgColor: '#1e293b',
+    loreTextColor: '#94a3b8',
+    backBgColor: '#0f172a',
+    backCamoColor: '#1e293b',
+    showBackCamo: true,
+    backTitle: 'JOINT CAPABILITY CARD',
+    backSubtitle: 'LITTORAL COMMANDER SUITE',
+    customBackImageUrl: null
+  });
+
   const [clickMode, setClickMode] = useState('dice'); // 'dice' or 'hp'
   const [selectedDieIndex, setSelectedDieIndex] = useState('supply'); // 'supply' or index of tokenData.dice
 
@@ -195,6 +229,24 @@ function App() {
     });
   };
 
+  const handleSaveCardPreset = (e) => {
+    e.preventDefault();
+    const name = cardSaveName.trim() || cardData.title || 'Unnamed Capability Card';
+    const updated = saveItem({
+      name,
+      type: 'card',
+      category: 'card',
+      data: cardData
+    });
+    setSavedItems(updated);
+    setCardSaveName('');
+    showNotification({
+      title: 'CAPABILITY CARD PRESET SAVED',
+      message: `Capability Card preset "${name}" was successfully saved to browser storage.`,
+      type: 'info'
+    });
+  };
+
   const handleLoadItem = (item) => {
     if (item.type === 'token') {
       setTokenData(item.data);
@@ -212,6 +264,15 @@ function App() {
       showNotification({
         title: 'PRESET LOADED',
         message: `Loaded Unit Tracker configuration "${item.name}".`,
+        type: 'info'
+      });
+    } else if (item.type === 'card') {
+      setCardData(item.data);
+      const elem = document.getElementById('capability-card');
+      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      showNotification({
+        title: 'PRESET LOADED',
+        message: `Loaded Capability Card configuration "${item.name}".`,
         type: 'info'
       });
     }
@@ -233,6 +294,28 @@ function App() {
       const reader = new FileReader();
       reader.onload = (evt) => {
         setTrackerData((prev) => ({ ...prev, customImageUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCardImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setCardData((prev) => ({ ...prev, customImageUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCardBackImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setCardData((prev) => ({ ...prev, customBackImageUrl: evt.target.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -290,6 +373,16 @@ function App() {
       trackerExportFace,
       trackerData.title,
       trackerData.footerName
+    );
+  };
+
+  const handleDownloadCardPNG = () => {
+    downloadCapabilityCardAsPNG(
+      'capability-card-export-front',
+      'capability-card-export-back',
+      cardExportFace,
+      cardData.title,
+      cardData.setNameNumber
     );
   };
 
@@ -490,6 +583,18 @@ function App() {
           side="back"
           width={420}
         />
+        <JointCapabilityCard
+          id="capability-card-export-front"
+          cardData={cardData}
+          side="front"
+          width={380}
+        />
+        <JointCapabilityCard
+          id="capability-card-export-back"
+          cardData={cardData}
+          side="back"
+          width={380}
+        />
       </div>
 
       <nav className="sticky-nav">
@@ -498,6 +603,7 @@ function App() {
           <a href="#saved-presets-library" className="nav-link">💾 SAVED PRESETS</a>
           <a href="#token-generator" className="nav-link">🎯 TOKEN GENERATOR</a>
           <a href="#unit-tracker" className="nav-link">📋 UNIT TRACKER</a>
+          <a href="#capability-card" className="nav-link">🃏 CAPABILITY CARDS</a>
 
           {/* Social & External Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: '0.2rem' }}>
@@ -577,7 +683,7 @@ function App() {
 
       <header className="app-header">
         <h1>Littoral Commander Token & Tracker Generator</h1>
-        <p>Unofficial tool for rapid design of custom tokens and unit trackers</p>
+        <p>Unofficial tool for rapid design of custom tokens, unit trackers, and joint capability cards</p>
       </header>
 
       {/* SAVED PRESETS LIBRARY SECTION */}
@@ -1432,6 +1538,570 @@ function App() {
                     trackerData={trackerData}
                     side="back"
                     width={420}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* JOINT CAPABILITY CARDS SECTION */}
+      <section className="capability-card-section" id="capability-card" style={{ marginTop: '2.5rem' }}>
+        <div
+          style={{
+            background: 'var(--panel-bg)',
+            padding: '1.25rem',
+            borderRadius: '8px',
+            boxShadow: 'var(--hud-glow)',
+            border: '1px solid var(--panel-border)',
+            position: 'relative'
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '-10px',
+              left: '15px',
+              background: 'var(--panel-bg)',
+              color: 'var(--accent-cyan)',
+              fontSize: '0.75rem',
+              padding: '0 8px',
+              letterSpacing: '1.5px',
+              border: '1px solid var(--accent-cyan)'
+            }}
+          >
+            /// CAPABILITY_CARD_GENERATOR
+          </div>
+
+          <h2
+            style={{
+              marginTop: '0',
+              marginBottom: '1rem',
+              color: 'var(--accent-cyan)',
+              fontFamily: "'Teko', sans-serif",
+              fontSize: '1.8rem',
+              letterSpacing: '1.5px',
+              borderBottom: '1px solid var(--panel-border)',
+              paddingBottom: '0.4rem',
+              textTransform: 'uppercase'
+            }}
+          >
+            Joint Capability Cards Builder (5.5cm x 9.5cm)
+          </h2>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: '1.5rem',
+              alignItems: 'start'
+            }}
+            className="tracker-grid"
+          >
+            {/* Card Form Controls */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+
+              {/* 1. CARD TYPE & TOP STRIP DESIGN */}
+              <div className="tint-card tint-card-attributes">
+                <h3 className="subsection-header">🎴 Card Type & Top Strip Configuration</h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label className="field-label">Card Title</label>
+                    <input
+                      type="text"
+                      value={cardData.title}
+                      onChange={(e) => setCardData({ ...cardData, title: e.target.value })}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="field-label">Card Type (Top Strip Color & Icon)</label>
+                    <select
+                      value={cardData.cardType}
+                      onChange={(e) => setCardData({ ...cardData, cardType: e.target.value })}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="fires">🔴 Red - Fires</option>
+                      <option value="maneuver">🟢 Green - Maneuver</option>
+                      <option value="interception">🟣 Purple - Interception</option>
+                      <option value="info_ops">🔵 Blue - Information Operations</option>
+                      <option value="c5isr">🟡 Yellow - C5ISR</option>
+                      <option value="custom">⚙️ Custom Type</option>
+                    </select>
+                  </div>
+                </div>
+
+                {cardData.cardType === 'custom' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                      <label className="field-label">Custom Type Name</label>
+                      <input
+                        type="text"
+                        placeholder="Special Ops"
+                        value={cardData.customTypeTitle}
+                        onChange={(e) => setCardData({ ...cardData, customTypeTitle: e.target.value })}
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label">Custom Top Strip Color</label>
+                      <input
+                        type="color"
+                        value={cardData.customStripColor}
+                        onChange={(e) => setCardData({ ...cardData, customStripColor: e.target.value })}
+                        style={{ width: '100%', height: '36px', cursor: 'pointer' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
+                  <div>
+                    <label className="field-label">Cost (Top Left Circle 0–5)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="5"
+                      value={cardData.cost}
+                      onChange={(e) => {
+                        const val = Math.min(5, Math.max(0, parseInt(e.target.value) || 0));
+                        setCardData({ ...cardData, cost: val });
+                      }}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="field-label">Size Number (▲ 1–50)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={cardData.sizeNumber}
+                      onChange={(e) => {
+                        const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                        setCardData({ ...cardData, sizeNumber: val });
+                      }}
+                      disabled={!cardData.showSizeTriangle}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.2rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                      <input
+                        type="checkbox"
+                        checked={cardData.showSizeTriangle}
+                        onChange={(e) => setCardData({ ...cardData, showSizeTriangle: e.target.checked })}
+                      />
+                      Show Size Triangle (▲)
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. MAIN BODY, IMAGE & FEATURE ICONS */}
+              <div className="tint-card tint-card-grid">
+                <h3 className="subsection-header">🖼️ Photo & Body Description</h3>
+
+                <div>
+                  <label className="field-label">Import Photo (Middle Image Container)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCardImageUpload}
+                    style={{ width: '100%', fontSize: '0.78rem' }}
+                  />
+                  {cardData.customImageUrl && (
+                    <button
+                      onClick={() => setCardData({ ...cardData, customImageUrl: null })}
+                      style={{
+                        marginTop: '0.3rem',
+                        fontSize: '0.72rem',
+                        padding: '2px 6px',
+                        background: '#dc2626',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Reset Photo
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label className="field-label">Body Text (Description)</label>
+                  <textarea
+                    rows="3"
+                    value={cardData.bodyText}
+                    onChange={(e) => setCardData({ ...cardData, bodyText: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.4rem 0.5rem',
+                      borderRadius: '4px',
+                      fontFamily: 'inherit',
+                      fontSize: '0.85rem',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="field-label">Feature Icons (Dark Squares on Left Side)</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
+                    {['PERSIST', 'INTERCEPT', 'ATTACH', 'NULLIFY', 'FTR'].map((tag) => (
+                      <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!cardData.featureTags[tag]}
+                          onChange={(e) =>
+                            setCardData({
+                              ...cardData,
+                              featureTags: {
+                                ...cardData.featureTags,
+                                [tag]: e.target.checked
+                              }
+                            })
+                          }
+                        />
+                        {tag}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. LORE & SET DESIGNATION */}
+              <div className="tint-card tint-card-text">
+                <h3 className="subsection-header">📜 Lore Box & Set Designation</h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                      <input
+                        type="checkbox"
+                        checked={cardData.showLore}
+                        onChange={(e) => setCardData({ ...cardData, showLore: e.target.checked })}
+                      />
+                      Enable Bottom Lore Field
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="field-label">Set Name & Number (Bottom Right)</label>
+                    <input
+                      type="text"
+                      value={cardData.setNameNumber}
+                      onChange={(e) => setCardData({ ...cardData, setNameNumber: e.target.value })}
+                      placeholder="e.g. USMC 999"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {cardData.showLore && (
+                  <div>
+                    <label className="field-label">Lore Text</label>
+                    <textarea
+                      rows="2"
+                      value={cardData.loreText}
+                      onChange={(e) => setCardData({ ...cardData, loreText: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.4rem 0.5rem',
+                        borderRadius: '4px',
+                        fontFamily: 'inherit',
+                        fontSize: '0.82rem',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* 4. COLORS & BACKSIDE OPTIONS */}
+              <div className="tint-card tint-card-colors">
+                <h3 className="subsection-header">🎨 Card Colors & Back Side Customization</h3>
+
+                <div className="color-picker-grid-6">
+                  <div className="color-cell">
+                    <span className="cell-label">Border Color</span>
+                    <input
+                      type="color"
+                      value={cardData.borderColor}
+                      onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="color-cell">
+                    <span className="cell-label">Card BG</span>
+                    <input
+                      type="color"
+                      value={cardData.bgColor}
+                      onChange={(e) => setCardData({ ...cardData, bgColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="color-cell">
+                    <span className="cell-label">Text Color</span>
+                    <input
+                      type="color"
+                      value={cardData.cardTextColor}
+                      onChange={(e) => setCardData({ ...cardData, cardTextColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="color-cell">
+                    <span className="cell-label">Strip Text</span>
+                    <input
+                      type="color"
+                      value={cardData.topStripTextColor}
+                      onChange={(e) => setCardData({ ...cardData, topStripTextColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="color-cell">
+                    <span className="cell-label">Lore BG</span>
+                    <input
+                      type="color"
+                      value={cardData.loreBgColor}
+                      onChange={(e) => setCardData({ ...cardData, loreBgColor: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="color-cell">
+                    <span className="cell-label">Backside BG</span>
+                    <input
+                      type="color"
+                      value={cardData.backBgColor}
+                      onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.4rem' }}>
+                  <div>
+                    <label className="field-label">Back Side Header Title</label>
+                    <input
+                      type="text"
+                      value={cardData.backTitle}
+                      onChange={(e) => setCardData({ ...cardData, backTitle: e.target.value })}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="field-label">Custom Backside Emblem/Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCardBackImageUpload}
+                      style={{ width: '100%', fontSize: '0.78rem' }}
+                    />
+                    {cardData.customBackImageUrl && (
+                      <button
+                        onClick={() => setCardData({ ...cardData, customBackImageUrl: null })}
+                        style={{
+                          marginTop: '0.3rem',
+                          fontSize: '0.72rem',
+                          padding: '2px 6px',
+                          background: '#dc2626',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Reset Back Image
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. EXPORT & PRESET ACTIONS CARD */}
+              <div className="tint-card tint-card-attributes">
+                <h3 className="subsection-header">💾 Export & Preset Storage</h3>
+
+                <div>
+                  <label className="field-label">Capability Card Export Side</label>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    {['front', 'back', 'both'].map((f) => (
+                      <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                        <input
+                          type="radio"
+                          name="cardExportFace"
+                          value={f}
+                          checked={cardExportFace === f}
+                          onChange={(e) => setCardExportFace(e.target.value)}
+                        />
+                        {f.toUpperCase()}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleDownloadCardPNG}
+                  style={{
+                    padding: '0.75rem',
+                    backgroundColor: 'var(--accent-cyan)',
+                    color: 'var(--bg-dark)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    fontSize: '1.1rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    fontFamily: "'Teko', sans-serif",
+                    letterSpacing: '1px'
+                  }}
+                >
+                  <span>📥</span> EXPORT CAPABILITY CARD ({cardExportFace.toUpperCase()})
+                </button>
+
+                {/* CARD SAVE PRESET BOX */}
+                <div style={{ paddingTop: '0.6rem', borderTop: '1px dashed var(--panel-border)' }}>
+                  <form onSubmit={handleSaveCardPreset} style={{ display: 'flex', gap: '0.6rem' }}>
+                    <input
+                      type="text"
+                      placeholder={cardData.title || 'Preset Name...'}
+                      value={cardSaveName}
+                      onChange={(e) => setCardSaveName(e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="submit"
+                      style={{
+                        padding: '0.4rem 1rem',
+                        background: 'var(--accent-cyan)',
+                        color: 'var(--bg-dark)',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1.1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      SAVE CARD
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+
+            {/* SWAPPABLE CAPABILITY CARD LIVE PREVIEW WITH TABS (STICKY WITHIN SECTION) */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem',
+                position: 'sticky',
+                top: '80px'
+              }}
+            >
+              {/* Swappable Face Tabs */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  background: 'var(--input-bg)',
+                  padding: '0.35rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--panel-border)'
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setCardPreviewSide('front')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: cardPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
+                    color: cardPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  FRONT SIDE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardPreviewSide('back')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: cardPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
+                    color: cardPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  BACK SIDE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardPreviewSide('both')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: cardPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
+                    color: cardPreviewSide === 'both' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  BOTH SIDES
+                </button>
+              </div>
+
+              {/* Render Selected Preview */}
+              {(cardPreviewSide === 'front' || cardPreviewSide === 'both') && (
+                <div>
+                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                    FRONT SIDE PREVIEW
+                  </h3>
+                  <JointCapabilityCard
+                    cardData={cardData}
+                    side="front"
+                    width={330}
+                  />
+                </div>
+              )}
+
+              {(cardPreviewSide === 'back' || cardPreviewSide === 'both') && (
+                <div>
+                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                    BACK SIDE PREVIEW
+                  </h3>
+                  <JointCapabilityCard
+                    cardData={cardData}
+                    side="back"
+                    width={330}
                   />
                 </div>
               )}
