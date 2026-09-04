@@ -14,22 +14,77 @@
   --bg-grid-color: rgba(0, 240, 255, 0.08);
   --bg-linear-1: rgba(15, 23, 42, 0.9);
   --bg-linear-2: rgba(15, 23, 42, 0.9);
+
+  --card-dice-bg: #0a1424; --card-dice-border: #1a2f4c;
+  --card-colors-bg: #0d1726; --card-colors-border: #1c324a;
+  --card-text-bg: #091b29; --card-text-border: #143b57;
+  --card-grid-bg: #081d24; --card-grid-border: #0e3f4e;
+  --card-aircraft-bg: #111326; --card-aircraft-border: #23274d;
+  --card-attr-bg: #0e1626; --card-attr-border: #1b2d45;
+
+  --input-bg: #0d1322;
+  --input-color: #00f0ff;
+  --input-border: #1e293b;
+  --color-cell-bg: rgba(10, 14, 23, 0.6);
+  --color-cell-border: rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="blueprint"] {
-  --bg-dark: #0b1f3a;
-  --panel-bg: #102a4e;
-  --panel-border: #1e4273;
-  --accent-cyan: #ffffff;
-  --accent-blue: #60a5fa;
-  --accent-sky: #93c5fd;
-  --text-primary: #ffffff;
-  --text-secondary: #e2e8f0;
-  --text-muted: #94a3b8;
-  --hud-glow: 0 0 10px rgba(255, 255, 255, 0.2);
-  --bg-grid-color: rgba(255, 255, 255, 0.12);
-  --bg-linear-1: rgba(11, 31, 58, 0.92);
-  --bg-linear-2: rgba(16, 42, 78, 0.92);
+  --bg-dark: #eef5fc;
+  --panel-bg: #ffffff;
+  --panel-border: #93c5fd;
+  --accent-cyan: #1d4ed8;
+  --accent-blue: #2563eb;
+  --accent-sky: #1e40af;
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-muted: #475569;
+  --hud-glow: none;
+  --bg-grid-color: rgba(37, 99, 235, 0.12);
+  --bg-linear-1: rgba(238, 245, 252, 0.95);
+  --bg-linear-2: rgba(224, 236, 251, 0.95);
+
+  --card-dice-bg: #e0edff; --card-dice-border: #bfdbfe;
+  --card-colors-bg: #e8f0fe; --card-colors-border: #c7d2fe;
+  --card-text-bg: #e0f2fe; --card-text-border: #bae6fd;
+  --card-grid-bg: #e0f7fa; --card-grid-border: #a5f3fc;
+  --card-aircraft-bg: #ede9fe; --card-aircraft-border: #ddd6fe;
+  --card-attr-bg: #f0f4fe; --card-attr-border: #c7d2fe;
+
+  --input-bg: #ffffff;
+  --input-color: #1e3a8a;
+  --input-border: #93c5fd;
+  --color-cell-bg: #f1f5f9;
+  --color-cell-border: #cbd5e1;
+}
+
+[data-theme="oldschool"] {
+  --bg-dark: #f5f2eb;
+  --panel-bg: #faf8f5;
+  --panel-border: #d4ceb8;
+  --accent-cyan: #2d3a27;
+  --accent-blue: #3d5233;
+  --accent-sky: #4f6842;
+  --text-primary: #1f241d;
+  --text-secondary: #333a30;
+  --text-muted: #666153;
+  --hud-glow: none;
+  --bg-grid-color: rgba(45, 58, 39, 0.08);
+  --bg-linear-1: rgba(245, 242, 235, 0.95);
+  --bg-linear-2: rgba(240, 236, 227, 0.95);
+
+  --card-dice-bg: #ece7db; --card-dice-border: #c8c0a8;
+  --card-colors-bg: #eee8dc; --card-colors-border: #c8c0a8;
+  --card-text-bg: #e9e5d8; --card-text-border: #c8c0a8;
+  --card-grid-bg: #e8e3d5; --card-grid-border: #c8c0a8;
+  --card-aircraft-bg: #eae4d7; --card-aircraft-border: #c8c0a8;
+  --card-attr-bg: #f0ebe0; --card-attr-border: #c8c0a8;
+
+  --input-bg: #ffffff;
+  --input-color: #2d3a27;
+  --input-border: #bcbead;
+  --color-cell-bg: #ece7db;
+  --color-cell-border: #d4ceb8;
 }
 
 [data-theme="vaporwave"] {
@@ -46,6 +101,19 @@
   --bg-grid-color: rgba(255, 42, 133, 0.15);
   --bg-linear-1: rgba(18, 9, 36, 0.92);
   --bg-linear-2: rgba(27, 13, 54, 0.92);
+
+  --card-dice-bg: #220e3d; --card-dice-border: #4d1c80;
+  --card-colors-bg: #280b3d; --card-colors-border: #571680;
+  --card-text-bg: #1c0938; --card-text-border: #451378;
+  --card-grid-bg: #150e38; --card-grid-border: #291873;
+  --card-aircraft-bg: #2d0e3b; --card-aircraft-border: #5b1378;
+  --card-attr-bg: #200d3a; --card-attr-border: #4a157d;
+
+  --input-bg: #180a33;
+  --input-color: #00f0ff;
+  --input-border: #3d1b6e;
+  --color-cell-bg: rgba(20, 10, 40, 0.6);
+  --color-cell-border: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -82,14 +150,14 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background-color: rgba(10, 14, 23, 0.95);
+  background-color: var(--panel-bg);
   backdrop-filter: blur(8px);
   border-bottom: 2px solid var(--accent-cyan);
   padding: 0.6rem 1.2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   margin: -0.75rem -1rem 1rem -1rem;
 }
 
@@ -135,6 +203,24 @@ body {
   background: rgba(0, 240, 255, 0.1);
 }
 
+.nav-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  color: var(--text-primary);
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  background: var(--input-bg);
+  transition: all 0.2s ease;
+}
+
+.nav-social-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  transform: translateY(-1px);
+}
+
 #saved-presets-library,
 #token-generator,
 #unit-tracker {
@@ -156,7 +242,6 @@ body {
   font-size: 2.8rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
   line-height: 1.1;
 }
 
@@ -176,31 +261,7 @@ body {
   }
 }
 
-.app-main {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-  .app-main {
-    grid-template-columns: 1fr 440px;
-  }
-  .tracker-grid {
-    grid-template-columns: 1fr 440px !important;
-  }
-}
-
-@media (min-width: 1600px) {
-  .app-main {
-    grid-template-columns: 1fr 460px;
-  }
-  .tracker-grid {
-    grid-template-columns: 1fr 460px !important;
-  }
-}
-
-.form-section {
+.token-generator-panel {
   background: var(--panel-bg);
   padding: 1.25rem;
   border-radius: 8px;
@@ -209,12 +270,12 @@ body {
   position: relative;
 }
 
-.form-section::before {
+.token-generator-panel::before {
   content: '/// TAC_CONFIG_PANEL';
   position: absolute;
   top: -10px;
   left: 15px;
-  background: var(--bg-dark);
+  background: var(--panel-bg);
   color: var(--accent-cyan);
   font-size: 0.75rem;
   padding: 0 8px;
@@ -222,7 +283,7 @@ body {
   border: 1px solid var(--accent-cyan);
 }
 
-.form-section h2 {
+.token-generator-panel h2 {
   margin-top: 0;
   margin-bottom: 1rem;
   color: var(--accent-cyan);
@@ -232,6 +293,34 @@ body {
   border-bottom: 1px solid var(--panel-border);
   padding-bottom: 0.4rem;
   text-transform: uppercase;
+}
+
+.token-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .token-grid,
+  .tracker-grid {
+    grid-template-columns: 1fr 440px !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .token-grid,
+  .tracker-grid {
+    grid-template-columns: 1fr 460px !important;
+  }
+}
+
+.form-section {
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .preview-section {
@@ -260,33 +349,33 @@ body {
 }
 
 .tint-card-dice {
-  background: #0a1424;
-  border: 1px solid #1a2f4c;
+  background: var(--card-dice-bg);
+  border: 1px solid var(--card-dice-border);
 }
 
 .tint-card-colors {
-  background: #0d1726;
-  border: 1px solid #1c324a;
+  background: var(--card-colors-bg);
+  border: 1px solid var(--card-colors-border);
 }
 
 .tint-card-text {
-  background: #091b29;
-  border: 1px solid #143b57;
+  background: var(--card-text-bg);
+  border: 1px solid var(--card-text-border);
 }
 
 .tint-card-grid {
-  background: #081d24;
-  border: 1px solid #0e3f4e;
+  background: var(--card-grid-bg);
+  border: 1px solid var(--card-grid-border);
 }
 
 .tint-card-aircraft {
-  background: #111326;
-  border: 1px solid #23274d;
+  background: var(--card-aircraft-bg);
+  border: 1px solid var(--card-aircraft-border);
 }
 
 .tint-card-attributes {
-  background: #0e1626;
-  border: 1px solid #1b2d45;
+  background: var(--card-attr-bg);
+  border: 1px solid var(--card-attr-border);
 }
 
 /* Subsection Header hierarchy */
@@ -372,15 +461,15 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: rgba(10, 14, 23, 0.6);
+  background: var(--color-cell-bg);
   padding: 0.5rem 0.4rem;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-cell-border);
   height: 100%;
 }
 
 .color-cell .cell-label {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: bold;
   margin-bottom: 0.3rem;
@@ -395,10 +484,11 @@ body {
 /* Styled Form Inputs */
 input[type="text"],
 input[type="number"],
-select {
-  background-color: #0d1322 !important;
-  color: var(--accent-cyan) !important;
-  border: 1px solid #1e293b !important;
+select,
+textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--input-color) !important;
+  border: 1px solid var(--input-border) !important;
   font-family: 'Share Tech Mono', monospace !important;
   font-size: 0.85rem !important;
   padding: 0.35rem 0.5rem !important;
@@ -408,16 +498,16 @@ select {
 
 input[type="text"]:focus,
 input[type="number"]:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: none !important;
   border-color: var(--accent-cyan) !important;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
 }
 
 /* Custom File Upload Styling */
 input[type="file"] {
-  background-color: #0d1322 !important;
-  color: var(--accent-sky) !important;
+  background-color: var(--input-bg) !important;
+  color: var(--text-secondary) !important;
   border: 1px dashed var(--accent-blue) !important;
   padding: 0.35rem 0.5rem !important;
   border-radius: 6px !important;
@@ -443,7 +533,7 @@ input[type="file"]::file-selector-button {
 
 input[type="file"]::file-selector-button:hover {
   background: var(--accent-cyan) !important;
-  color: #0a0e17 !important;
+  color: var(--bg-dark) !important;
 }
 
 /* Color Picker Cyber Styling */
@@ -451,13 +541,12 @@ input[type="color"] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background: #0d1322 !important;
-  border: 1.5px solid #00f0ff !important;
+  background: var(--input-bg) !important;
+  border: 1.5px solid var(--accent-cyan) !important;
   border-radius: 6px !important;
   padding: 2px !important;
   width: 36px;
   height: 30px;
-  box-shadow: 0 0 6px rgba(0, 240, 255, 0.35) !important;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 }
@@ -465,8 +554,7 @@ input[type="color"] {
 input[type="color"]:hover,
 input[type="color"]:focus {
   outline: none !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+  border-color: var(--accent-sky) !important;
 }
 
 input[type="color"]::-webkit-color-swatch-wrapper {

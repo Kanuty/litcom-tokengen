@@ -127,7 +127,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
           position: 'absolute',
           top: '-10px',
           left: '15px',
-          background: 'var(--bg-dark)',
+          background: 'var(--panel-bg)',
           color: 'var(--accent-cyan)',
           fontSize: '0.75rem',
           padding: '0 8px',
@@ -160,9 +160,9 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
               onClick={() => setIsCollapsed(!isCollapsed)}
               style={{
                 padding: '0.3rem 0.6rem',
-                background: '#0a0e17',
+                background: 'var(--card-dice-bg)',
                 color: 'var(--accent-cyan)',
-                border: '1px solid #1f293d',
+                border: '1px solid var(--panel-border)',
                 borderRadius: '4px',
                 cursor: 'pointer',
                 fontSize: '0.78rem',
@@ -188,9 +188,9 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
             onClick={handleImportClick}
             style={{
               padding: '0.4rem 0.8rem',
-              background: '#1e293b',
-              color: '#00f0ff',
-              border: '1px solid #00f0ff',
+              background: 'var(--card-dice-bg)',
+              color: 'var(--accent-cyan)',
+              border: '1px solid var(--accent-cyan)',
               borderRadius: '4px',
               cursor: 'pointer',
               fontWeight: 'bold',
@@ -216,8 +216,8 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
             disabled={items.length === 0}
             style={{
               padding: '0.4rem 0.8rem',
-              background: items.length === 0 ? '#334155' : '#00f0ff',
-              color: items.length === 0 ? '#9ca3af' : '#0a0e17',
+              background: items.length === 0 ? 'var(--card-colors-bg)' : 'var(--accent-cyan)',
+              color: items.length === 0 ? 'var(--text-muted)' : 'var(--bg-dark)',
               border: 'none',
               borderRadius: '4px',
               cursor: items.length === 0 ? 'not-allowed' : 'pointer',
@@ -241,15 +241,15 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
             gap: '0.8rem',
             alignItems: 'center',
             marginBottom: '0.8rem',
-            background: '#0a0e17',
+            background: 'var(--card-dice-bg)',
             padding: '0.5rem 0.8rem',
             borderRadius: '6px',
-            border: '1px solid #1f293d',
+            border: '1px solid var(--panel-border)',
             flexWrap: 'wrap'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 'bold' }}>Filter:</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>Filter:</span>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
@@ -262,7 +262,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: '180px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 'bold' }}>Search:</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>Search:</span>
             <input
               type="text"
               placeholder="Search by name..."
@@ -273,7 +273,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 'bold' }}>Sort:</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>Sort:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -289,12 +289,12 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
       )}
 
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '1.2rem', background: '#0a0e17', borderRadius: '6px', border: '1px dashed #1f293d', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', padding: '1.2rem', background: 'var(--card-dice-bg)', borderRadius: '6px', border: '1px dashed var(--panel-border)', color: 'var(--text-muted)' }}>
           <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem' }}>No saved presets found in browser storage.</p>
           <span style={{ fontSize: '0.82rem' }}>Save tokens or unit trackers from below, or import a `.json` configuration file to get started!</span>
         </div>
       ) : processedItems.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '1rem', background: '#0a0e17', borderRadius: '6px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+        <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--card-dice-bg)', borderRadius: '6px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
           No presets match the selected filter/search query.
         </div>
       ) : (
@@ -326,8 +326,8 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
               <div
                 key={item.id}
                 style={{
-                  background: '#0a0e17',
-                  border: '1px solid #1f293d',
+                  background: 'var(--card-colors-bg)',
+                  border: '1px solid var(--panel-border)',
                   borderRadius: '6px',
                   padding: '0.65rem 0.8rem',
                   display: 'flex',

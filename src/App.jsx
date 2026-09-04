@@ -366,8 +366,8 @@ function App() {
         >
           <div
             style={{
-              background: '#0d1322',
-              border: `2px solid ${modalState.type === 'danger' ? '#ef4444' : '#00f0ff'}`,
+              background: 'var(--panel-bg)',
+              border: `2px solid ${modalState.type === 'danger' ? '#ef4444' : 'var(--accent-cyan)'}`,
               borderRadius: '8px',
               padding: '1.8rem',
               maxWidth: '460px',
@@ -382,12 +382,12 @@ function App() {
                 position: 'absolute',
                 top: '-10px',
                 left: '15px',
-                background: '#0a0e17',
-                color: modalState.type === 'danger' ? '#ef4444' : '#00f0ff',
+                background: 'var(--panel-bg)',
+                color: modalState.type === 'danger' ? '#ef4444' : 'var(--accent-cyan)',
                 fontSize: '0.75rem',
                 padding: '0 8px',
                 letterSpacing: '1.5px',
-                border: `1px solid ${modalState.type === 'danger' ? '#ef4444' : '#00f0ff'}`
+                border: `1px solid ${modalState.type === 'danger' ? '#ef4444' : 'var(--accent-cyan)'}`
               }}
             >
               /// SYSTEM_ALERT
@@ -396,7 +396,7 @@ function App() {
             <h3
               style={{
                 margin: '0 0 0.8rem 0',
-                color: modalState.type === 'danger' ? '#ef4444' : '#00f0ff',
+                color: modalState.type === 'danger' ? '#ef4444' : 'var(--accent-cyan)',
                 fontFamily: "'Teko', sans-serif",
                 fontSize: '1.8rem',
                 letterSpacing: '1.5px',
@@ -406,7 +406,7 @@ function App() {
               {modalState.title}
             </h3>
 
-            <p style={{ margin: '0 0 1.5rem 0', color: '#f3f4f6', lineHeight: 1.5, fontSize: '0.95rem' }}>
+            <p style={{ margin: '0 0 1.5rem 0', color: 'var(--text-primary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
               {modalState.message}
             </p>
 
@@ -418,9 +418,9 @@ function App() {
                     onClick={closeModal}
                     style={{
                       padding: '0.5rem 1rem',
-                      background: '#1e293b',
-                      color: '#cbd5e1',
-                      border: '1px solid #334155',
+                      background: 'var(--input-bg)',
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--panel-border)',
                       borderRadius: '4px',
                       cursor: 'pointer',
                       fontWeight: 'bold',
@@ -455,8 +455,8 @@ function App() {
                   onClick={closeModal}
                   style={{
                     padding: '0.5rem 1.2rem',
-                    background: '#00f0ff',
-                    color: '#0a0e17',
+                    background: 'var(--accent-cyan)',
+                    color: 'var(--bg-dark)',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
@@ -498,6 +498,46 @@ function App() {
           <a href="#saved-presets-library" className="nav-link">💾 SAVED PRESETS</a>
           <a href="#token-generator" className="nav-link">🎯 TOKEN GENERATOR</a>
           <a href="#unit-tracker" className="nav-link">📋 UNIT TRACKER</a>
+
+          {/* Social & External Links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: '0.2rem' }}>
+            <a
+              href="https://www.linkedin.com/in/bartosz-dudek-050362120/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-social-btn"
+              title="Bartosz Dudek (App Author LinkedIn)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+              </svg>
+            </a>
+
+            <a
+              href="https://www.linkedin.com/in/sebastian-bae/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-social-btn"
+              title="Sebastian Bae (Littoral Commander Creator LinkedIn)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+              </svg>
+            </a>
+
+            <a
+              href="https://github.com/Kanuty/litcom-tokengen"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-social-btn"
+              title="GitHub Repository"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+              </svg>
+            </a>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: '0.4rem' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>THEME:</span>
             <select
@@ -508,14 +548,15 @@ function App() {
                 padding: '0.2rem 0.4rem',
                 borderRadius: '4px',
                 border: '1px solid var(--accent-cyan)',
-                background: '#0d1322',
-                color: 'var(--accent-cyan)',
+                background: 'var(--input-bg)',
+                color: 'var(--input-color)',
                 fontWeight: 'bold',
                 cursor: 'pointer'
               }}
             >
               <option value="cyber-blue">Dark Cyber-Blue</option>
-              <option value="blueprint">Neutral Blueprint</option>
+              <option value="blueprint">Light Blueprint</option>
+              <option value="oldschool">Old School (Ivory/Green)</option>
               <option value="vaporwave">Neo Vaporwave</option>
             </select>
           </div>
@@ -538,61 +579,67 @@ function App() {
         confirmAction={confirmAction}
       />
 
-      <main className="app-main" id="token-generator">
-        <section className="form-section">
-          <h2>Token Attributes</h2>
-          <TokenForm tokenData={tokenData} onChange={setTokenData} />
+      {/* TOKEN GENERATOR SECTION */}
+      <section className="token-generator-section" id="token-generator" style={{ marginTop: '1.5rem' }}>
+        <div className="token-generator-panel">
+          <h2>Token Generator</h2>
 
-          {/* TOKEN SAVE PRESET BOX */}
-          <div
-            style={{
-              marginTop: '1.2rem',
-              paddingTop: '0.8rem',
-              borderTop: '1px dashed var(--panel-border)'
-            }}
-          >
-            <h4 style={{ margin: '0 0 0.4rem 0', color: 'var(--accent-cyan)', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
-              💾 Save Token Preset
-            </h4>
-            <form onSubmit={handleSaveTokenPreset} style={{ display: 'flex', gap: '0.6rem' }}>
-              <input
-                type="text"
-                placeholder={tokenData.unitName || 'Preset Name...'}
-                value={tokenSaveName}
-                onChange={(e) => setTokenSaveName(e.target.value)}
-                style={{ flex: 1 }}
-              />
-              <button
-                type="submit"
+          <div className="token-grid">
+            <div className="form-section">
+              <TokenForm tokenData={tokenData} onChange={setTokenData} />
+
+              {/* TOKEN SAVE PRESET BOX */}
+              <div
                 style={{
-                  padding: '0.4rem 1rem',
-                  background: 'var(--accent-cyan)',
-                  color: '#0a0e17',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  fontFamily: "'Teko', sans-serif",
-                  fontSize: '1.1rem',
-                  letterSpacing: '1px'
+                  marginTop: '1.2rem',
+                  paddingTop: '0.8rem',
+                  borderTop: '1px dashed var(--panel-border)'
                 }}
               >
-                SAVE TOKEN
-              </button>
-            </form>
-          </div>
-        </section>
+                <h4 style={{ margin: '0 0 0.4rem 0', color: 'var(--accent-cyan)', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                  💾 Save Token Preset
+                </h4>
+                <form onSubmit={handleSaveTokenPreset} style={{ display: 'flex', gap: '0.6rem' }}>
+                  <input
+                    type="text"
+                    placeholder={tokenData.unitName || 'Preset Name...'}
+                    value={tokenSaveName}
+                    onChange={(e) => setTokenSaveName(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '0.4rem 1rem',
+                      background: 'var(--accent-cyan)',
+                      color: 'var(--bg-dark)',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      fontFamily: "'Teko', sans-serif",
+                      fontSize: '1.1rem',
+                      letterSpacing: '1px'
+                    }}
+                  >
+                    SAVE TOKEN
+                  </button>
+                </form>
+              </div>
+            </div>
 
-        <section className="preview-section">
-          <TokenPreview
-            tokenData={tokenData}
-            onChange={setTokenData}
-            exportFace={exportFace}
-            onExportFaceChange={setExportFace}
-            onDownloadPNG={handleDownloadPNG}
-          />
-        </section>
-      </main>
+            <div className="preview-section">
+              <TokenPreview
+                tokenData={tokenData}
+                onChange={setTokenData}
+                exportFace={exportFace}
+                onExportFaceChange={setExportFace}
+                onDownloadPNG={handleDownloadPNG}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* UNIT TRACKER SECTION */}
       <section className="unit-tracker-section" id="unit-tracker" style={{ marginTop: '2.5rem' }}>
@@ -611,7 +658,7 @@ function App() {
               position: 'absolute',
               top: '-10px',
               left: '15px',
-              background: 'var(--bg-dark)',
+              background: 'var(--panel-bg)',
               color: 'var(--accent-cyan)',
               fontSize: '0.75rem',
               padding: '0 8px',
@@ -705,9 +752,6 @@ function App() {
                       width: '100%',
                       padding: '0.4rem 0.5rem',
                       borderRadius: '4px',
-                      background: '#0d1322',
-                      color: 'var(--accent-cyan)',
-                      border: '1px solid #1e293b',
                       fontFamily: 'inherit',
                       fontSize: '0.82rem',
                       resize: 'vertical'
@@ -809,7 +853,7 @@ function App() {
                         type="file"
                         accept="image/*"
                         onChange={handleJetIconUpload}
-                        style={{ width: '100%', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                        style={{ width: '100%', fontSize: '0.78rem' }}
                       />
                       {trackerData.customJetIconUrl && (
                         <button
@@ -836,7 +880,7 @@ function App() {
                         type="file"
                         accept="image/*"
                         onChange={handleHelicopterIconUpload}
-                        style={{ width: '100%', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                        style={{ width: '100%', fontSize: '0.78rem' }}
                       />
                       {trackerData.customHelicopterIconUrl && (
                         <button
@@ -887,9 +931,9 @@ function App() {
                     style={{
                       padding: '0.4rem 0.8rem',
                       borderRadius: '4px',
-                      border: clickMode === 'dice' ? '2px solid var(--accent-cyan)' : '1px solid #334155',
-                      background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : '#0d1322',
-                      color: '#fff',
+                      border: clickMode === 'dice' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                      background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
+                      color: 'var(--text-primary)',
                       cursor: 'pointer',
                       fontWeight: 'bold',
                       fontSize: '0.82rem',
@@ -905,9 +949,9 @@ function App() {
                     style={{
                       padding: '0.4rem 0.8rem',
                       borderRadius: '4px',
-                      border: clickMode === 'hp' ? '2px solid var(--accent-cyan)' : '1px solid #334155',
-                      background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : '#0d1322',
-                      color: '#fff',
+                      border: clickMode === 'hp' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                      background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
+                      color: 'var(--text-primary)',
                       cursor: 'pointer',
                       fontWeight: 'bold',
                       fontSize: '0.82rem',
@@ -932,9 +976,9 @@ function App() {
                         style={{
                           padding: '0.4rem 0.75rem',
                           borderRadius: '4px',
-                          border: selectedDieIndex === 'supply' ? '2px solid var(--accent-cyan)' : '1px solid #334155',
-                          background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : '#0d1322',
-                          color: '#ffffff',
+                          border: selectedDieIndex === 'supply' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                          background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : 'var(--input-bg)',
+                          color: 'var(--text-primary)',
                           cursor: 'pointer',
                           fontWeight: 'bold',
                           fontSize: '0.82rem',
@@ -953,9 +997,9 @@ function App() {
                           style={{
                             padding: '0.4rem 0.75rem',
                             borderRadius: '4px',
-                            border: selectedDieIndex === idx ? '2px solid var(--accent-cyan)' : '1px solid #334155',
-                            background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#0d1322',
-                            color: '#ffffff',
+                            border: selectedDieIndex === idx ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                            background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : 'var(--input-bg)',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
                             fontWeight: 'bold',
                             fontSize: '0.82rem',
@@ -988,7 +1032,7 @@ function App() {
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
-                      style={{ width: '100%', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                      style={{ width: '100%', fontSize: '0.78rem' }}
                     />
                     {trackerData.customImageUrl && (
                       <button
@@ -1015,7 +1059,7 @@ function App() {
                       type="file"
                       accept="image/*"
                       onChange={handleBackImageUpload}
-                      style={{ width: '100%', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                      style={{ width: '100%', fontSize: '0.78rem' }}
                     />
                     {trackerData.customBackImageUrl && (
                       <button
@@ -1080,8 +1124,8 @@ function App() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', background: 'rgba(10,14,23,0.5)', padding: '0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', background: 'var(--color-cell-bg)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     <input
                       type="checkbox"
                       checked={trackerData.showCamo}
@@ -1090,7 +1134,7 @@ function App() {
                     Front Camo
                   </label>
 
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     <input
                       type="checkbox"
                       checked={trackerData.showBackCamo}
@@ -1099,7 +1143,7 @@ function App() {
                     Backside Camo
                   </label>
 
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     <input
                       type="checkbox"
                       checked={trackerData.showSquareBorders}
@@ -1180,9 +1224,9 @@ function App() {
                         style={{
                           fontSize: '0.68rem',
                           padding: '2px 5px',
-                          background: trackerData.squareNumberColor === 'bgColor' ? 'var(--accent-cyan)' : '#334155',
-                          color: trackerData.squareNumberColor === 'bgColor' ? '#000' : '#fff',
-                          border: 'none',
+                          background: trackerData.squareNumberColor === 'bgColor' ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                          color: trackerData.squareNumberColor === 'bgColor' ? 'var(--bg-dark)' : 'var(--text-primary)',
+                          border: '1px solid var(--panel-border)',
                           borderRadius: '3px',
                           cursor: 'pointer',
                           fontWeight: 'bold'
@@ -1203,7 +1247,7 @@ function App() {
                   <label className="field-label">Tracker Export Side</label>
                   <div style={{ display: 'flex', gap: '1rem' }}>
                     {['front', 'back', 'both'].map((f) => (
-                      <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
+                      <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
                         <input
                           type="radio"
                           name="trackerExportFace"
@@ -1222,7 +1266,7 @@ function App() {
                   style={{
                     padding: '0.75rem',
                     backgroundColor: 'var(--accent-cyan)',
-                    color: '#0a0e17',
+                    color: 'var(--bg-dark)',
                     border: 'none',
                     borderRadius: '4px',
                     fontWeight: 'bold',
@@ -1233,8 +1277,7 @@ function App() {
                     justifyContent: 'center',
                     gap: '0.5rem',
                     fontFamily: "'Teko', sans-serif",
-                    letterSpacing: '1px',
-                    boxShadow: '0 0 12px rgba(0, 240, 255, 0.4)'
+                    letterSpacing: '1px'
                   }}
                 >
                   <span>📥</span> EXPORT UNIT TRACKER ({trackerExportFace.toUpperCase()})
@@ -1255,7 +1298,7 @@ function App() {
                       style={{
                         padding: '0.4rem 1rem',
                         background: 'var(--accent-cyan)',
-                        color: '#0a0e17',
+                        color: 'var(--bg-dark)',
                         border: 'none',
                         borderRadius: '4px',
                         fontWeight: 'bold',
@@ -1289,10 +1332,10 @@ function App() {
                 style={{
                   display: 'flex',
                   gap: '0.5rem',
-                  background: '#0d1322',
+                  background: 'var(--input-bg)',
                   padding: '0.35rem',
                   borderRadius: '6px',
-                  border: '1px solid #1e293b'
+                  border: '1px solid var(--panel-border)'
                 }}
               >
                 <button
@@ -1303,7 +1346,7 @@ function App() {
                     borderRadius: '4px',
                     border: 'none',
                     background: trackerPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
-                    color: trackerPreviewSide === 'front' ? '#0a0e17' : 'var(--text-secondary)',
+                    color: trackerPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     fontFamily: "'Teko', sans-serif",
@@ -1321,7 +1364,7 @@ function App() {
                     borderRadius: '4px',
                     border: 'none',
                     background: trackerPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
-                    color: trackerPreviewSide === 'back' ? '#0a0e17' : 'var(--text-secondary)',
+                    color: trackerPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     fontFamily: "'Teko', sans-serif",
@@ -1339,7 +1382,7 @@ function App() {
                     borderRadius: '4px',
                     border: 'none',
                     background: trackerPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
-                    color: trackerPreviewSide === 'both' ? '#0a0e17' : 'var(--text-secondary)',
+                    color: trackerPreviewSide === 'both' ? 'var(--bg-dark)' : 'var(--text-secondary)',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     fontFamily: "'Teko', sans-serif",
