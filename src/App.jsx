@@ -7,12 +7,72 @@ import { downloadTokenAsPNG, downloadUnitTrackerAsPNG } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
 
+// Mini SVG die icon for Interactive Grid Placement Mode buttons
+function MiniDieIcon({ die, isHp = false, isSupply = false }) {
+  if (isHp) {
+    return (
+      <svg width="20" height="20" viewBox="0 0 100 100" style={{ verticalAlign: 'middle' }}>
+        <rect x="5" y="5" width="90" height="90" rx="8" fill="#000000" stroke="#00f0ff" strokeWidth="8" />
+        <text x="50" y="62" fill="#00f0ff" fontSize="42" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
+          HP
+        </text>
+      </svg>
+    );
+  }
+
+  if (isSupply) {
+    return (
+      <svg width="20" height="20" viewBox="0 0 100 100" style={{ verticalAlign: 'middle' }}>
+        <circle cx="50" cy="50" r="42" fill="#1976d2" stroke="#ffffff" strokeWidth="8" />
+      </svg>
+    );
+  }
+
+  const diceType = die?.type || 'red';
+  const bigVal = die?.bigValue ?? 10;
+  let defaultBg = '#c83232';
+  if (diceType === 'green') defaultBg = '#2e7d32';
+  if (diceType === 'purple') defaultBg = '#7b1fa2';
+  if (diceType === 'blue') defaultBg = '#1976d2';
+
+  const bg = die?.color || defaultBg;
+  const strokeC = die?.hasThickBorder ? (die?.borderColor || '#ffcc00') : '#ffffff';
+  const strokeW = die?.hasThickBorder ? 12 : 6;
+
+  return (
+    <svg width="22" height="22" viewBox="0 0 100 100" style={{ verticalAlign: 'middle' }}>
+      {diceType === 'red' && (
+        <rect x="5" y="5" width="90" height="90" rx="8" fill={bg} stroke={strokeC} strokeWidth={strokeW} />
+      )}
+      {diceType === 'green' && (
+        <path
+          d="M 5 11 C 5 7.7 7.7 5 11 5 L 89 5 C 92.3 5 95 7.7 95 11 L 95 65 L 65 95 L 11 95 C 7.7 95 5 92.3 5 89 Z"
+          fill={bg}
+          stroke={strokeC}
+          strokeWidth={strokeW}
+        />
+      )}
+      {diceType === 'purple' && (
+        <polygon points="20,5 80,5 96,65 50,95 4,65" fill={bg} stroke={strokeC} strokeWidth={strokeW} />
+      )}
+      {diceType === 'blue' && (
+        <circle cx="50" cy="50" r="42" fill={bg} stroke={strokeC} strokeWidth={strokeW} />
+      )}
+      <text x="50" y="64" fill="#ffffff" fontSize="46" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
+        {bigVal}
+      </text>
+    </svg>
+  );
+}
+
 function App() {
   const [tokenData, setTokenData] = useState({
     category: 'land',
     bgColor: '#2b6cb0',
     stripeColor: '#ffffff',
     hexColor: '#7e8388',
+    hexBorderColor: '#ffffff',
+    natoSymbolColor: '#ffffff',
     fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
     echelon: '••',
     affiliation: 'friendly',
@@ -31,6 +91,7 @@ function App() {
 
   // Unit Tracker state
   const [trackerExportFace, setTrackerExportFace] = useState('both'); // 'front' | 'back' | 'both'
+  const [trackerPreviewSide, setTrackerPreviewSide] = useState('front'); // 'front' | 'back' | 'both'
   const [trackerSaveName, setTrackerSaveName] = useState('');
   const [trackerData, setTrackerData] = useState({
     trackerType: 'standard', // 'standard' | 'carrier'
@@ -49,7 +110,7 @@ function App() {
     camoColor: '#4a5568',
     showCamo: true,
     initialHpSquare: 2,
-    placedDice: {}, // Default empty as requested
+    placedDice: {},
     backBgColor: '#2b6cb0',
     backCamoColor: '#1a365d',
     showBackCamo: true,
@@ -70,8 +131,8 @@ function App() {
   // Saved presets state
   const [savedItems, setSavedItems] = useState(() => getSavedItems());
 
-  // Custom styled HUD notification / modal pop-up state
-  const [modalState, setModalState] = useState(null); // { title, message, type: 'info' | 'danger', onConfirm?: fn }
+  // Modal HUD alert
+  const [modalState, setModalState] = useState(null);
 
   const showNotification = ({ title, message, type = 'info' }) => {
     setModalState({ title, message, type });
@@ -223,7 +284,6 @@ function App() {
     );
   };
 
-  // Clear all dice & HP square markers
   const handleClearAllMarkers = () => {
     setTrackerData((prev) => ({
       ...prev,
@@ -232,16 +292,13 @@ function App() {
     }));
   };
 
-  // Toggle or add dice / HP placement on square click
   const handleSquareClick = (squareNum) => {
     if (clickMode === 'hp') {
-      // Set HP marker to clicked square
       setTrackerData((prev) => ({
         ...prev,
         initialHpSquare: prev.initialHpSquare === squareNum ? null : squareNum
       }));
     } else {
-      // Place or remove die
       const currentPlaced = { ...trackerData.placedDice };
       const currentList = currentPlaced[squareNum] || [];
 
@@ -279,7 +336,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* CUSTOM STYLED CYBER-MILITARY HUD MODAL POP-UP */}
+      {/* HUD Modal Alert */}
       {modalState && (
         <div
           style={{
@@ -407,6 +464,24 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Offscreen containers for export generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
+        <UnitTracker
+          id="unit-tracker-export-front"
+          tokenData={tokenData}
+          trackerData={trackerData}
+          side="front"
+          width={420}
+        />
+        <UnitTracker
+          id="unit-tracker-export-back"
+          tokenData={tokenData}
+          trackerData={trackerData}
+          side="back"
+          width={420}
+        />
+      </div>
 
       <nav className="sticky-nav">
         <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
@@ -755,7 +830,7 @@ function App() {
                 </div>
               )}
 
-              {/* 3. INTERACTIVE GRID PLACEMENT MODE */}
+              {/* 3. INTERACTIVE GRID PLACEMENT MODE WITH MINI DIE GRAPHICS */}
               <div className="tint-card tint-card-grid">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 className="subsection-header">🎯 Interactive Grid Placement Mode</h3>
@@ -780,32 +855,38 @@ function App() {
                   <button
                     onClick={() => setClickMode('dice')}
                     style={{
-                      padding: '0.35rem 0.7rem',
+                      padding: '0.4rem 0.8rem',
                       borderRadius: '4px',
                       border: clickMode === 'dice' ? '2px solid var(--accent-cyan)' : '1px solid #334155',
                       background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : '#0d1322',
                       color: '#fff',
                       cursor: 'pointer',
                       fontWeight: 'bold',
-                      fontSize: '0.82rem'
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
                     }}
                   >
-                    🎲 Place Token / Supply Dice
+                    <MiniDieIcon die={tokenData.dice?.[0]} /> Place Token / Supply Dice
                   </button>
                   <button
                     onClick={() => setClickMode('hp')}
                     style={{
-                      padding: '0.35rem 0.7rem',
+                      padding: '0.4rem 0.8rem',
                       borderRadius: '4px',
                       border: clickMode === 'hp' ? '2px solid var(--accent-cyan)' : '1px solid #334155',
                       background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : '#0d1322',
                       color: '#fff',
                       cursor: 'pointer',
                       fontWeight: 'bold',
-                      fontSize: '0.82rem'
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
                     }}
                   >
-                    ⬛ Set HP Square Marker
+                    <MiniDieIcon isHp /> Set HP Marker
                   </button>
                 </div>
 
@@ -819,20 +900,20 @@ function App() {
                       <div
                         onClick={() => setSelectedDieIndex('supply')}
                         style={{
-                          padding: '0.35rem 0.65rem',
+                          padding: '0.4rem 0.75rem',
                           borderRadius: '4px',
                           border: selectedDieIndex === 'supply' ? '2px solid var(--accent-cyan)' : '1px solid #334155',
                           background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : '#0d1322',
                           color: '#ffffff',
                           cursor: 'pointer',
                           fontWeight: 'bold',
-                          fontSize: '0.8rem',
+                          fontSize: '0.82rem',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '0.3rem'
+                          gap: '0.4rem'
                         }}
                       >
-                        <span style={{ color: '#3b82f6' }}>🔵</span> Supply Die
+                        <MiniDieIcon isSupply /> Supply Die
                       </div>
 
                       {tokenData.dice && tokenData.dice.map((die, idx) => (
@@ -840,17 +921,20 @@ function App() {
                           key={idx}
                           onClick={() => setSelectedDieIndex(idx)}
                           style={{
-                            padding: '0.35rem 0.65rem',
+                            padding: '0.4rem 0.75rem',
                             borderRadius: '4px',
                             border: selectedDieIndex === idx ? '2px solid var(--accent-cyan)' : '1px solid #334155',
                             background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : '#0d1322',
                             color: '#ffffff',
                             cursor: 'pointer',
                             fontWeight: 'bold',
-                            fontSize: '0.8rem'
+                            fontSize: '0.82rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem'
                           }}
                         >
-                          Die #{idx + 1} ({die.type.toUpperCase()})
+                          <MiniDieIcon die={die} /> Die #{idx + 1}
                         </div>
                       ))}
                     </div>
@@ -924,7 +1008,7 @@ function App() {
                 </div>
               </div>
 
-              {/* 5. COLORS & BACKGROUND STYLING (FIXED GRID ALIGNMENT) */}
+              {/* 5. COLORS & BACKGROUND STYLING */}
               <div className="tint-card tint-card-colors">
                 <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
 
@@ -996,7 +1080,7 @@ function App() {
                 </div>
               </div>
 
-              {/* 6. TEXT ELEMENTS COLORING (FIXED GRID ALIGNMENT) */}
+              {/* 6. TEXT ELEMENTS COLORING */}
               <div className="tint-card tint-card-text">
                 <h3 className="subsection-header">✒️ Text Elements Coloring</h3>
 
@@ -1159,34 +1243,113 @@ function App() {
 
             </div>
 
-            {/* Tracker Preview Render (Front & Back) */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', position: 'sticky', top: '80px' }}>
-              <div>
-                <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.5rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.4rem', letterSpacing: '1px' }}>
-                  FRONT SIDE PREVIEW
-                </h3>
-                <UnitTracker
-                  id="unit-tracker-export-front"
-                  tokenData={tokenData}
-                  trackerData={trackerData}
-                  side="front"
-                  width={420}
-                  onSquareClick={handleSquareClick}
-                />
+            {/* SWAPPABLE UNIT TRACKER LIVE PREVIEW WITH TABS (STICKY WITHIN SECTION) */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem',
+                position: 'sticky',
+                top: '80px'
+              }}
+            >
+              {/* Swappable Face Tabs */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  background: '#0d1322',
+                  padding: '0.35rem',
+                  borderRadius: '6px',
+                  border: '1px solid #1e293b'
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setTrackerPreviewSide('front')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: trackerPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
+                    color: trackerPreviewSide === 'front' ? '#0a0e17' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  FRONT SIDE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTrackerPreviewSide('back')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: trackerPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
+                    color: trackerPreviewSide === 'back' ? '#0a0e17' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  BACK SIDE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTrackerPreviewSide('both')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: trackerPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
+                    color: trackerPreviewSide === 'both' ? '#0a0e17' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  BOTH SIDES
+                </button>
               </div>
 
-              <div>
-                <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.5rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.4rem', letterSpacing: '1px' }}>
-                  BACK SIDE PREVIEW
-                </h3>
-                <UnitTracker
-                  id="unit-tracker-export-back"
-                  tokenData={tokenData}
-                  trackerData={trackerData}
-                  side="back"
-                  width={420}
-                />
-              </div>
+              {/* Render Selected Preview */}
+              {(trackerPreviewSide === 'front' || trackerPreviewSide === 'both') && (
+                <div>
+                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                    FRONT SIDE PREVIEW
+                  </h3>
+                  <UnitTracker
+                    tokenData={tokenData}
+                    trackerData={trackerData}
+                    side="front"
+                    width={420}
+                    onSquareClick={handleSquareClick}
+                  />
+                </div>
+              )}
+
+              {(trackerPreviewSide === 'back' || trackerPreviewSide === 'both') && (
+                <div>
+                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                    BACK SIDE PREVIEW
+                  </h3>
+                  <UnitTracker
+                    tokenData={tokenData}
+                    trackerData={trackerData}
+                    side="back"
+                    width={420}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

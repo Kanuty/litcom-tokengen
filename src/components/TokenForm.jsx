@@ -60,11 +60,11 @@ export function TokenForm({ tokenData, onChange }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', width: '100%' }}>
-      {/* 1. CATEGORY & FONT STYLING */}
+      {/* 1. CATEGORY & UNIT IDENTIFICATION */}
       <div className="tint-card tint-card-attributes">
-        <h3 className="subsection-header">🏷️ Token Category & Typography</h3>
+        <h3 className="subsection-header">🏷️ Token Category & Unit Designation</h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', alignItems: 'end' }}>
           <div>
             <label className="field-label">Token Category</label>
             <select
@@ -78,6 +78,172 @@ export function TokenForm({ tokenData, onChange }) {
             </select>
           </div>
 
+          {tokenData.category !== 'misc' && (
+            <>
+              <div>
+                <label className="field-label">Unit Name / Designation</label>
+                <input
+                  type="text"
+                  value={tokenData.unitName ?? '1-1 CHARLIE'}
+                  onChange={(e) => handleChange('unitName', e.target.value)}
+                  placeholder="e.g. 1-1 CHARLIE"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label className="field-label">Movement Range</label>
+                <input
+                  type="number"
+                  value={tokenData.movementRange ?? 3}
+                  onChange={(e) => handleChange('movementRange', parseInt(e.target.value) || 0)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* 2. COLORS & BACKGROUND STYLING (NOW INCLUDES FONT, TEXT COLOR, BACKSIDE FLAG, HEX BORDER & NATO COLOR) */}
+      <div className="tint-card tint-card-colors">
+        <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
+
+        <div className="color-picker-grid-3">
+          <div className="color-cell">
+            <span className="cell-label">Base Card Color</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+              <input
+                type="color"
+                value={tokenData.bgColor || '#2b6cb0'}
+                onChange={(e) => handleChange('bgColor', e.target.value)}
+              />
+              <input
+                type="text"
+                value={tokenData.bgColor || '#2b6cb0'}
+                onChange={(e) => handleChange('bgColor', e.target.value)}
+                style={{ width: '70px', fontSize: '0.78rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem' }}>
+              <button
+                type="button"
+                onClick={() => handleChange('bgColor', '#2b6cb0')}
+                style={{ background: '#2b6cb0', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+              >
+                Blue
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange('bgColor', '#c83232')}
+                style={{ background: '#c83232', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+              >
+                Red
+              </button>
+            </div>
+          </div>
+
+          <div className="color-cell">
+            <span className="cell-label">Bottom Stripe Color</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+              <input
+                type="color"
+                value={tokenData.stripeColor || '#ffffff'}
+                onChange={(e) => handleChange('stripeColor', e.target.value)}
+              />
+              <input
+                type="text"
+                value={tokenData.stripeColor || '#ffffff'}
+                onChange={(e) => handleChange('stripeColor', e.target.value)}
+                style={{ width: '70px', fontSize: '0.78rem' }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleChange('stripeColor', '#ffffff')}
+              style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '0.3rem' }}
+            >
+              Default (White)
+            </button>
+          </div>
+
+          <div className="color-cell">
+            <span className="cell-label">Movement Hex Color</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+              <input
+                type="color"
+                value={tokenData.hexColor || '#7e8388'}
+                onChange={(e) => handleChange('hexColor', e.target.value)}
+              />
+              <input
+                type="text"
+                value={tokenData.hexColor || '#7e8388'}
+                onChange={(e) => handleChange('hexColor', e.target.value)}
+                style={{ width: '70px', fontSize: '0.78rem' }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleChange('hexColor', '#7e8388')}
+              style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '0.3rem' }}
+            >
+              Default (Gray)
+            </button>
+          </div>
+        </div>
+
+        {/* Hex Border Color & NATO Symbol Color */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '0.4rem' }}>
+          <div>
+            <label className="field-label">Movement Hex Border Color</label>
+            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+              <input
+                type="color"
+                value={tokenData.hexBorderColor || '#ffffff'}
+                onChange={(e) => handleChange('hexBorderColor', e.target.value)}
+                disabled={!tokenData.hexBorderColor}
+              />
+              <label style={{ fontSize: '0.8rem', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(tokenData.hexBorderColor)}
+                  onChange={(e) => handleChange('hexBorderColor', e.target.checked ? '#ffffff' : '')}
+                />
+                Show Border
+              </label>
+            </div>
+          </div>
+
+          {tokenData.category === 'land' && (
+            <div>
+              <label className="field-label">NATO Frame & Symbol Color</label>
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={tokenData.natoSymbolColor || tokenData.textColor || '#ffffff'}
+                  onChange={(e) => handleChange('natoSymbolColor', e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleChange('natoSymbolColor', '#ffffff')}
+                  style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  White
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange('natoSymbolColor', '#facc15')}
+                  style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Yellow
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Font, Global Text Color & Backside Flag Grouped Here */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.6rem', marginTop: '0.4rem' }}>
           <div>
             <label className="field-label">Token Text Font</label>
             <select
@@ -124,125 +290,88 @@ export function TokenForm({ tokenData, onChange }) {
               </button>
             </div>
           </div>
+
+          <div>
+            <label className="field-label">Backside Flag / Picture</label>
+            <select
+              value={tokenData.backFlag || 'none'}
+              onChange={(e) => handleChange('backFlag', e.target.value)}
+              style={{ width: '100%' }}
+            >
+              <option value="none">None (Solid Background)</option>
+              <option value="australia">Australia Flag</option>
+              <option value="belarus">Belarus Flag</option>
+              <option value="belgium">Belgium Flag</option>
+              <option value="china">China Flag</option>
+              <option value="belarus_democratic">Democratic Belarus Flag</option>
+              <option value="denmark">Denmark Flag</option>
+              <option value="estonia">Estonia Flag</option>
+              <option value="ue">EU / UE Flag</option>
+              <option value="finland">Finland Flag</option>
+              <option value="france">France Flag</option>
+              <option value="germany">Germany Flag</option>
+              <option value="great_britain">Great Britain Flag</option>
+              <option value="greece">Greece Flag</option>
+              <option value="italy">Italy Flag</option>
+              <option value="japan">Japan Flag</option>
+              <option value="latvia">Latvia Flag</option>
+              <option value="lithuania">Lithuania Flag</option>
+              <option value="nato">NATO Flag</option>
+              <option value="netherlands">Netherlands Flag</option>
+              <option value="north_korea">North Korea Flag</option>
+              <option value="norway">Norway Flag</option>
+              <option value="poland">Poland Flag</option>
+              <option value="russia">Russia Flag</option>
+              <option value="south_korea">South Korea Flag</option>
+              <option value="sweden">Sweden Flag</option>
+              <option value="taiwan">Taiwan Flag</option>
+              <option value="turkey">Turkey Flag</option>
+              <option value="ukraine">Ukraine Flag</option>
+              <option value="usa">USA Flag</option>
+              <option value="vietnam">Vietnam Flag</option>
+              <option value="custom">Custom Uploaded Image</option>
+            </select>
+          </div>
         </div>
+
+        {tokenData.backFlag === 'custom' && (
+          <div style={{ marginTop: '0.4rem' }}>
+            <label className="field-label">Custom Backside Image Upload</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFileUpload('customBackImage', e)}
+              style={{ width: '100%', fontSize: '0.8rem', color: 'var(--text-muted)' }}
+            />
+          </div>
+        )}
+
+        {tokenData.category === 'naval' && (
+          <div style={{ marginTop: '0.4rem' }}>
+            <label className="field-label">Naval Ship Silhouette Upload</label>
+            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload('customShipImage', e)}
+                style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text-muted)' }}
+              />
+              {tokenData.customShipImage && (
+                <button
+                  type="button"
+                  onClick={() => handleChange('customShipImage', '')}
+                  style={{ padding: '0.35rem 0.6rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 2. CARD BASE & ACCENT COLORS */}
-      <div className="tint-card tint-card-colors">
-        <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
-
-        <div className="color-picker-grid-3">
-          <div className="color-cell">
-            <span className="cell-label">Background Color</span>
-            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', width: '100%', justifyContent: 'center' }}>
-              <input
-                type="color"
-                value={tokenData.bgColor || '#2b6cb0'}
-                onChange={(e) => handleChange('bgColor', e.target.value)}
-              />
-              <input
-                type="text"
-                value={tokenData.bgColor || '#2b6cb0'}
-                onChange={(e) => handleChange('bgColor', e.target.value)}
-                style={{ width: '70px', fontSize: '0.78rem' }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem' }}>
-              <button
-                type="button"
-                onClick={() => handleChange('bgColor', '#2b6cb0')}
-                style={{ background: '#2b6cb0', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
-              >
-                Blue
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChange('bgColor', '#c83232')}
-                style={{ background: '#c83232', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
-              >
-                Red
-              </button>
-            </div>
-          </div>
-
-          <div className="color-cell">
-            <span className="cell-label">Bottom Stripe</span>
-            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', width: '100%', justifyContent: 'center' }}>
-              <input
-                type="color"
-                value={tokenData.stripeColor || '#ffffff'}
-                onChange={(e) => handleChange('stripeColor', e.target.value)}
-              />
-              <input
-                type="text"
-                value={tokenData.stripeColor || '#ffffff'}
-                onChange={(e) => handleChange('stripeColor', e.target.value)}
-                style={{ width: '70px', fontSize: '0.78rem' }}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => handleChange('stripeColor', '#ffffff')}
-              style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '0.3rem' }}
-            >
-              Default (White)
-            </button>
-          </div>
-
-          <div className="color-cell">
-            <span className="cell-label">Movement Hex Color</span>
-            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', width: '100%', justifyContent: 'center' }}>
-              <input
-                type="color"
-                value={tokenData.hexColor || '#7e8388'}
-                onChange={(e) => handleChange('hexColor', e.target.value)}
-              />
-              <input
-                type="text"
-                value={tokenData.hexColor || '#7e8388'}
-                onChange={(e) => handleChange('hexColor', e.target.value)}
-                style={{ width: '70px', fontSize: '0.78rem' }}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => handleChange('hexColor', '#7e8388')}
-              style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '0.3rem' }}
-            >
-              Default (Gray)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. UNIT NAME & MOVEMENT (Or MISC TOKEN CONTROLS) */}
-      {tokenData.category !== 'misc' ? (
-        <div className="tint-card tint-card-text">
-          <h3 className="subsection-header">📝 Unit Identification & Movement</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.75rem' }}>
-            <div>
-              <label className="field-label">Unit Name / Designation</label>
-              <input
-                type="text"
-                value={tokenData.unitName ?? '1-1 CHARLIE'}
-                onChange={(e) => handleChange('unitName', e.target.value)}
-                placeholder="e.g. 1-1 CHARLIE"
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div>
-              <label className="field-label">Movement Range</label>
-              <input
-                type="number"
-                value={tokenData.movementRange ?? 3}
-                onChange={(e) => handleChange('movementRange', parseInt(e.target.value) || 0)}
-                style={{ width: '100%' }}
-              />
-            </div>
-          </div>
-        </div>
-      ) : (
+      {/* 3. MISC TOKEN CONTROLS (IF MISC) */}
+      {tokenData.category === 'misc' && (
         <div className="tint-card tint-card-text">
           <h3 className="subsection-header">🎯 Misc Token Controls</h3>
 
@@ -509,90 +638,7 @@ export function TokenForm({ tokenData, onChange }) {
         </div>
       )}
 
-      {/* 5. REVERSE FACE FLAG & NAVAL CUSTOMS */}
-      <div className="tint-card tint-card-colors">
-        <h3 className="subsection-header">🚩 Reverse Face Image & Flag</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
-          <div>
-            <label className="field-label">Backside Flag</label>
-            <select
-              value={tokenData.backFlag || 'none'}
-              onChange={(e) => handleChange('backFlag', e.target.value)}
-              style={{ width: '100%' }}
-            >
-              <option value="none">None (Solid Background)</option>
-              <option value="australia">Australia Flag</option>
-              <option value="belarus">Belarus Flag</option>
-              <option value="belgium">Belgium Flag</option>
-              <option value="china">China Flag</option>
-              <option value="belarus_democratic">Democratic Belarus Flag</option>
-              <option value="denmark">Denmark Flag</option>
-              <option value="estonia">Estonia Flag</option>
-              <option value="ue">EU / UE Flag</option>
-              <option value="finland">Finland Flag</option>
-              <option value="france">France Flag</option>
-              <option value="germany">Germany Flag</option>
-              <option value="great_britain">Great Britain Flag</option>
-              <option value="greece">Greece Flag</option>
-              <option value="italy">Italy Flag</option>
-              <option value="japan">Japan Flag</option>
-              <option value="latvia">Latvia Flag</option>
-              <option value="lithuania">Lithuania Flag</option>
-              <option value="nato">NATO Flag</option>
-              <option value="netherlands">Netherlands Flag</option>
-              <option value="north_korea">North Korea Flag</option>
-              <option value="norway">Norway Flag</option>
-              <option value="poland">Poland Flag</option>
-              <option value="russia">Russia Flag</option>
-              <option value="south_korea">South Korea Flag</option>
-              <option value="sweden">Sweden Flag</option>
-              <option value="taiwan">Taiwan Flag</option>
-              <option value="turkey">Turkey Flag</option>
-              <option value="ukraine">Ukraine Flag</option>
-              <option value="usa">USA Flag</option>
-              <option value="vietnam">Vietnam Flag</option>
-              <option value="custom">Custom Uploaded Image</option>
-            </select>
-          </div>
-
-          {tokenData.backFlag === 'custom' && (
-            <div>
-              <label className="field-label">Custom Backside Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileUpload('customBackImage', e)}
-                style={{ width: '100%', fontSize: '0.8rem', color: 'var(--text-muted)' }}
-              />
-            </div>
-          )}
-
-          {tokenData.category === 'naval' && (
-            <div>
-              <label className="field-label">Naval Ship Silhouette</label>
-              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileUpload('customShipImage', e)}
-                  style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text-muted)' }}
-                />
-                {tokenData.customShipImage && (
-                  <button
-                    type="button"
-                    onClick={() => handleChange('customShipImage', '')}
-                    style={{ padding: '0.35rem 0.6rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 6. WEAPON DICE CONFIG */}
+      {/* 5. WEAPON DICE CONFIG */}
       <div className="tint-card tint-card-dice">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
           <h3 className="subsection-header">🎲 Weapon Dice & Attack Fields</h3>

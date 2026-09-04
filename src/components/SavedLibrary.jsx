@@ -109,14 +109,11 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
     return 0;
   });
 
-  // Limit displayed presets if collapsed (max 3 presets)
-  const displayedItems = isCollapsed ? processedItems.slice(0, 3) : processedItems;
-
   return (
     <div
       style={{
         background: 'var(--panel-bg)',
-        padding: '1.5rem',
+        padding: '1.25rem',
         borderRadius: '8px',
         border: '1px solid var(--panel-border)',
         boxShadow: 'var(--hud-glow)',
@@ -142,7 +139,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
       </div>
 
       {/* Header controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', flexWrap: 'wrap', gap: '0.8rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <h2
             style={{
@@ -157,22 +154,24 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
             💾 Internal Saved Presets ({items.length})
           </h2>
 
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            style={{
-              padding: '0.3rem 0.6rem',
-              background: '#0a0e17',
-              color: 'var(--accent-cyan)',
-              border: '1px solid #1f293d',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.78rem',
-              fontWeight: 'bold'
-            }}
-          >
-            {isCollapsed ? `▼ Expand All (${items.length})` : `▲ Collapse (Show Max 3)`}
-          </button>
+          {items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              style={{
+                padding: '0.3rem 0.6rem',
+                background: '#0a0e17',
+                color: 'var(--accent-cyan)',
+                border: '1px solid #1f293d',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.78rem',
+                fontWeight: 'bold'
+              }}
+            >
+              {isCollapsed ? `▼ Expand All (${items.length})` : `▲ Collapse (1 Row)`}
+            </button>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -241,9 +240,9 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
             display: 'flex',
             gap: '0.8rem',
             alignItems: 'center',
-            marginBottom: '1rem',
+            marginBottom: '0.8rem',
             background: '#0a0e17',
-            padding: '0.6rem 0.8rem',
+            padding: '0.5rem 0.8rem',
             borderRadius: '6px',
             border: '1px solid #1f293d',
             flexWrap: 'wrap'
@@ -290,226 +289,208 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
       )}
 
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '1.5rem', background: '#0a0e17', borderRadius: '6px', border: '1px dashed #1f293d', color: 'var(--text-muted)' }}>
-          <p style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>No saved presets found in browser storage.</p>
-          <span style={{ fontSize: '0.85rem' }}>Save tokens or unit trackers from below, or import a `.json` configuration file to get started!</span>
+        <div style={{ textAlign: 'center', padding: '1.2rem', background: '#0a0e17', borderRadius: '6px', border: '1px dashed #1f293d', color: 'var(--text-muted)' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem' }}>No saved presets found in browser storage.</p>
+          <span style={{ fontSize: '0.82rem' }}>Save tokens or unit trackers from below, or import a `.json` configuration file to get started!</span>
         </div>
       ) : processedItems.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '1rem', background: '#0a0e17', borderRadius: '6px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
           No presets match the selected filter/search query.
         </div>
       ) : (
-        <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1rem',
-              maxHeight: isCollapsed ? 'none' : '380px',
-              overflowY: isCollapsed ? 'visible' : 'auto',
-              paddingRight: '0.3rem'
-            }}
-          >
-            {displayedItems.map((item) => {
-              const isToken = item.type === 'token';
-              const categoryLabel = isToken
-                ? item.category === 'misc'
-                  ? 'Misc Token'
-                  : item.category === 'naval'
-                  ? 'Naval Unit'
-                  : 'Land Unit'
-                : 'Army Tracker';
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '0.8rem',
+            maxHeight: isCollapsed ? '108px' : '380px',
+            overflow: isCollapsed ? 'hidden' : 'auto',
+            paddingRight: '0.3rem',
+            transition: 'all 0.3s ease-in-out'
+          }}
+        >
+          {processedItems.map((item) => {
+            const isToken = item.type === 'token';
+            const categoryLabel = isToken
+              ? item.category === 'misc'
+                ? 'Misc Token'
+                : item.category === 'naval'
+                ? 'Naval Unit'
+                : 'Land Unit'
+              : 'Army Tracker';
 
-              const badgeColor = isToken ? '#3b82f6' : '#10b981';
-              const isEditing = editingId === item.id;
+            const badgeColor = isToken ? '#3b82f6' : '#10b981';
+            const isEditing = editingId === item.id;
 
-              return (
-                <div
-                  key={item.id}
-                  style={{
-                    background: '#0a0e17',
-                    border: '1px solid #1f293d',
-                    borderRadius: '6px',
-                    padding: '0.8rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justify: 'space-between',
-                    gap: '0.6rem'
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                      <span
-                        style={{
-                          background: badgeColor,
-                          color: '#ffffff',
-                          fontSize: '0.7rem',
-                          fontWeight: 'bold',
-                          padding: '2px 6px',
-                          borderRadius: '3px',
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        {categoryLabel}
-                      </span>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{formatDate(item.updatedAt)}</span>
-                    </div>
-
-                    {isEditing ? (
-                      <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem' }}>
-                        <input
-                          type="text"
-                          value={editNameValue}
-                          onChange={(e) => setEditNameValue(e.target.value)}
-                          autoFocus
-                          style={{ flex: 1, padding: '0.3rem', fontSize: '0.9rem', borderRadius: '4px' }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleSaveEdit(item.id)}
-                          style={{ padding: '0.3rem 0.5rem', background: '#00f0ff', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelEdit}
-                          style={{ padding: '0.3rem 0.5rem', background: '#334155', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3
-                          style={{
-                            margin: '0',
-                            color: '#ffffff',
-                            fontSize: '1.1rem',
-                            fontFamily: "'Share Tech Mono', monospace",
-                            wordBreak: 'break-word'
-                          }}
-                        >
-                          {item.name}
-                        </h3>
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(item)}
-                          title="Edit preset name"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-muted)',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            padding: '2px 4px'
-                          }}
-                        >
-                          ✏️
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.4rem', borderTop: '1px dashed #1f293d' }}>
-                    <button
-                      type="button"
-                      onClick={() => onLoadItem(item)}
-                      style={{
-                        flex: 1,
-                        padding: '0.35rem 0.6rem',
-                        background: 'rgba(0, 240, 255, 0.15)',
-                        color: '#00f0ff',
-                        border: '1px solid #00f0ff',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        fontSize: '0.8rem'
-                      }}
-                    >
-                      ⚡ Load Preset
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        exportAllItemsToJSON([item], `${item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_config.json`);
-                        showNotification({
-                          title: 'CONFIG EXPORTED',
-                          message: `Exported preset "${item.name}" as JSON file.`,
-                          type: 'info'
-                        });
-                      }}
-                      title="Export single preset to JSON file"
-                      style={{
-                        padding: '0.35rem 0.5rem',
-                        background: '#1e293b',
-                        color: '#cbd5e1',
-                        border: '1px solid #334155',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.8rem'
-                      }}
-                    >
-                      💾 JSON
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        confirmAction({
-                          title: 'DELETE PRESET',
-                          message: `Are you sure you want to permanently delete "${item.name}" from internal storage?`,
-                          onConfirm: () => {
-                            onDeleteItem(item.id);
-                            showNotification({
-                              title: 'DELETED',
-                              message: `Preset "${item.name}" removed from database.`,
-                              type: 'danger'
-                            });
-                          }
-                        });
-                      }}
-                      title="Delete Preset"
-                      style={{
-                        padding: '0.35rem 0.5rem',
-                        background: 'rgba(239, 68, 68, 0.2)',
-                        color: '#ef4444',
-                        border: '1px solid #ef4444',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.8rem'
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {isCollapsed && processedItems.length > 3 && (
-            <div style={{ textAlign: 'center', marginTop: '0.8rem' }}>
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(false)}
+            return (
+              <div
+                key={item.id}
                 style={{
-                  background: 'none',
-                  border: '1px dashed #00f0ff',
-                  color: '#00f0ff',
-                  padding: '0.4rem 1rem',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '0.85rem'
+                  background: '#0a0e17',
+                  border: '1px solid #1f293d',
+                  borderRadius: '6px',
+                  padding: '0.65rem 0.8rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justify: 'space-between',
+                  gap: '0.5rem',
+                  height: '100px'
                 }}
               >
-                + Show {processedItems.length - 3} More Hidden Presets
-              </button>
-            </div>
-          )}
-        </>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.3rem' }}>
+                    <span
+                      style={{
+                        background: badgeColor,
+                        color: '#ffffff',
+                        fontSize: '0.68rem',
+                        fontWeight: 'bold',
+                        padding: '2px 5px',
+                        borderRadius: '3px',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      {categoryLabel}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{formatDate(item.updatedAt)}</span>
+                  </div>
+
+                  {isEditing ? (
+                    <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.2rem' }}>
+                      <input
+                        type="text"
+                        value={editNameValue}
+                        onChange={(e) => setEditNameValue(e.target.value)}
+                        autoFocus
+                        style={{ flex: 1, padding: '0.25rem', fontSize: '0.85rem', borderRadius: '4px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveEdit(item.id)}
+                        style={{ padding: '0.25rem 0.5rem', background: '#00f0ff', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        style={{ padding: '0.25rem 0.5rem', background: '#334155', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3
+                        style={{
+                          margin: '0',
+                          color: '#ffffff',
+                          fontSize: '1rem',
+                          fontFamily: "'Share Tech Mono', monospace",
+                          wordBreak: 'break-word',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {item.name}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(item)}
+                        title="Edit preset name"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          padding: '2px 4px'
+                        }}
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.4rem', paddingTop: '0.3rem', borderTop: '1px dashed #1f293d' }}>
+                  <button
+                    type="button"
+                    onClick={() => onLoadItem(item)}
+                    style={{
+                      flex: 1,
+                      padding: '0.3rem 0.5rem',
+                      background: 'rgba(0, 240, 255, 0.15)',
+                      color: '#00f0ff',
+                      border: '1px solid #00f0ff',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    ⚡ Load
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportAllItemsToJSON([item], `${item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_config.json`);
+                      showNotification({
+                        title: 'CONFIG EXPORTED',
+                        message: `Exported preset "${item.name}" as JSON file.`,
+                        type: 'info'
+                      });
+                    }}
+                    title="Export single preset to JSON file"
+                    style={{
+                      padding: '0.3rem 0.5rem',
+                      background: '#1e293b',
+                      color: '#cbd5e1',
+                      border: '1px solid #334155',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    💾 JSON
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      confirmAction({
+                        title: 'DELETE PRESET',
+                        message: `Are you sure you want to permanently delete "${item.name}" from internal storage?`,
+                        onConfirm: () => {
+                          onDeleteItem(item.id);
+                          showNotification({
+                            title: 'DELETED',
+                            message: `Preset "${item.name}" removed from database.`,
+                            type: 'danger'
+                          });
+                        }
+                      });
+                    }}
+                    title="Delete Preset"
+                    style={{
+                      padding: '0.3rem 0.5rem',
+                      background: 'rgba(239, 68, 68, 0.2)',
+                      color: '#ef4444',
+                      border: '1px solid #ef4444',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
