@@ -30,61 +30,61 @@
 }
 
 [data-theme="blueprint"] {
-  --bg-dark: #eef5fc;
-  --panel-bg: #ffffff;
-  --panel-border: #93c5fd;
-  --accent-cyan: #1d4ed8;
-  --accent-blue: #2563eb;
+  --bg-dark: #e8f0fe;
+  --panel-bg: #f4f8fe;
+  --panel-border: #8ab4f8;
+  --accent-cyan: #1a56db;
+  --accent-blue: #1d4ed8;
   --accent-sky: #1e40af;
   --text-primary: #0f172a;
   --text-secondary: #1e293b;
   --text-muted: #475569;
   --hud-glow: none;
-  --bg-grid-color: rgba(37, 99, 235, 0.12);
-  --bg-linear-1: rgba(238, 245, 252, 0.95);
-  --bg-linear-2: rgba(224, 236, 251, 0.95);
+  --bg-grid-color: rgba(29, 78, 216, 0.12);
+  --bg-linear-1: rgba(232, 240, 254, 0.95);
+  --bg-linear-2: rgba(220, 232, 252, 0.95);
 
-  --card-dice-bg: #e0edff; --card-dice-border: #bfdbfe;
-  --card-colors-bg: #e8f0fe; --card-colors-border: #c7d2fe;
-  --card-text-bg: #e0f2fe; --card-text-border: #bae6fd;
-  --card-grid-bg: #e0f7fa; --card-grid-border: #a5f3fc;
-  --card-aircraft-bg: #ede9fe; --card-aircraft-border: #ddd6fe;
-  --card-attr-bg: #f0f4fe; --card-attr-border: #c7d2fe;
+  --card-dice-bg: #dbeafe; --card-dice-border: #93c5fd;
+  --card-colors-bg: #e0e7ff; --card-colors-border: #a5b4fc;
+  --card-text-bg: #e0f2fe; --card-text-border: #7dd3fc;
+  --card-grid-bg: #ccfbf1; --card-grid-border: #5eead4;
+  --card-aircraft-bg: #ede9fe; --card-aircraft-border: #c4b5fd;
+  --card-attr-bg: #e2e8f0; --card-attr-border: #cbd5e1;
 
   --input-bg: #ffffff;
-  --input-color: #1e3a8a;
-  --input-border: #93c5fd;
-  --color-cell-bg: #f1f5f9;
-  --color-cell-border: #cbd5e1;
+  --input-color: #0f172a;
+  --input-border: #8ab4f8;
+  --color-cell-bg: #ffffff;
+  --color-cell-border: #8ab4f8;
 }
 
 [data-theme="oldschool"] {
-  --bg-dark: #f5f2eb;
-  --panel-bg: #faf8f5;
-  --panel-border: #d4ceb8;
-  --accent-cyan: #2d3a27;
-  --accent-blue: #3d5233;
-  --accent-sky: #4f6842;
-  --text-primary: #1f241d;
-  --text-secondary: #333a30;
-  --text-muted: #666153;
+  --bg-dark: #eee8d5;
+  --panel-bg: #fdf6e3;
+  --panel-border: #b58900;
+  --accent-cyan: #2e5a1c;
+  --accent-blue: #27521a;
+  --accent-sky: #1e3f14;
+  --text-primary: #073642;
+  --text-secondary: #2b3a2a;
+  --text-muted: #586e75;
   --hud-glow: none;
-  --bg-grid-color: rgba(45, 58, 39, 0.08);
-  --bg-linear-1: rgba(245, 242, 235, 0.95);
-  --bg-linear-2: rgba(240, 236, 227, 0.95);
+  --bg-grid-color: rgba(46, 90, 28, 0.1);
+  --bg-linear-1: rgba(238, 232, 213, 0.95);
+  --bg-linear-2: rgba(230, 224, 202, 0.95);
 
-  --card-dice-bg: #ece7db; --card-dice-border: #c8c0a8;
-  --card-colors-bg: #eee8dc; --card-colors-border: #c8c0a8;
-  --card-text-bg: #e9e5d8; --card-text-border: #c8c0a8;
-  --card-grid-bg: #e8e3d5; --card-grid-border: #c8c0a8;
-  --card-aircraft-bg: #eae4d7; --card-aircraft-border: #c8c0a8;
-  --card-attr-bg: #f0ebe0; --card-attr-border: #c8c0a8;
+  --card-dice-bg: #e6dfc8; --card-dice-border: #c4ba98;
+  --card-colors-bg: #e2dbc2; --card-colors-border: #beaf86;
+  --card-text-bg: #ddd5ba; --card-text-border: #beaf86;
+  --card-grid-bg: #d8cfb2; --card-grid-border: #beaf86;
+  --card-aircraft-bg: #dfd7bd; --card-aircraft-border: #beaf86;
+  --card-attr-bg: #e8e1ca; --card-attr-border: #c4ba98;
 
-  --input-bg: #ffffff;
-  --input-color: #2d3a27;
-  --input-border: #bcbead;
-  --color-cell-bg: #ece7db;
-  --color-cell-border: #d4ceb8;
+  --input-bg: #fbf7eb;
+  --input-color: #1a3310;
+  --input-border: #a39874;
+  --color-cell-bg: #fdf6e3;
+  --color-cell-border: #beaf86;
 }
 
 [data-theme="vaporwave"] {

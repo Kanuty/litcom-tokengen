@@ -204,7 +204,7 @@ export function TokenForm({ tokenData, onChange }) {
                 onChange={(e) => handleChange('hexBorderColor', e.target.value)}
                 disabled={!tokenData.hexBorderColor}
               />
-              <label style={{ fontSize: '0.78rem', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              <label style={{ fontSize: '0.78rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 <input
                   type="checkbox"
                   checked={Boolean(tokenData.hexBorderColor)}
@@ -217,14 +217,14 @@ export function TokenForm({ tokenData, onChange }) {
               <button
                 type="button"
                 onClick={() => handleChange('hexBorderColor', '#ffffff')}
-                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                style={{ fontSize: '10px', padding: '2px 6px', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
               >
                 White
               </button>
               <button
                 type="button"
                 onClick={() => handleChange('hexBorderColor', '')}
-                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                style={{ fontSize: '10px', padding: '2px 6px', background: 'var(--input-bg)', color: 'var(--text-muted)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
               >
                 None
               </button>
@@ -650,8 +650,8 @@ export function TokenForm({ tokenData, onChange }) {
                       borderRadius: '4px',
                       fontSize: '0.75rem',
                       border: '1px solid var(--accent-blue)',
-                      background: active ? 'var(--accent-blue)' : '#0d1322',
-                      color: active ? '#ffffff' : 'var(--accent-sky)',
+                      background: active ? 'var(--accent-blue)' : 'var(--input-bg)',
+                      color: active ? '#ffffff' : 'var(--text-primary)',
                       cursor: 'pointer',
                       fontWeight: 'bold',
                       transition: 'all 0.15s ease'
@@ -678,8 +678,8 @@ export function TokenForm({ tokenData, onChange }) {
                 padding: '3px 8px',
                 borderRadius: '4px',
                 border: '1px solid var(--accent-blue)',
-                background: tokenData.dice?.length === 1 ? 'var(--accent-blue)' : '#0d1322',
-                color: tokenData.dice?.length === 1 ? '#ffffff' : 'var(--accent-sky)',
+                background: tokenData.dice?.length === 1 ? 'var(--accent-blue)' : 'var(--input-bg)',
+                color: tokenData.dice?.length === 1 ? '#ffffff' : 'var(--text-primary)',
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 fontSize: '0.78rem'
@@ -694,8 +694,8 @@ export function TokenForm({ tokenData, onChange }) {
                 padding: '3px 8px',
                 borderRadius: '4px',
                 border: '1px solid var(--accent-blue)',
-                background: tokenData.dice?.length === 2 ? 'var(--accent-blue)' : '#0d1322',
-                color: tokenData.dice?.length === 2 ? '#ffffff' : 'var(--accent-sky)',
+                background: tokenData.dice?.length === 2 ? 'var(--accent-blue)' : 'var(--input-bg)',
+                color: tokenData.dice?.length === 2 ? '#ffffff' : 'var(--text-primary)',
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 fontSize: '0.78rem'
@@ -715,9 +715,9 @@ export function TokenForm({ tokenData, onChange }) {
             key={index}
             style={{
               padding: '0.65rem 0.8rem',
-              background: 'rgba(10, 14, 23, 0.7)',
+              background: 'var(--color-cell-bg)',
               borderRadius: '6px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--color-cell-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.5rem'

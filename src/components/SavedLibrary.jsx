@@ -352,7 +352,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
                     >
                       {categoryLabel}
                     </span>
-                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{formatDate(item.updatedAt)}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{formatDate(item.updatedAt)}</span>
                   </div>
 
                   {isEditing ? (
@@ -367,14 +367,14 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
                       <button
                         type="button"
                         onClick={() => handleSaveEdit(item.id)}
-                        style={{ padding: '0.25rem 0.5rem', background: '#00f0ff', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
+                        style={{ padding: '0.25rem 0.5rem', background: 'var(--accent-blue)', color: '#ffffff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
                       >
                         Save
                       </button>
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        style={{ padding: '0.25rem 0.5rem', background: '#334155', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
+                        style={{ padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                       >
                         Cancel
                       </button>
@@ -384,7 +384,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
                       <h3
                         style={{
                           margin: '0',
-                          color: '#ffffff',
+                          color: 'var(--text-primary)',
                           fontSize: '1rem',
                           fontFamily: "'Share Tech Mono', monospace",
                           wordBreak: 'break-word',
@@ -414,16 +414,16 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
                   )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.4rem', paddingTop: '0.3rem', borderTop: '1px dashed #1f293d' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', paddingTop: '0.3rem', borderTop: '1px dashed var(--panel-border)' }}>
                   <button
                     type="button"
                     onClick={() => onLoadItem(item)}
                     style={{
                       flex: 1,
                       padding: '0.3rem 0.5rem',
-                      background: 'rgba(0, 240, 255, 0.15)',
-                      color: '#00f0ff',
-                      border: '1px solid #00f0ff',
+                      background: 'var(--accent-blue)',
+                      color: '#ffffff',
+                      border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer',
                       fontWeight: 'bold',
@@ -446,9 +446,9 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
                     title="Export single preset to JSON file"
                     style={{
                       padding: '0.3rem 0.5rem',
-                      background: '#1e293b',
-                      color: '#cbd5e1',
-                      border: '1px solid #334155',
+                      background: 'var(--input-bg)',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--panel-border)',
                       borderRadius: '4px',
                       cursor: 'pointer',
                       fontSize: '0.78rem'
@@ -476,9 +476,9 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
                     title="Delete Preset"
                     style={{
                       padding: '0.3rem 0.5rem',
-                      background: 'rgba(239, 68, 68, 0.2)',
-                      color: '#ef4444',
-                      border: '1px solid #ef4444',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#dc2626',
+                      border: '1px solid #dc2626',
                       borderRadius: '4px',
                       cursor: 'pointer',
                       fontSize: '0.78rem'
