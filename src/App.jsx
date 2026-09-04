@@ -85,13 +85,13 @@ const DEFAULT_CARD_DATA = {
   setNameNumber: 'USMC 999',
   borderColor: '#000000',
   borderWidth: 6,
-  bgColor: '#cbd5e1',
-  camoColor: '#4a5568',
+  bgColor: '#e2e8f0',
+  camoColor: '#94a3b8',
   showCamo: true,
   cardTextColor: '#000000',
   topStripTextColor: '#ffffff',
-  loreBgColor: '#334155',
-  loreTextColor: '#ffffff',
+  loreBgColor: '#ffffff',
+  loreTextColor: '#000000',
   backBgColor: '#2b6cb0',
   backCamoColor: '#1a365d',
   showBackCamo: true,
@@ -1934,36 +1934,66 @@ function App() {
 
               {/* 4. COLORS & BACKSIDE OPTIONS */}
               <div className="tint-card tint-card-colors">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
                   <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Card Colors & Customization</h3>
-                  <button
-                    type="button"
-                    onClick={() => setCardData((prev) => ({
-                      ...prev,
-                      borderColor: DEFAULT_CARD_DATA.borderColor,
-                      bgColor: DEFAULT_CARD_DATA.bgColor,
-                      camoColor: DEFAULT_CARD_DATA.camoColor,
-                      cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
-                      topStripTextColor: DEFAULT_CARD_DATA.topStripTextColor,
-                      loreBgColor: DEFAULT_CARD_DATA.loreBgColor,
-                      loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
-                      backBgColor: DEFAULT_CARD_DATA.backBgColor,
-                      backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
-                      featureIconColor: DEFAULT_CARD_DATA.featureIconColor
-                    }))}
-                    style={{
-                      fontSize: '0.72rem',
-                      padding: '0.2rem 0.5rem',
-                      background: 'var(--accent-cyan)',
-                      color: 'var(--bg-dark)',
-                      border: 'none',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Reset Colors
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCardData((prev) => ({
+                        ...prev,
+                        borderColor: '#00f0ff',
+                        bgColor: '#0f172a',
+                        camoColor: '#1e293b',
+                        cardTextColor: '#00f0ff',
+                        topStripTextColor: '#ffffff',
+                        loreBgColor: '#1e293b',
+                        loreTextColor: '#00f0ff',
+                        backBgColor: '#0f172a',
+                        backCamoColor: '#1e293b',
+                        featureIconColor: '#00f0ff'
+                      }))}
+                      style={{
+                        fontSize: '0.72rem',
+                        padding: '0.2rem 0.5rem',
+                        background: '#00f0ff',
+                        color: '#0f172a',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      ⚡ Apply Cyber Style
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCardData((prev) => ({
+                        ...prev,
+                        borderColor: DEFAULT_CARD_DATA.borderColor,
+                        bgColor: DEFAULT_CARD_DATA.bgColor,
+                        camoColor: DEFAULT_CARD_DATA.camoColor,
+                        cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
+                        topStripTextColor: DEFAULT_CARD_DATA.topStripTextColor,
+                        loreBgColor: DEFAULT_CARD_DATA.loreBgColor,
+                        loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
+                        backBgColor: DEFAULT_CARD_DATA.backBgColor,
+                        backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
+                        featureIconColor: DEFAULT_CARD_DATA.featureIconColor
+                      }))}
+                      style={{
+                        fontSize: '0.72rem',
+                        padding: '0.2rem 0.5rem',
+                        background: 'var(--input-bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--panel-border)',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Reset Colors
+                    </button>
+                  </div>
                 </div>
 
                 <div className="color-picker-grid-6">

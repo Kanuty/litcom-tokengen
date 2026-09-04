@@ -143,13 +143,13 @@ export function JointCapabilityCard({
     // Styling
     borderColor = '#000000',
     borderWidth = 6,
-    bgColor = '#cbd5e1', // light camouflage background
-    camoColor = '#4a5568',
+    bgColor = '#e2e8f0', // soft background
+    camoColor = '#94a3b8', // subtle camo color
     showCamo = true,
     cardTextColor = '#000000', // black body text resting directly on camo
     topStripTextColor = '#ffffff',
-    loreBgColor = '#334155',
-    loreTextColor = '#ffffff',
+    loreBgColor = '#ffffff', // pure white background per requirement
+    loreTextColor = '#000000', // black text per requirement
     // Back side options
     backBgColor = '#2b6cb0',
     backCamoColor = '#1a365d',
@@ -258,9 +258,16 @@ export function JointCapabilityCard({
     );
   }
 
-  // Active feature tags array (standard + custom)
-  const activeStandardTags = Object.keys(featureTags).filter((tag) => featureTags[tag]);
-  const activeCustomTags = (customFeatureTags || []).filter((tag) => tag.enabled && tag.label.trim() !== '');
+  // Active feature tags array (standard + custom) - limited to max 5 total icons per user requirement
+  const rawStandard = Object.keys(featureTags)
+    .filter((tag) => featureTags[tag])
+    .map((tag) => ({ type: 'standard', key: tag, label: tag }));
+
+  const rawCustom = (customFeatureTags || [])
+    .filter((tag) => tag.enabled && tag.label.trim() !== '')
+    .map((tag) => ({ type: 'custom', key: tag.id, label: tag.label.toUpperCase() }));
+
+  const allActiveIcons = [...rawStandard, ...rawCustom].slice(0, 5);
 
   return (
     <div
@@ -291,7 +298,7 @@ export function JointCapabilityCard({
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            opacity: 0.18,
+            opacity: 0.08,
             zIndex: 0
           }}
         >
@@ -374,7 +381,7 @@ export function JointCapabilityCard({
             <div
               style={{
                 position: 'relative',
-                width: `${Math.round(height * 0.062)}px`,
+                width: `${Math.round(height * 0.088)}px`,
                 height: `${Math.round(height * 0.062)}px`,
                 display: 'flex',
                 alignItems: 'center',
@@ -382,9 +389,9 @@ export function JointCapabilityCard({
               }}
               title={`Size: ${sizeNumber}`}
             >
-              <svg width="100%" height="100%" viewBox="0 0 100 100">
-                <polygon points="50,5 95,92 5,92" fill="#ffffff" stroke="none" />
-                <text x="50" y="78" fill="#000000" fontSize="52" fontWeight="900" textAnchor="middle" fontFamily="'Trebuchet MS', sans-serif">
+              <svg width="100%" height="100%" viewBox="0 0 140 100" preserveAspectRatio="none">
+                <polygon points="70,5 138,95 2,95" fill="#ffffff" stroke="none" />
+                <text x="70" y="80" fill="#000000" fontSize="54" fontWeight="900" textAnchor="middle" fontFamily="'Trebuchet MS', sans-serif">
                   {sizeNumber}
                 </text>
               </svg>
@@ -443,85 +450,62 @@ export function JointCapabilityCard({
         )}
       </div>
 
-      {/* 3. MAIN BODY: FEATURE ICONS ABOVE DESCRIPTION (REQUIREMENT #4) + NO BACKGROUND/BORDER (REQUIREMENT #3) */}
+      {/* 3. MAIN BODY: FEATURE ICONS VERTICALLY ON THE LEFT SIDE (DARK SQUARES) + DESCRIPTION TEXT */}
       <div
         style={{
           flex: 1,
           padding: '8px 10px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
+          flexDirection: 'row',
+          gap: '8px',
+          alignItems: 'stretch',
           boxSizing: 'border-box',
           overflow: 'hidden',
           zIndex: 1
         }}
       >
-        {/* Feature Icons Row: Placed ABOVE description text, smaller, with white color default (Requirement #2 & #4 & #5) */}
-        {(activeStandardTags.length > 0 || activeCustomTags.length > 0) && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-            {/* Standard Feature Tags */}
-            {activeStandardTags.map((tagKey) => (
+        {/* Left Vertical Column: Feature Icons in dark squares (Limited to max 5 icons total) */}
+        {allActiveIcons.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              flexShrink: 0
+            }}
+          >
+            {allActiveIcons.map((iconItem, idx) => (
               <div
-                key={tagKey}
+                key={iconItem.key || idx}
                 style={{
                   backgroundColor: '#0f172a',
                   color: featureIconColor,
                   borderRadius: '3px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  padding: '3px 6px',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                  justifyContent: 'center',
+                  gap: '3px',
+                  padding: showFeatureIconLabels ? '3px 5px' : '4px',
+                  minWidth: `${Math.round(height * 0.045)}px`,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)'
                 }}
-                title={tagKey}
+                title={iconItem.label}
               >
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  {FEATURE_TAG_ICONS[tagKey] || FEATURE_TAG_ICONS.PERSIST}
+                  {iconItem.type === 'standard'
+                    ? (FEATURE_TAG_ICONS[iconItem.key] || FEATURE_TAG_ICONS.PERSIST)
+                    : FEATURE_TAG_ICONS.CUSTOM}
                 </div>
                 {showFeatureIconLabels && (
                   <span
                     style={{
-                      fontSize: `${Math.round(width * 0.026)}px`,
+                      fontSize: `${Math.round(width * 0.024)}px`,
                       fontWeight: 'bold',
                       letterSpacing: '0.5px',
                       fontFamily: "'Share Tech Mono', monospace"
                     }}
                   >
-                    {tagKey}
-                  </span>
-                )}
-              </div>
-            ))}
-
-            {/* Custom Feature Tags */}
-            {activeCustomTags.map((cTag, idx) => (
-              <div
-                key={cTag.id || idx}
-                style={{
-                  backgroundColor: '#0f172a',
-                  color: featureIconColor,
-                  borderRadius: '3px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '3px 6px',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                }}
-                title={cTag.label}
-              >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  {FEATURE_TAG_ICONS.CUSTOM}
-                </div>
-                {showFeatureIconLabels && (
-                  <span
-                    style={{
-                      fontSize: `${Math.round(width * 0.026)}px`,
-                      fontWeight: 'bold',
-                      letterSpacing: '0.5px',
-                      fontFamily: "'Share Tech Mono', monospace"
-                    }}
-                  >
-                    {cTag.label.toUpperCase()}
+                    {iconItem.label}
                   </span>
                 )}
               </div>
@@ -529,7 +513,7 @@ export function JointCapabilityCard({
           </div>
         )}
 
-        {/* Description Text: NO BACKGROUND OR BORDER, rests on camo background (Requirement #3) */}
+        {/* Right Side: Body Description Text resting directly on camo background */}
         <div
           style={{
             flex: 1,
@@ -560,7 +544,7 @@ export function JointCapabilityCard({
           zIndex: 1
         }}
       >
-        {/* Lore Box (Full Width at Bottom, Requirement #7) */}
+        {/* Lore Box (White background, no border, no left accent, black text per requirement) */}
         {showLore && (
           <div
             style={{
@@ -571,9 +555,7 @@ export function JointCapabilityCard({
               fontSize: `${Math.round(height * 0.02)}px`,
               fontStyle: 'italic',
               lineHeight: 1.25,
-              borderLeft: `4px solid ${stripBgColor}`,
-              boxSizing: 'border-box',
-              clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%)'
+              boxSizing: 'border-box'
             }}
           >
             {loreText}
