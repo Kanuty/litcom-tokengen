@@ -29,7 +29,8 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
  * @param {string} frontElementId - DOM ID of unit tracker front container
  * @param {string} backElementId - DOM ID of unit tracker back container
  * @param {string} exportFace - 'front' | 'back' | 'both'
- * @param {string} baseFilename - Output PNG base filename
+ * @param {string} titleSlug - Title slug
+ * @param {string} footerSlug - Footer slug
  */
 export async function downloadUnitTrackerAsPNG(
   frontElementId = 'unit-tracker-export-front',
@@ -70,6 +71,57 @@ export async function downloadUnitTrackerAsPNG(
       }, 300);
     } else {
       await downloadSingle(backElementId, 'back');
+    }
+  }
+}
+
+/**
+ * Downloads Joint Capability Cards as PNG image (5.5cm x 9.5cm aspect ratio).
+ * @param {string} frontElementId - DOM ID of capability card front container
+ * @param {string} backElementId - DOM ID of capability card back container
+ * @param {string} exportFace - 'front' | 'back' | 'both'
+ * @param {string} cardTitle - Card title
+ * @param {string} setNumber - Set name / number
+ */
+export async function downloadCapabilityCardAsPNG(
+  frontElementId = 'capability-card-export-front',
+  backElementId = 'capability-card-export-back',
+  exportFace = 'both',
+  cardTitle = 'capability-card',
+  setNumber = 'usmc-999'
+) {
+  const downloadSingleCard = async (elementId, side) => {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      console.error(`Capability Card element with id ${elementId} not found`);
+      return;
+    }
+    const cleanTitle = (cardTitle || 'capability-card').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const cleanSet = (setNumber || 'usmc-999').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const filename = `${cleanTitle}-${side}-${cleanSet}.png`;
+
+    try {
+      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error(`Error generating capability card image (${filename}):`, err);
+    }
+  };
+
+  if (exportFace === 'front' || exportFace === 'both') {
+    await downloadSingleCard(frontElementId, 'front');
+  }
+
+  if (exportFace === 'back' || exportFace === 'both') {
+    if (exportFace === 'both') {
+      setTimeout(async () => {
+        await downloadSingleCard(backElementId, 'back');
+      }, 300);
+    } else {
+      await downloadSingleCard(backElementId, 'back');
     }
   }
 }
