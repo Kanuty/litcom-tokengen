@@ -66,6 +66,38 @@ function MiniDieIcon({ die, isHp = false, isSupply = false }) {
   );
 }
 
+const DEFAULT_CARD_DATA = {
+  title: 'NSM BATTERY',
+  cardType: 'fires', // 'fires' | 'maneuver' | 'interception' | 'info_ops' | 'c5isr' | 'custom'
+  customTypeTitle: '',
+  cost: 2, // 0 to 5
+  showSizeTriangle: true,
+  sizeNumber: 1,
+  customStripColor: '#dc2626',
+  customImageUrl: null,
+  bodyText: 'Provides long-range anti-ship missile defense against surface combatants in contested littoral zones.',
+  featureTags: { PERSIST: true, INTERCEPT: false, ATTACH: true, NULLIFY: false, FTR: false },
+  customFeatureTags: [], // [{ id: '1', label: 'RADAR', enabled: true }]
+  featureIconColor: '#ffffff',
+  showFeatureIconLabels: true,
+  showLore: true,
+  loreText: 'Deployed rapidly to sea denial zones in the Indo-Pacific theater.',
+  setNameNumber: 'USMC 999',
+  borderColor: '#000000',
+  borderWidth: 6,
+  bgColor: '#cbd5e1',
+  camoColor: '#4a5568',
+  showCamo: true,
+  cardTextColor: '#000000',
+  topStripTextColor: '#ffffff',
+  loreBgColor: '#334155',
+  loreTextColor: '#ffffff',
+  backBgColor: '#2b6cb0',
+  backCamoColor: '#1a365d',
+  showBackCamo: true,
+  customBackImageUrl: null
+};
+
 function App() {
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('lc_app_theme') || 'cyber-blue';
@@ -139,36 +171,7 @@ function App() {
   const [cardExportFace, setCardExportFace] = useState('both');
   const [cardPreviewSide, setCardPreviewSide] = useState('front');
   const [cardSaveName, setCardSaveName] = useState('');
-  const [cardData, setCardData] = useState({
-    title: 'NSM BATTERY',
-    cardType: 'fires', // 'fires' | 'maneuver' | 'interception' | 'info_ops' | 'c5isr' | 'custom'
-    customTypeTitle: '',
-    cost: 2, // 0 to 5
-    showSizeTriangle: true,
-    sizeNumber: 1,
-    customStripColor: '#d32f2f',
-    customImageUrl: null,
-    bodyText: 'Provides long-range anti-ship missile defense against surface combatants in contested littoral zones.',
-    featureTags: { PERSIST: true, INTERCEPT: false, ATTACH: true, NULLIFY: false, FTR: false },
-    showFeatureIconLabels: true,
-    showLore: true,
-    loreText: 'Deployed rapidly to sea denial zones in the Indo-Pacific theater.',
-    setNameNumber: 'USMC 999',
-    borderColor: '#000000',
-    borderWidth: 6,
-    bgColor: '#cbd5e1',
-    camoColor: '#4a5568',
-    showCamo: true,
-    descBgColor: '#ffffff',
-    cardTextColor: '#000000',
-    topStripTextColor: '#ffffff',
-    loreBgColor: '#f1f5f9',
-    loreTextColor: '#1e293b',
-    backBgColor: '#2b6cb0',
-    backCamoColor: '#1a365d',
-    showBackCamo: true,
-    customBackImageUrl: null
-  });
+  const [cardData, setCardData] = useState(DEFAULT_CARD_DATA);
 
   const [clickMode, setClickMode] = useState('dice'); // 'dice' or 'hp'
   const [selectedDieIndex, setSelectedDieIndex] = useState('supply'); // 'supply' or index of tokenData.dice
@@ -269,7 +272,7 @@ function App() {
         type: 'info'
       });
     } else if (item.type === 'card') {
-      setCardData(item.data);
+      setCardData({ ...DEFAULT_CARD_DATA, ...item.data });
       const elem = document.getElementById('capability-card');
       if (elem) elem.scrollIntoView({ behavior: 'smooth' });
       showNotification({
@@ -436,6 +439,42 @@ function App() {
         }));
       }
     }
+  };
+
+  // Helper to add custom feature tag
+  const handleAddCustomFeatureTag = () => {
+    const currentCustoms = cardData.customFeatureTags || [];
+    if (currentCustoms.length >= 5) {
+      showNotification({
+        title: 'TAG LIMIT REACHED',
+        message: 'Maximum of 5 custom feature tags allowed per card.',
+        type: 'info'
+      });
+      return;
+    }
+    const newTag = { id: `c_${Date.now()}`, label: 'NEW TAG', enabled: true };
+    setCardData((prev) => ({
+      ...prev,
+      customFeatureTags: [...(prev.customFeatureTags || []), newTag]
+    }));
+  };
+
+  const handleUpdateCustomFeatureTag = (index, field, value) => {
+    setCardData((prev) => {
+      const updated = [...(prev.customFeatureTags || [])];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+      return { ...prev, customFeatureTags: updated };
+    });
+  };
+
+  const handleRemoveCustomFeatureTag = (index) => {
+    setCardData((prev) => {
+      const updated = [...(prev.customFeatureTags || [])];
+      updated.splice(index, 1);
+      return { ...prev, customFeatureTags: updated };
+    });
   };
 
   return (
@@ -1662,7 +1701,7 @@ function App() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
                   <div>
-                    <label className="field-label">Cost (Top Strip Square 0–5)</label>
+                    <label className="field-label">Cost (Top Strip Number 0–5)</label>
                     <input
                       type="number"
                       min="0"
@@ -1753,19 +1792,21 @@ function App() {
                   />
                 </div>
 
+                {/* FEATURE TAGS SECTION */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <label className="field-label" style={{ margin: 0 }}>Feature Icons (Dark Squares on Left Side)</label>
+                    <label className="field-label" style={{ margin: 0 }}>Feature Icons (Positioned Above Description)</label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
                       <input
                         type="checkbox"
                         checked={cardData.showFeatureIconLabels}
                         onChange={(e) => setCardData({ ...cardData, showFeatureIconLabels: e.target.checked })}
                       />
-                      Show Icon Labels Below Icons
+                      Show Icon Labels
                     </label>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginBottom: '0.6rem' }}>
                     {['PERSIST', 'INTERCEPT', 'ATTACH', 'NULLIFY', 'FTR'].map((tag) => (
                       <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
                         <input
@@ -1783,6 +1824,61 @@ function App() {
                         />
                         {tag}
                       </label>
+                    ))}
+                  </div>
+
+                  {/* CUSTOM FEATURE TAGS CONTROLS */}
+                  <div style={{ marginTop: '0.6rem', borderTop: '1px dashed var(--panel-border)', paddingTop: '0.6rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>Custom Feature Icons (Up to 5)</span>
+                      <button
+                        type="button"
+                        onClick={handleAddCustomFeatureTag}
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.2rem 0.5rem',
+                          background: 'var(--accent-cyan)',
+                          color: 'var(--bg-dark)',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        + Add Custom Icon
+                      </button>
+                    </div>
+
+                    {(cardData.customFeatureTags || []).map((cTag, index) => (
+                      <div key={cTag.id || index} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={cTag.enabled}
+                          onChange={(e) => handleUpdateCustomFeatureTag(index, 'enabled', e.target.checked)}
+                        />
+                        <input
+                          type="text"
+                          value={cTag.label}
+                          placeholder="Tag Label..."
+                          onChange={(e) => handleUpdateCustomFeatureTag(index, 'label', e.target.value)}
+                          style={{ flex: 1, fontSize: '0.8rem', padding: '0.2rem 0.4rem' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomFeatureTag(index)}
+                          style={{
+                            fontSize: '0.7rem',
+                            padding: '0.2rem 0.4rem',
+                            background: '#dc2626',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -1805,7 +1901,7 @@ function App() {
                   </div>
 
                   <div>
-                    <label className="field-label">Set Name & Number (Vertical Bottom Right)</label>
+                    <label className="field-label">Set Name & Number (Lower Right)</label>
                     <input
                       type="text"
                       value={cardData.setNameNumber}
@@ -1838,7 +1934,37 @@ function App() {
 
               {/* 4. COLORS & BACKSIDE OPTIONS */}
               <div className="tint-card tint-card-colors">
-                <h3 className="subsection-header">🎨 Card Colors & Back Side Customization</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Card Colors & Customization</h3>
+                  <button
+                    type="button"
+                    onClick={() => setCardData((prev) => ({
+                      ...prev,
+                      borderColor: DEFAULT_CARD_DATA.borderColor,
+                      bgColor: DEFAULT_CARD_DATA.bgColor,
+                      camoColor: DEFAULT_CARD_DATA.camoColor,
+                      cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
+                      topStripTextColor: DEFAULT_CARD_DATA.topStripTextColor,
+                      loreBgColor: DEFAULT_CARD_DATA.loreBgColor,
+                      loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
+                      backBgColor: DEFAULT_CARD_DATA.backBgColor,
+                      backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
+                      featureIconColor: DEFAULT_CARD_DATA.featureIconColor
+                    }))}
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '0.2rem 0.5rem',
+                      background: 'var(--accent-cyan)',
+                      color: 'var(--bg-dark)',
+                      border: 'none',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Reset Colors
+                  </button>
+                </div>
 
                 <div className="color-picker-grid-6">
                   <div className="color-cell">
@@ -1869,11 +1995,11 @@ function App() {
                   </div>
 
                   <div className="color-cell">
-                    <span className="cell-label">Description BG</span>
+                    <span className="cell-label">Feature Icons</span>
                     <input
                       type="color"
-                      value={cardData.descBgColor}
-                      onChange={(e) => setCardData({ ...cardData, descBgColor: e.target.value })}
+                      value={cardData.featureIconColor || '#ffffff'}
+                      onChange={(e) => setCardData({ ...cardData, featureIconColor: e.target.value })}
                     />
                   </div>
 
