@@ -150,21 +150,23 @@ function App() {
     customImageUrl: null,
     bodyText: 'Provides long-range anti-ship missile defense against surface combatants in contested littoral zones.',
     featureTags: { PERSIST: true, INTERCEPT: false, ATTACH: true, NULLIFY: false, FTR: false },
+    showFeatureIconLabels: true,
     showLore: true,
     loreText: 'Deployed rapidly to sea denial zones in the Indo-Pacific theater.',
     setNameNumber: 'USMC 999',
-    borderColor: '#00f0ff',
-    borderWidth: 3,
-    bgColor: '#0f172a',
-    cardTextColor: '#f8fafc',
+    borderColor: '#000000',
+    borderWidth: 6,
+    bgColor: '#cbd5e1',
+    camoColor: '#4a5568',
+    showCamo: true,
+    descBgColor: '#ffffff',
+    cardTextColor: '#000000',
     topStripTextColor: '#ffffff',
-    loreBgColor: '#1e293b',
-    loreTextColor: '#94a3b8',
-    backBgColor: '#0f172a',
-    backCamoColor: '#1e293b',
+    loreBgColor: '#f1f5f9',
+    loreTextColor: '#1e293b',
+    backBgColor: '#2b6cb0',
+    backCamoColor: '#1a365d',
     showBackCamo: true,
-    backTitle: 'JOINT CAPABILITY CARD',
-    backSubtitle: 'LITTORAL COMMANDER SUITE',
     customBackImageUrl: null
   });
 
@@ -1608,7 +1610,7 @@ function App() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
-                    <label className="field-label">Card Title</label>
+                    <label className="field-label">Card Title (Left Aligned)</label>
                     <input
                       type="text"
                       value={cardData.title}
@@ -1660,7 +1662,7 @@ function App() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
                   <div>
-                    <label className="field-label">Cost (Top Left Circle 0–5)</label>
+                    <label className="field-label">Cost (Top Strip Square 0–5)</label>
                     <input
                       type="number"
                       min="0"
@@ -1752,7 +1754,17 @@ function App() {
                 </div>
 
                 <div>
-                  <label className="field-label">Feature Icons (Dark Squares on Left Side)</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label className="field-label" style={{ margin: 0 }}>Feature Icons (Dark Squares on Left Side)</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                      <input
+                        type="checkbox"
+                        checked={cardData.showFeatureIconLabels}
+                        onChange={(e) => setCardData({ ...cardData, showFeatureIconLabels: e.target.checked })}
+                      />
+                      Show Icon Labels Below Icons
+                    </label>
+                  </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
                     {['PERSIST', 'INTERCEPT', 'ATTACH', 'NULLIFY', 'FTR'].map((tag) => (
                       <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
@@ -1793,7 +1805,7 @@ function App() {
                   </div>
 
                   <div>
-                    <label className="field-label">Set Name & Number (Bottom Right)</label>
+                    <label className="field-label">Set Name & Number (Vertical Bottom Right)</label>
                     <input
                       type="text"
                       value={cardData.setNameNumber}
@@ -1848,29 +1860,20 @@ function App() {
                   </div>
 
                   <div className="color-cell">
-                    <span className="cell-label">Text Color</span>
+                    <span className="cell-label">Front Camo</span>
                     <input
                       type="color"
-                      value={cardData.cardTextColor}
-                      onChange={(e) => setCardData({ ...cardData, cardTextColor: e.target.value })}
+                      value={cardData.camoColor}
+                      onChange={(e) => setCardData({ ...cardData, camoColor: e.target.value })}
                     />
                   </div>
 
                   <div className="color-cell">
-                    <span className="cell-label">Strip Text</span>
+                    <span className="cell-label">Description BG</span>
                     <input
                       type="color"
-                      value={cardData.topStripTextColor}
-                      onChange={(e) => setCardData({ ...cardData, topStripTextColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Lore BG</span>
-                    <input
-                      type="color"
-                      value={cardData.loreBgColor}
-                      onChange={(e) => setCardData({ ...cardData, loreBgColor: e.target.value })}
+                      value={cardData.descBgColor}
+                      onChange={(e) => setCardData({ ...cardData, descBgColor: e.target.value })}
                     />
                   </div>
 
@@ -1882,45 +1885,62 @@ function App() {
                       onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
                     />
                   </div>
+
+                  <div className="color-cell">
+                    <span className="cell-label">Back Camo</span>
+                    <input
+                      type="color"
+                      value={cardData.backCamoColor}
+                      onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
+                    />
+                  </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.4rem' }}>
-                  <div>
-                    <label className="field-label">Back Side Header Title</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', background: 'var(--color-cell-bg)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     <input
-                      type="text"
-                      value={cardData.backTitle}
-                      onChange={(e) => setCardData({ ...cardData, backTitle: e.target.value })}
-                      style={{ width: '100%' }}
+                      type="checkbox"
+                      checked={cardData.showCamo}
+                      onChange={(e) => setCardData({ ...cardData, showCamo: e.target.checked })}
                     />
-                  </div>
+                    Front Camo Overlay
+                  </label>
 
-                  <div>
-                    <label className="field-label">Custom Backside Emblem/Image</label>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCardBackImageUpload}
-                      style={{ width: '100%', fontSize: '0.78rem' }}
+                      type="checkbox"
+                      checked={cardData.showBackCamo}
+                      onChange={(e) => setCardData({ ...cardData, showBackCamo: e.target.checked })}
                     />
-                    {cardData.customBackImageUrl && (
-                      <button
-                        onClick={() => setCardData({ ...cardData, customBackImageUrl: null })}
-                        style={{
-                          marginTop: '0.3rem',
-                          fontSize: '0.72rem',
-                          padding: '2px 6px',
-                          background: '#dc2626',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Reset Back Image
-                      </button>
-                    )}
-                  </div>
+                    Backside Camo Overlay
+                  </label>
+                </div>
+
+                <div style={{ marginTop: '0.6rem' }}>
+                  <label className="field-label">Custom Backside Image Override</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCardBackImageUpload}
+                    style={{ width: '100%', fontSize: '0.78rem' }}
+                  />
+                  {cardData.customBackImageUrl && (
+                    <button
+                      onClick={() => setCardData({ ...cardData, customBackImageUrl: null })}
+                      style={{
+                        marginTop: '0.3rem',
+                        fontSize: '0.72rem',
+                        padding: '2px 6px',
+                        background: '#dc2626',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Reset Back Image
+                    </button>
+                  )}
                 </div>
               </div>
 
