@@ -66,6 +66,15 @@ function MiniDieIcon({ die, isHp = false, isSupply = false }) {
 }
 
 function App() {
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('lc_app_theme') || 'cyber-blue';
+  });
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('lc_app_theme', currentTheme);
+  }, [currentTheme]);
+
   const [tokenData, setTokenData] = useState({
     category: 'land',
     bgColor: '#2b6cb0',
@@ -485,10 +494,31 @@ function App() {
 
       <nav className="sticky-nav">
         <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
-        <div className="nav-links">
+        <div className="nav-links" style={{ alignItems: 'center' }}>
           <a href="#saved-presets-library" className="nav-link">💾 SAVED PRESETS</a>
           <a href="#token-generator" className="nav-link">🎯 TOKEN GENERATOR</a>
           <a href="#unit-tracker" className="nav-link">📋 UNIT TRACKER</a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: '0.4rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>THEME:</span>
+            <select
+              value={currentTheme}
+              onChange={(e) => setCurrentTheme(e.target.value)}
+              style={{
+                fontSize: '0.78rem',
+                padding: '0.2rem 0.4rem',
+                borderRadius: '4px',
+                border: '1px solid var(--accent-cyan)',
+                background: '#0d1322',
+                color: 'var(--accent-cyan)',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="cyber-blue">Dark Cyber-Blue</option>
+              <option value="blueprint">Neutral Blueprint</option>
+              <option value="vaporwave">Neo Vaporwave</option>
+            </select>
+          </div>
         </div>
       </nav>
 

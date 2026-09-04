@@ -105,7 +105,7 @@ export function TokenForm({ tokenData, onChange }) {
         </div>
       </div>
 
-      {/* 2. COLORS & BACKGROUND STYLING (NOW INCLUDES FONT, TEXT COLOR, BACKSIDE FLAG, HEX BORDER & NATO COLOR) */}
+      {/* 2. COLORS & BACKGROUND STYLING */}
       <div className="tint-card tint-card-colors">
         <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
 
@@ -125,7 +125,7 @@ export function TokenForm({ tokenData, onChange }) {
                 style={{ width: '70px', fontSize: '0.78rem' }}
               />
             </div>
-            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem' }}>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
               <button
                 type="button"
                 onClick={() => handleChange('bgColor', '#2b6cb0')}
@@ -158,13 +158,15 @@ export function TokenForm({ tokenData, onChange }) {
                 style={{ width: '70px', fontSize: '0.78rem' }}
               />
             </div>
-            <button
-              type="button"
-              onClick={() => handleChange('stripeColor', '#ffffff')}
-              style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '0.3rem' }}
-            >
-              Default (White)
-            </button>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleChange('stripeColor', '#ffffff')}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+              >
+                Default (White)
+              </button>
+            </div>
           </div>
 
           <div className="color-cell">
@@ -182,68 +184,126 @@ export function TokenForm({ tokenData, onChange }) {
                 style={{ width: '70px', fontSize: '0.78rem' }}
               />
             </div>
-            <button
-              type="button"
-              onClick={() => handleChange('hexColor', '#7e8388')}
-              style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '0.3rem' }}
-            >
-              Default (Gray)
-            </button>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleChange('hexColor', '#7e8388')}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+              >
+                Default (Gray)
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Hex Border Color & NATO Symbol Color */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '0.4rem' }}>
-          <div>
-            <label className="field-label">Movement Hex Border Color</label>
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <div className="color-cell">
+            <span className="cell-label">Movement Hex Border</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
               <input
                 type="color"
                 value={tokenData.hexBorderColor || '#ffffff'}
                 onChange={(e) => handleChange('hexBorderColor', e.target.value)}
                 disabled={!tokenData.hexBorderColor}
               />
-              <label style={{ fontSize: '0.8rem', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.78rem', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 <input
                   type="checkbox"
                   checked={Boolean(tokenData.hexBorderColor)}
                   onChange={(e) => handleChange('hexBorderColor', e.target.checked ? '#ffffff' : '')}
                 />
-                Show Border
+                Show
               </label>
+            </div>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleChange('hexBorderColor', '#ffffff')}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+              >
+                White
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange('hexBorderColor', '')}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+              >
+                None
+              </button>
             </div>
           </div>
 
-          {tokenData.category === 'land' && (
-            <div>
-              <label className="field-label">NATO Frame & Symbol Color</label>
-              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                <input
-                  type="color"
-                  value={tokenData.natoSymbolColor || tokenData.textColor || '#ffffff'}
-                  onChange={(e) => handleChange('natoSymbolColor', e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleChange('natoSymbolColor', '#ffffff')}
-                  style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  White
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleChange('natoSymbolColor', '#facc15')}
-                  style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  Yellow
-                </button>
-              </div>
+          <div className="color-cell">
+            <span className="cell-label">NATO Frame & Symbol</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+              <input
+                type="color"
+                value={tokenData.natoSymbolColor || tokenData.textColor || '#ffffff'}
+                onChange={(e) => handleChange('natoSymbolColor', e.target.value)}
+                disabled={tokenData.category !== 'land'}
+              />
+              <input
+                type="text"
+                value={tokenData.natoSymbolColor || tokenData.textColor || '#ffffff'}
+                onChange={(e) => handleChange('natoSymbolColor', e.target.value)}
+                disabled={tokenData.category !== 'land'}
+                style={{ width: '70px', fontSize: '0.78rem' }}
+              />
             </div>
-          )}
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleChange('natoSymbolColor', '#ffffff')}
+                disabled={tokenData.category !== 'land'}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#ffffff', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                White
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange('natoSymbolColor', '#facc15')}
+                disabled={tokenData.category !== 'land'}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#facc15', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Yellow
+              </button>
+            </div>
+          </div>
+
+          <div className="color-cell">
+            <span className="cell-label">Global Text Color</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+              <input
+                type="color"
+                value={tokenData.textColor || '#ffffff'}
+                onChange={(e) => handleChange('textColor', e.target.value)}
+              />
+              <input
+                type="text"
+                value={tokenData.textColor || '#ffffff'}
+                onChange={(e) => handleChange('textColor', e.target.value)}
+                style={{ width: '70px', fontSize: '0.78rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleChange('textColor', '#ffffff')}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#ffffff', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                White
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange('textColor', '#facc15')}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#facc15', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Yellow
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Font, Global Text Color & Backside Flag Grouped Here */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.6rem', marginTop: '0.4rem' }}>
+        {/* Font & Backside Flag Grouped Below Color Cell Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.6rem', marginTop: '0.6rem' }}>
           <div>
             <label className="field-label">Token Text Font</label>
             <select
@@ -257,38 +317,6 @@ export function TokenForm({ tokenData, onChange }) {
               <option value="'Courier New', monospace">Monospace</option>
               <option value="'Georgia', 'Times New Roman', serif">Serif</option>
             </select>
-          </div>
-
-          <div>
-            <label className="field-label">Global Text Color</label>
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-              <input
-                type="color"
-                value={tokenData.textColor || '#ffffff'}
-                onChange={(e) => handleChange('textColor', e.target.value)}
-                title="Choose Text Color"
-              />
-              <input
-                type="text"
-                value={tokenData.textColor || '#ffffff'}
-                onChange={(e) => handleChange('textColor', e.target.value)}
-                style={{ width: '75px' }}
-              />
-              <button
-                type="button"
-                onClick={() => handleChange('textColor', '#ffffff')}
-                style={{ padding: '3px 8px', fontSize: '11px', background: '#ffffff', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                White
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChange('textColor', '#facc15')}
-                style={{ padding: '3px 8px', fontSize: '11px', background: '#facc15', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                Yellow
-              </button>
-            </div>
           </div>
 
           <div>

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@500;700&display=swap');
 
-:root {
+:root, [data-theme="cyber-blue"] {
   --bg-dark: #0a0e17;
   --panel-bg: #111827;
   --panel-border: #1f293d;
@@ -11,6 +11,41 @@
   --text-secondary: #cbd5e1;
   --text-muted: #9ca3af;
   --hud-glow: 0 0 10px rgba(0, 240, 255, 0.25);
+  --bg-grid-color: rgba(0, 240, 255, 0.08);
+  --bg-linear-1: rgba(15, 23, 42, 0.9);
+  --bg-linear-2: rgba(15, 23, 42, 0.9);
+}
+
+[data-theme="blueprint"] {
+  --bg-dark: #0b1f3a;
+  --panel-bg: #102a4e;
+  --panel-border: #1e4273;
+  --accent-cyan: #ffffff;
+  --accent-blue: #60a5fa;
+  --accent-sky: #93c5fd;
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --hud-glow: 0 0 10px rgba(255, 255, 255, 0.2);
+  --bg-grid-color: rgba(255, 255, 255, 0.12);
+  --bg-linear-1: rgba(11, 31, 58, 0.92);
+  --bg-linear-2: rgba(16, 42, 78, 0.92);
+}
+
+[data-theme="vaporwave"] {
+  --bg-dark: #120924;
+  --panel-bg: #1b0d36;
+  --panel-border: #3b1766;
+  --accent-cyan: #00f0ff;
+  --accent-blue: #ff2a85;
+  --accent-sky: #facc15;
+  --text-primary: #ffffff;
+  --text-secondary: #f0abfc;
+  --text-muted: #c084fc;
+  --hud-glow: 0 0 12px rgba(255, 42, 133, 0.35);
+  --bg-grid-color: rgba(255, 42, 133, 0.15);
+  --bg-linear-1: rgba(18, 9, 36, 0.92);
+  --bg-linear-2: rgba(27, 13, 54, 0.92);
 }
 
 body {
@@ -19,8 +54,8 @@ body {
   margin: 0;
   font-family: 'Share Tech Mono', monospace, system-ui;
   background-image:
-    radial-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9));
+    radial-gradient(var(--bg-grid-color) 1px, transparent 1px),
+    linear-gradient(to right, var(--bg-linear-1), var(--bg-linear-2));
   background-size: 20px 20px, 100% 100%;
 }
 
@@ -377,6 +412,38 @@ select:focus {
   outline: none !important;
   border-color: var(--accent-cyan) !important;
   box-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* Custom File Upload Styling */
+input[type="file"] {
+  background-color: #0d1322 !important;
+  color: var(--accent-sky) !important;
+  border: 1px dashed var(--accent-blue) !important;
+  padding: 0.35rem 0.5rem !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  font-size: 0.8rem !important;
+}
+
+input[type="file"]::file-selector-button {
+  background: var(--accent-blue) !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 0.25rem 0.6rem !important;
+  border-radius: 4px !important;
+  font-family: 'Teko', sans-serif !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 1px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  margin-right: 0.5rem !important;
+  transition: all 0.2s ease !important;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: var(--accent-cyan) !important;
+  color: #0a0e17 !important;
 }
 
 /* Color Picker Cyber Styling */
