@@ -6,7 +6,8 @@ export function NatoSymbol({
   symbolType = 'infantry',  // 'infantry' | 'armor' | 'recon' | 'artillery' | 'rocket_artillery' | 'mechanized_artillery' | 'air_defense' | 'anti_tank' | 'sof' | 'engineer' | 'supply' | 'custom' | 'none'
   modifiers = [],           // ['mountain', 'airborne', 'airmobile', 'tracked', 'wheeled', 'amphibious', 'motorized', 'ew', 'light']
   size = 240,
-  customNatoImage = ''
+  customNatoImage = '',
+  symbolColor = '#ffffff'   // Custom color for NATO frame and unit branch
 }) {
   const width = size * 0.44;
   const height = size * 0.36;
@@ -18,14 +19,14 @@ export function NatoSymbol({
   const clipId = `nato-clip-${affiliation}-${rawId.replace(/:/g, '')}`;
 
   if (affiliation === 'friendly') {
-    frame = <rect x="5" y="10" width="90" height="60" rx="3" fill="none" stroke="#ffffff" strokeWidth="5" />;
+    frame = <rect x="5" y="10" width="90" height="60" rx="3" fill="none" stroke={symbolColor} strokeWidth="5" />;
     clipPathShape = <rect x="5" y="10" width="90" height="60" rx="3" />;
   } else if (affiliation === 'hostile') {
     // Squarish Diamond (45 deg rotated square)
-    frame = <polygon points="50,5 90,40 50,75 10,40" fill="none" stroke="#ffffff" strokeWidth="5" />;
+    frame = <polygon points="50,5 90,40 50,75 10,40" fill="none" stroke={symbolColor} strokeWidth="5" />;
     clipPathShape = <polygon points="50,5 90,40 50,75 10,40" />;
   } else if (affiliation === 'neutral') {
-    frame = <rect x="20" y="10" width="60" height="60" rx="3" fill="none" stroke="#ffffff" strokeWidth="5" />;
+    frame = <rect x="20" y="10" width="60" height="60" rx="3" fill="none" stroke={symbolColor} strokeWidth="5" />;
     clipPathShape = <rect x="20" y="10" width="60" height="60" rx="3" />;
   }
 
@@ -36,96 +37,92 @@ export function NatoSymbol({
     if (affiliation === 'friendly') {
       symbolContent.push(
         <g key="inf">
-          <line x1="5" y1="10" x2="95" y2="70" stroke="#ffffff" strokeWidth="4.5" />
-          <line x1="5" y1="70" x2="95" y2="10" stroke="#ffffff" strokeWidth="4.5" />
+          <line x1="5" y1="10" x2="95" y2="70" stroke={symbolColor} strokeWidth="4.5" />
+          <line x1="5" y1="70" x2="95" y2="10" stroke={symbolColor} strokeWidth="4.5" />
         </g>
       );
     } else if (affiliation === 'hostile') {
-      // Hostile infantry: two diagonals connecting the diamond's opposite sides
       symbolContent.push(
         <g key="inf">
-          <line x1="30" y1="22.5" x2="70" y2="57.5" stroke="#ffffff" strokeWidth="4.5" />
-          <line x1="30" y1="57.5" x2="70" y2="22.5" stroke="#ffffff" strokeWidth="4.5" />
+          <line x1="30" y1="22.5" x2="70" y2="57.5" stroke={symbolColor} strokeWidth="4.5" />
+          <line x1="30" y1="57.5" x2="70" y2="22.5" stroke={symbolColor} strokeWidth="4.5" />
         </g>
       );
     } else {
       symbolContent.push(
         <g key="inf">
-          <line x1="20" y1="10" x2="80" y2="70" stroke="#ffffff" strokeWidth="4.5" />
-          <line x1="20" y1="70" x2="80" y2="10" stroke="#ffffff" strokeWidth="4.5" />
+          <line x1="20" y1="10" x2="80" y2="70" stroke={symbolColor} strokeWidth="4.5" />
+          <line x1="20" y1="70" x2="80" y2="10" stroke={symbolColor} strokeWidth="4.5" />
         </g>
       );
     }
   } else if (symbolType === 'armor') {
     symbolContent.push(
-      <rect key="armor" x="25" y="25" width="50" height="30" rx="15" fill="none" stroke="#ffffff" strokeWidth="4.5" />
+      <rect key="armor" x="25" y="25" width="50" height="30" rx="15" fill="none" stroke={symbolColor} strokeWidth="4.5" />
     );
   } else if (symbolType === 'recon') {
-    // Reconnaissance slash (bottom-left to top-right diagonal)
     if (affiliation === 'friendly') {
       symbolContent.push(
-        <line key="recon" x1="5" y1="70" x2="95" y2="10" stroke="#ffffff" strokeWidth="4.5" />
+        <line key="recon" x1="5" y1="70" x2="95" y2="10" stroke={symbolColor} strokeWidth="4.5" />
       );
     } else if (affiliation === 'hostile') {
       symbolContent.push(
-        <line key="recon" x1="10" y1="40" x2="90" y2="40" stroke="#ffffff" strokeWidth="4.5" transform="rotate(-45 50 40)" />
+        <line key="recon" x1="10" y1="40" x2="90" y2="40" stroke={symbolColor} strokeWidth="4.5" transform="rotate(-45 50 40)" />
       );
     } else {
       symbolContent.push(
-        <line key="recon" x1="20" y1="70" x2="80" y2="10" stroke="#ffffff" strokeWidth="4.5" />
+        <line key="recon" x1="20" y1="70" x2="80" y2="10" stroke={symbolColor} strokeWidth="4.5" />
       );
     }
   } else if (symbolType === 'artillery') {
     symbolContent.push(
-      <circle key="artillery" cx="50" cy="40" r="9" fill="#ffffff" />
+      <circle key="artillery" cx="50" cy="40" r="9" fill={symbolColor} />
     );
   } else if (symbolType === 'rocket_artillery') {
     symbolContent.push(
       <g key="rocket_artillery">
-        <circle cx="50" cy="45" r="8" fill="#ffffff" />
-        <path d="M 35 28 L 50 16 L 65 28" fill="none" stroke="#ffffff" strokeWidth="4" />
+        <circle cx="50" cy="45" r="8" fill={symbolColor} />
+        <path d="M 35 28 L 50 16 L 65 28" fill="none" stroke={symbolColor} strokeWidth="4" />
       </g>
     );
   } else if (symbolType === 'mechanized_artillery') {
     symbolContent.push(
       <g key="mech_artillery">
-        <rect x="22" y="22" width="56" height="36" rx="18" fill="none" stroke="#ffffff" strokeWidth="4" />
-        <circle cx="50" cy="40" r="8" fill="#ffffff" />
+        <rect x="22" y="22" width="56" height="36" rx="18" fill="none" stroke={symbolColor} strokeWidth="4" />
+        <circle cx="50" cy="40" r="8" fill={symbolColor} />
       </g>
     );
   } else if (symbolType === 'air_defense') {
-    // Arc curve arches upward (dome shape in lower part of frame)
     if (affiliation === 'friendly') {
       symbolContent.push(
-        <path key="air_def" d="M 5 70 Q 50 40 95 70" fill="none" stroke="#ffffff" strokeWidth="4.5" />
+        <path key="air_def" d="M 5 70 Q 50 40 95 70" fill="none" stroke={symbolColor} strokeWidth="4.5" />
       );
     } else if (affiliation === 'hostile') {
       symbolContent.push(
-        <path key="air_def" d="M 10 40 Q 50 15 90 40" fill="none" stroke="#ffffff" strokeWidth="4.5" />
+        <path key="air_def" d="M 10 40 Q 50 15 90 40" fill="none" stroke={symbolColor} strokeWidth="4.5" />
       );
     } else {
       symbolContent.push(
-        <path key="air_def" d="M 20 70 Q 50 40 80 70" fill="none" stroke="#ffffff" strokeWidth="4.5" />
+        <path key="air_def" d="M 20 70 Q 50 40 80 70" fill="none" stroke={symbolColor} strokeWidth="4.5" />
       );
     }
   } else if (symbolType === 'anti_tank') {
     symbolContent.push(
-      <path key="anti_tank" d="M 25 55 L 50 25 L 75 55" fill="none" stroke="#ffffff" strokeWidth="4.5" />
+      <path key="anti_tank" d="M 25 55 L 50 25 L 75 55" fill="none" stroke={symbolColor} strokeWidth="4.5" />
     );
   } else if (symbolType === 'sof') {
     symbolContent.push(
-      <text key="sof" x="50" y="48" fill="#ffffff" fontSize="22" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
+      <text key="sof" x="50" y="48" fill={symbolColor} fontSize="22" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
         SOF
       </text>
     );
   } else if (symbolType === 'engineer') {
     symbolContent.push(
-      <path key="engineer" d="M 28 55 L 28 32 L 50 32 L 50 55 M 50 32 L 72 32 L 72 55" fill="none" stroke="#ffffff" strokeWidth="4" />
+      <path key="engineer" d="M 28 55 L 28 32 L 50 32 L 50 55 M 50 32 L 72 32 L 72 55" fill="none" stroke={symbolColor} strokeWidth="4" />
     );
   } else if (symbolType === 'supply') {
-    // Supply: horizontal line on the lower half of symbol
     symbolContent.push(
-      <line key="supply" x1="10" y1="50" x2="90" y2="50" stroke="#ffffff" strokeWidth="5" />
+      <line key="supply" x1="10" y1="50" x2="90" y2="50" stroke={symbolColor} strokeWidth="5" />
     );
   } else if (symbolType === 'custom') {
     if (customNatoImage) {
@@ -145,72 +142,65 @@ export function NatoSymbol({
 
   // Modifiers inside/outside frame
   if (modifiers.includes('mountain')) {
-    // Triangle at bottom of symbol, smaller size, black colored
     symbolContent.push(
-      <polygon key="mod-mountain" points="50,48 35,72 65,72" fill="#000000" stroke="#ffffff" strokeWidth="1" />
+      <polygon key="mod-mountain" points="50,48 35,72 65,72" fill="#000000" stroke={symbolColor} strokeWidth="1" />
     );
   }
 
   if (modifiers.includes('airborne')) {
-    // Airborne: two small bird wings at the bottom
     symbolContent.push(
-      <path key="mod-airborne" d="M 20 64 Q 35 52 50 64 Q 65 52 80 64" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+      <path key="mod-airborne" d="M 20 64 Q 35 52 50 64 Q 65 52 80 64" fill="none" stroke={symbolColor} strokeWidth="4" strokeLinecap="round" />
     );
   }
 
   if (modifiers.includes('airmobile')) {
-    // Airmobile: shorter arms attached directly to the top edge of the frame
     const topY = affiliation === 'hostile' ? 5 : 10;
     symbolContent.push(
-      <path key="mod-airmobile" d={`M 30 ${topY} L 50 ${topY + 16} L 70 ${topY}`} fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <path key="mod-airmobile" d={`M 30 ${topY} L 50 ${topY + 16} L 70 ${topY}`} fill="none" stroke={symbolColor} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
     );
   }
 
   if (modifiers.includes('tracked')) {
     symbolContent.push(
-      <rect key="mod-tracked" x="22" y="22" width="56" height="36" rx="18" fill="none" stroke="#ffffff" strokeWidth="4" />
+      <rect key="mod-tracked" x="22" y="22" width="56" height="36" rx="18" fill="none" stroke={symbolColor} strokeWidth="4" />
     );
   }
 
   if (modifiers.includes('wheeled')) {
-    // Wheeled: 3 circles placed properly on hostile or friendly frame
     const circleY = affiliation === 'hostile' ? 54 : 62;
     symbolContent.push(
       <g key="mod-wheeled">
-        <circle cx="34" cy={circleY} r="4" fill="#ffffff" />
-        <circle cx="50" cy={circleY} r="4" fill="#ffffff" />
-        <circle cx="66" cy={circleY} r="4" fill="#ffffff" />
+        <circle cx="34" cy={circleY} r="4" fill={symbolColor} />
+        <circle cx="50" cy={circleY} r="4" fill={symbolColor} />
+        <circle cx="66" cy={circleY} r="4" fill={symbolColor} />
       </g>
     );
   }
 
   if (modifiers.includes('amphibious')) {
-    // Amphibious: multi-cycle sine wave across middle of unit
     symbolContent.push(
-      <path key="mod-amphibious" d="M 5 40 Q 16.25 28 27.5 40 T 50 40 T 72.5 40 T 95 40" fill="none" stroke="#ffffff" strokeWidth="3.5" />
+      <path key="mod-amphibious" d="M 5 40 Q 16.25 28 27.5 40 T 50 40 T 72.5 40 T 95 40" fill="none" stroke={symbolColor} strokeWidth="3.5" />
     );
   }
 
   if (modifiers.includes('motorized')) {
     symbolContent.push(
-      <line key="mod-motorized" x1="50" y1="10" x2="50" y2="70" stroke="#ffffff" strokeWidth="4" />
+      <line key="mod-motorized" x1="50" y1="10" x2="50" y2="70" stroke={symbolColor} strokeWidth="4" />
     );
   }
 
   if (modifiers.includes('ew')) {
-    // Electronic Warfare 'EW' text
     symbolContent.push(
-      <text key="mod-ew" x="50" y="28" fill="#ffffff" fontSize="15" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
+      <text key="mod-ew" x="50" y="28" fill={symbolColor} fontSize="15" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
         EW
       </text>
     );
   }
 
   if (modifiers.includes('light')) {
-    // Light modifier: small L letter placed at the bottom side of frame, horizontally centered
     const lightY = affiliation === 'hostile' ? 68 : 66;
     symbolContent.push(
-      <text key="mod-light" x="50" y={lightY} fill="#ffffff" fontSize="16" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
+      <text key="mod-light" x="50" y={lightY} fill={symbolColor} fontSize="16" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">
         L
       </text>
     );
@@ -233,8 +223,7 @@ export function NatoSymbol({
   );
 }
 
-// LandToken component renders Front or Back of Land Token
-// Helper SVG Flag rendering for Reverse face
+// Render Flag helper omitted for brevity in thought, same as existing...
 function RenderFlag({ flagKey, customUrl }) {
   if (flagKey === 'custom' && customUrl) {
     return (
@@ -300,9 +289,7 @@ function RenderFlag({ flagKey, customUrl }) {
     return (
       <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
         <rect width="100" height="60" fill="#ee1c25" />
-        {/* Main large star */}
         <polygon points="15,4 18,15 28,15 20,21 23,32 15,25 7,32 10,21 2,15 12,15" fill="#ffde00" />
-        {/* 4 small surrounding stars */}
         <polygon points="30,5 31,8 34,8 32,10 33,13 30,11 27,13 28,10 26,8 29,8" fill="#ffde00" />
         <polygon points="36,12 37,15 40,15 38,17 39,20 36,18 33,20 34,17 32,15 35,15" fill="#ffde00" />
         <polygon points="36,22 37,25 40,25 38,27 39,30 36,28 33,30 34,27 32,25 35,25" fill="#ffde00" />
@@ -670,7 +657,7 @@ function RenderFlag({ flagKey, customUrl }) {
   return null;
 }
 
-// Default Missile Truck SVG for Misc MILDEC token
+// Default Silhouettes omitted for brevity...
 function DefaultMissileTruckSilhouette({ color = '#ffffff' }) {
   return (
     <svg viewBox="0 0 120 60" style={{ width: '85%', height: '85%' }}>
@@ -691,7 +678,6 @@ function DefaultMissileTruckSilhouette({ color = '#ffffff' }) {
   );
 }
 
-// Default Soldiers Silhouette for Misc Infantry/Dismount token
 function DefaultSoldiersSilhouette({ color = '#facc15' }) {
   return (
     <svg viewBox="0 0 100 80" style={{ width: '85%', height: '85%' }}>
@@ -705,7 +691,6 @@ function DefaultSoldiersSilhouette({ color = '#facc15' }) {
   );
 }
 
-// Default Warship Silhouette SVG
 function DefaultShipSilhouette({ color = '#000000' }) {
   return (
     <svg viewBox="0 0 200 60" style={{ width: '100%', height: '100%' }}>
@@ -731,6 +716,8 @@ export function LandToken({
     bgColor = '#2b6cb0',
     stripeColor = '#ffffff',
     hexColor = '#7e8388',
+    hexBorderColor = '',
+    natoSymbolColor = '#ffffff',
     textColor = '#ffffff',
     fontFamily = "'Trebuchet MS', 'Arial Bold', sans-serif",
     echelon = '••',
@@ -771,7 +758,6 @@ export function LandToken({
           justifyContent: 'center'
         }}
       >
-        {/* Solid single background color, no white strip */}
         <RenderFlag flagKey={backFlag} customUrl={customBackImage} />
       </div>
     );
@@ -929,13 +915,11 @@ export function LandToken({
   }
 
   // Render Front side for Land and Naval
-  // Helper for Dice rendering
   const renderDice = (d, index) => {
     const diceType = d.type || 'red';
     const bigVal = d.bigValue ?? 10;
     const smallVal = d.smallValue ?? '0';
 
-    // Custom background color if specified, else default type background
     let defaultBg = '#c83232';
     if (diceType === 'green') defaultBg = '#2e7d32';
     if (diceType === 'purple') defaultBg = '#7b1fa2';
@@ -947,7 +931,6 @@ export function LandToken({
     const strokeW = borderThick ? 7 : 3;
     const strokeC = borderThick ? borderColor : '#ffffff';
 
-    // Shape styling / SVG paths
     const diceWidth = size * 0.36;
     const diceHeight = size * 0.36;
 
@@ -966,7 +949,6 @@ export function LandToken({
           fontFamily: fontFamily
         }}
       >
-        {/* SVG background shape */}
         <svg
           width={diceWidth}
           height={diceHeight}
@@ -974,11 +956,9 @@ export function LandToken({
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
         >
           {diceType === 'red' && (
-            // Square
             <rect x="5" y="5" width="90" height="90" rx="6" fill={diceBg} stroke={strokeC} strokeWidth={strokeW} />
           )}
           {diceType === 'green' && (
-            // Cut-corner square
             <path
               d="M 5 11 C 5 7.7 7.7 5 11 5 L 89 5 C 92.3 5 95 7.7 95 11 L 95 65 L 65 95 L 11 95 C 7.7 95 5 92.3 5 89 Z"
               fill={diceBg}
@@ -987,7 +967,6 @@ export function LandToken({
             />
           )}
           {diceType === 'purple' && (
-            // Inverted Pentagon: side corners placed at ~1/3 height from bottom (y=65 in 0-100 viewBox)
             <polygon
               points="20,5 80,5 96,65 50,95 4,65"
               fill={diceBg}
@@ -996,12 +975,10 @@ export function LandToken({
             />
           )}
           {diceType === 'blue' && (
-            // Circle
             <circle cx="50" cy="50" r="45" fill={diceBg} stroke={strokeC} strokeWidth={strokeW} />
           )}
         </svg>
 
-        {/* Text inside die */}
         <div
           style={{
             zIndex: 1,
@@ -1055,7 +1032,6 @@ export function LandToken({
     >
       {/* Top Section */}
       {category === 'naval' ? (
-        // Naval Token Top: Unit Name on top-left, Movement Hex on top-right
         <div
           style={{
             display: 'flex',
@@ -1095,7 +1071,12 @@ export function LandToken({
               viewBox="0 0 100 100"
               style={{ position: 'absolute', top: 0, left: 0 }}
             >
-              <polygon points="50,2 94,26 94,74 50,98 6,74 6,26" fill={hexColor} />
+              <polygon
+                points="50,2 94,26 94,74 50,98 6,74 6,26"
+                fill={hexColor}
+                stroke={hexBorderColor || 'none'}
+                strokeWidth={hexBorderColor ? 6 : 0}
+              />
             </svg>
             <span
               style={{
@@ -1111,7 +1092,6 @@ export function LandToken({
           </div>
         </div>
       ) : (
-        // Land Token Top: Left NATO designation & Echelon, Right Movement Hex
         <div
           style={{
             display: 'flex',
@@ -1144,6 +1124,7 @@ export function LandToken({
               modifiers={modifiers}
               size={size}
               customNatoImage={customNatoImage}
+              symbolColor={natoSymbolColor || textColor || '#ffffff'}
             />
           </div>
 
@@ -1164,7 +1145,12 @@ export function LandToken({
               viewBox="0 0 100 100"
               style={{ position: 'absolute', top: 0, left: 0 }}
             >
-              <polygon points="50,2 94,26 94,74 50,98 6,74 6,26" fill={hexColor} />
+              <polygon
+                points="50,2 94,26 94,74 50,98 6,74 6,26"
+                fill={hexColor}
+                stroke={hexBorderColor || 'none'}
+                strokeWidth={hexBorderColor ? 6 : 0}
+              />
             </svg>
             <span
               style={{
@@ -1183,7 +1169,6 @@ export function LandToken({
 
       {/* Middle Section */}
       {category === 'naval' ? (
-        // Naval Token Middle: Wide ship silhouette positioned behind top-left name and hex
         <div
           style={{
             position: 'absolute',
@@ -1208,7 +1193,6 @@ export function LandToken({
           )}
         </div>
       ) : (
-        // Land Token Middle: Unit Name
         <div
           style={{
             textAlign: 'center',
