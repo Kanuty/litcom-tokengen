@@ -83,6 +83,9 @@ const DEFAULT_CARD_DATA = {
   showLore: true,
   loreText: 'Deployed rapidly to sea denial zones in the Indo-Pacific theater.',
   setNameNumber: 'USMC 999',
+  titleFont: "'Trebuchet MS', 'Arial Bold', sans-serif",
+  bodyFont: "'Trebuchet MS', 'Arial Bold', sans-serif",
+  loreFont: "'Trebuchet MS', 'Arial Bold', sans-serif",
   borderColor: '#000000',
   borderWidth: 6,
   bgColor: '#e2e8f0',
@@ -92,6 +95,8 @@ const DEFAULT_CARD_DATA = {
   topStripTextColor: '#ffffff',
   loreBgColor: '#ffffff',
   loreTextColor: '#000000',
+  placeholderColor: '#64748b',
+  backEmblemColor: '#ffffff',
   backBgColor: '#2b6cb0',
   backCamoColor: '#1a365d',
   showBackCamo: true,
@@ -1884,6 +1889,55 @@ function App() {
                 </div>
               </div>
 
+              {/* TYPOGRAPHY CONTROLS */}
+              <div className="tint-card tint-card-text">
+                <h3 className="subsection-header">🔤 Typography & Font Customization</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
+                  <div>
+                    <label className="field-label">Title Font</label>
+                    <select
+                      value={cardData.titleFont}
+                      onChange={(e) => setCardData({ ...cardData, titleFont: e.target.value })}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                      <option value="'Teko', sans-serif">Teko (Condensed Military)</option>
+                      <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
+                      <option value="'Courier New', monospace">Courier New</option>
+                      <option value="Arial, sans-serif">Arial</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="field-label">Body Text Font</label>
+                    <select
+                      value={cardData.bodyFont}
+                      onChange={(e) => setCardData({ ...cardData, bodyFont: e.target.value })}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                      <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
+                      <option value="Georgia, serif">Georgia (Serif)</option>
+                      <option value="Arial, sans-serif">Arial</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="field-label">Lore Text Font</label>
+                    <select
+                      value={cardData.loreFont}
+                      onChange={(e) => setCardData({ ...cardData, loreFont: e.target.value })}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                      <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
+                      <option value="Georgia, serif">Georgia (Serif)</option>
+                      <option value="Arial, sans-serif">Arial</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               {/* 3. LORE & SET DESIGNATION */}
               <div className="tint-card tint-card-text">
                 <h3 className="subsection-header">📜 Lore Box & Set Designation</h3>
@@ -1942,15 +1996,18 @@ function App() {
                       onClick={() => setCardData((prev) => ({
                         ...prev,
                         borderColor: '#00f0ff',
+                        borderWidth: 2,
                         bgColor: '#0f172a',
                         camoColor: '#1e293b',
                         cardTextColor: '#00f0ff',
                         topStripTextColor: '#ffffff',
-                        loreBgColor: '#1e293b',
+                        loreBgColor: '#0f172a',
                         loreTextColor: '#00f0ff',
                         backBgColor: '#0f172a',
                         backCamoColor: '#1e293b',
-                        featureIconColor: '#00f0ff'
+                        featureIconColor: '#00f0ff',
+                        placeholderColor: '#00f0ff',
+                        backEmblemColor: '#00f0ff'
                       }))}
                       style={{
                         fontSize: '0.72rem',
@@ -1970,6 +2027,7 @@ function App() {
                       onClick={() => setCardData((prev) => ({
                         ...prev,
                         borderColor: DEFAULT_CARD_DATA.borderColor,
+                        borderWidth: DEFAULT_CARD_DATA.borderWidth,
                         bgColor: DEFAULT_CARD_DATA.bgColor,
                         camoColor: DEFAULT_CARD_DATA.camoColor,
                         cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
@@ -1978,7 +2036,9 @@ function App() {
                         loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
                         backBgColor: DEFAULT_CARD_DATA.backBgColor,
                         backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
-                        featureIconColor: DEFAULT_CARD_DATA.featureIconColor
+                        featureIconColor: DEFAULT_CARD_DATA.featureIconColor,
+                        placeholderColor: DEFAULT_CARD_DATA.placeholderColor,
+                        backEmblemColor: DEFAULT_CARD_DATA.backEmblemColor
                       }))}
                       style={{
                         fontSize: '0.72rem',

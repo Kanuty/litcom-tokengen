@@ -140,6 +140,10 @@ export function JointCapabilityCard({
     showLore = true,
     loreText = 'Deployed rapidly to sea denial zones in the Indo-Pacific theater.',
     setNameNumber = 'USMC 999',
+    // Fonts
+    titleFont = "'Trebuchet MS', 'Arial Bold', sans-serif",
+    bodyFont = "'Trebuchet MS', 'Arial Bold', sans-serif",
+    loreFont = "'Trebuchet MS', 'Arial Bold', sans-serif",
     // Styling
     borderColor = '#000000',
     borderWidth = 6,
@@ -150,6 +154,8 @@ export function JointCapabilityCard({
     topStripTextColor = '#ffffff',
     loreBgColor = '#ffffff', // pure white background per requirement
     loreTextColor = '#000000', // black text per requirement
+    placeholderColor = '#64748b',
+    backEmblemColor = '#ffffff',
     // Back side options
     backBgColor = '#2b6cb0',
     backCamoColor = '#1a365d',
@@ -226,7 +232,7 @@ export function JointCapabilityCard({
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
+              color: backEmblemColor,
               textAlign: 'center'
             }}
           >
@@ -235,7 +241,7 @@ export function JointCapabilityCard({
                 width: `${Math.round(width * 0.42)}px`,
                 height: `${Math.round(width * 0.42)}px`,
                 borderRadius: '50%',
-                border: '4px double #ffffff',
+                border: `4px double ${backEmblemColor}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -243,13 +249,13 @@ export function JointCapabilityCard({
                 marginBottom: '12px'
               }}
             >
-              <svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke={backEmblemColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 2 7 12 12 22 7 12 2" />
                 <polyline points="2 17 12 22 22 17" />
                 <polyline points="2 12 12 17 22 12" />
               </svg>
             </div>
-            <div style={{ fontSize: `${Math.round(width * 0.055)}px`, fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: `${Math.round(width * 0.055)}px`, fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: titleFont }}>
               JOINT CAPABILITY CARD
             </div>
           </div>
@@ -313,7 +319,7 @@ export function JointCapabilityCard({
         </svg>
       )}
 
-      {/* 1. TOP STRIP (CHAMFERED CORNER CUT, NO TYPE NAME TEXT DISPLAYED PER REQUIREMENT #10) */}
+      {/* 1. TOP STRIP (VERTICAL DIVIDER BETWEEN COST AND TITLE) */}
       <div
         style={{
           backgroundColor: stripBgColor,
@@ -326,35 +332,35 @@ export function JointCapabilityCard({
           borderBottom: '3px solid #000000',
           boxSizing: 'border-box',
           position: 'relative',
-          zIndex: 2,
-          clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)'
+          zIndex: 2
         }}
       >
-        {/* Left Side: Cost Number */}
+        {/* Left Side: Cost Number with vertical divider */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: `${Math.round(height * 0.06)}px`,
-            height: `${Math.round(height * 0.06)}px`,
+            width: `${Math.round(height * 0.065)}px`,
+            height: '100%',
             fontSize: `${Math.round(height * 0.055)}px`,
             fontWeight: '900',
             fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
             lineHeight: 1,
-            flexShrink: 0
+            flexShrink: 0,
+            borderRight: '2px solid rgba(255, 255, 255, 0.4)'
           }}
           title={`Cost: ${cost}`}
         >
           {cost}
         </div>
 
-        {/* Title (No Type Name displayed below title per requirement #10) */}
+        {/* Title */}
         <div
           style={{
             flex: 1,
             textAlign: 'left',
-            paddingLeft: '8px',
+            paddingLeft: '10px',
             paddingRight: '6px',
             overflow: 'hidden'
           }}
@@ -368,7 +374,8 @@ export function JointCapabilityCard({
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              lineHeight: 1.1
+              lineHeight: 1.1,
+              fontFamily: titleFont
             }}
           >
             {title}
@@ -412,7 +419,7 @@ export function JointCapabilityCard({
         </div>
       </div>
 
-      {/* 2. PHOTO CONTAINER (CHAMFERED LOWER-RIGHT CORNER PER REQUIREMENT #8) */}
+      {/* 2. PHOTO CONTAINER (STRAIGHT RECTANGLE) */}
       <div
         style={{
           width: '100%',
@@ -424,8 +431,7 @@ export function JointCapabilityCard({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1,
-          clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%)'
+          zIndex: 1
         }}
       >
         {customImageUrl ? (
@@ -439,18 +445,18 @@ export function JointCapabilityCard({
             }}
           />
         ) : (
-          <div style={{ textAlign: 'center', color: '#64748b', padding: '10px' }}>
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 6px auto', display: 'block' }}>
+          <div style={{ textAlign: 'center', color: placeholderColor, padding: '10px' }}>
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={placeholderColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 6px auto', display: 'block' }}>
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
             </svg>
-            <span style={{ fontSize: `${Math.round(width * 0.035)}px`, letterSpacing: '1px' }}>PHOTO AREA</span>
+            <span style={{ fontSize: `${Math.round(width * 0.035)}px`, letterSpacing: '1px', fontWeight: 'bold' }}>PHOTO AREA</span>
           </div>
         )}
       </div>
 
-      {/* 3. MAIN BODY: FEATURE ICONS VERTICALLY ON THE LEFT SIDE (DARK SQUARES) + DESCRIPTION TEXT */}
+      {/* 3. MAIN BODY: FEATURE ICONS VERTICALLY ON THE LEFT SIDE (STRICTLY SQUARE DARK BLOCKS) + DESCRIPTION TEXT */}
       <div
         style={{
           flex: 1,
@@ -464,13 +470,13 @@ export function JointCapabilityCard({
           zIndex: 1
         }}
       >
-        {/* Left Vertical Column: Feature Icons in dark squares (Limited to max 5 icons total) */}
+        {/* Left Vertical Column: Feature Icons in strictly SQUARE dark blocks */}
         {allActiveIcons.length > 0 && (
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px',
+              gap: '5px',
               flexShrink: 0
             }}
           >
@@ -480,18 +486,20 @@ export function JointCapabilityCard({
                 style={{
                   backgroundColor: '#0f172a',
                   color: featureIconColor,
-                  borderRadius: '3px',
+                  borderRadius: '4px',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '3px',
-                  padding: showFeatureIconLabels ? '3px 5px' : '4px',
-                  minWidth: `${Math.round(height * 0.045)}px`,
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)'
+                  width: `${Math.round(height * 0.065)}px`,
+                  height: `${Math.round(height * 0.065)}px`,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  boxSizing: 'border-box',
+                  padding: '2px'
                 }}
                 title={iconItem.label}
               >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {iconItem.type === 'standard'
                     ? (FEATURE_TAG_ICONS[iconItem.key] || FEATURE_TAG_ICONS.PERSIST)
                     : FEATURE_TAG_ICONS.CUSTOM}
@@ -499,10 +507,17 @@ export function JointCapabilityCard({
                 {showFeatureIconLabels && (
                   <span
                     style={{
-                      fontSize: `${Math.round(width * 0.024)}px`,
+                      fontSize: `${Math.max(7, Math.round(width * 0.021))}px`,
                       fontWeight: 'bold',
-                      letterSpacing: '0.5px',
-                      fontFamily: "'Share Tech Mono', monospace"
+                      letterSpacing: '0.2px',
+                      fontFamily: "'Share Tech Mono', monospace",
+                      lineHeight: 1,
+                      marginTop: '2px',
+                      textAlign: 'center',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {iconItem.label}
@@ -525,60 +540,55 @@ export function JointCapabilityCard({
             overflowY: 'auto',
             wordBreak: 'break-word',
             whiteSpace: 'pre-wrap',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            fontFamily: bodyFont
           }}
         >
           {bodyText}
         </div>
-      </div>
 
-      {/* 4. LORE & SET DESIGNATION AT BOTTOM (FULL WIDTH LORE BOX PER REQUIREMENT #7, SET NUMBER PER REQUIREMENT #7) */}
-      <div
-        style={{
-          padding: '4px 8px 6px 8px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-          boxSizing: 'border-box',
-          position: 'relative',
-          zIndex: 1
-        }}
-      >
-        {/* Lore Box (White background, no border, no left accent, black text per requirement) */}
-        {showLore && (
+        {/* Vertical Set Designation Number (USMC 999) */}
+        {setNameNumber && (
           <div
             style={{
-              backgroundColor: loreBgColor,
-              color: loreTextColor,
-              padding: '6px 8px',
-              borderRadius: '2px',
-              fontSize: `${Math.round(height * 0.02)}px`,
-              fontStyle: 'italic',
-              lineHeight: 1.25,
-              boxSizing: 'border-box'
+              writingMode: 'vertical-rl',
+              transform: 'rotate(180deg)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: `${Math.round(height * 0.022)}px`,
+              fontWeight: '900',
+              fontFamily: "'Share Tech Mono', 'Trebuchet MS', monospace",
+              color: cardTextColor,
+              letterSpacing: '1px',
+              paddingLeft: '2px',
+              userSelect: 'none'
             }}
           >
-            {loreText}
+            {setNameNumber}
           </div>
         )}
+      </div>
 
-        {/* Bottom Right Set Designation Number */}
+      {/* 4. LORE PART AT BOTTOM (FULL WIDTH FROM LEFT TO RIGHT, NO BORDER, NO MARGINS) */}
+      {showLore && (
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            fontSize: `${Math.round(height * 0.022)}px`,
-            fontWeight: '900',
-            fontFamily: "'Share Tech Mono', 'Trebuchet MS', monospace",
-            color: cardTextColor,
-            letterSpacing: '1px',
-            paddingRight: '2px'
+            width: '100%',
+            backgroundColor: loreBgColor,
+            color: loreTextColor,
+            padding: '6px 10px',
+            fontSize: `${Math.round(height * 0.02)}px`,
+            fontStyle: 'italic',
+            lineHeight: 1.25,
+            boxSizing: 'border-box',
+            zIndex: 1,
+            fontFamily: loreFont
           }}
         >
-          {setNameNumber}
+          {loreText}
         </div>
-      </div>
+      )}
     </div>
   );
 }
