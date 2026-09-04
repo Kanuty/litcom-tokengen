@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TokenForm } from './components/TokenForm';
 import { TokenPreview } from './components/TokenPreview';
 import { UnitTracker } from './components/UnitTracker';
-import { JointCapabilityCard, CARD_TYPES } from './components/JointCapabilityCard';
+import { JointCapabilityCard } from './components/JointCapabilityCard';
 import { SavedLibrary } from './components/SavedLibrary';
 import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';

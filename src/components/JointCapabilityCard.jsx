@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Default type configurations
-export const CARD_TYPES = {
+const CARD_TYPES = {
   fires: {
     name: 'Fires',
     color: '#d32f2f',
@@ -80,7 +80,7 @@ export const CARD_TYPES = {
 };
 
 // Feature tags icons
-export const FEATURE_TAG_ICONS = {
+const FEATURE_TAG_ICONS = {
   PERSIST: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21.5 2v6h-6" />
