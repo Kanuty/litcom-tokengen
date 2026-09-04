@@ -17,11 +17,11 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: '#111827',
+        background: 'var(--panel-bg)',
         padding: '1.5rem',
         borderRadius: '8px',
-        boxShadow: '0 0 12px rgba(0, 240, 255, 0.2)',
-        border: '1px solid #1f293d',
+        boxShadow: 'var(--hud-glow)',
+        border: '1px solid var(--panel-border)',
         width: '100%',
         maxWidth: '420px',
         position: 'relative'
@@ -32,12 +32,12 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
           position: 'absolute',
           top: '-10px',
           left: '15px',
-          background: '#0a0e17',
-          color: '#00f0ff',
+          background: 'var(--panel-bg)',
+          color: 'var(--accent-cyan)',
           fontSize: '0.75rem',
           padding: '0 8px',
           letterSpacing: '1.5px',
-          border: '1px solid #00f0ff'
+          border: '1px solid var(--accent-cyan)'
         }}
       >
         /// HUD_PREVIEW_FEED
@@ -47,7 +47,7 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
         style={{
           marginTop: '0.4rem',
           marginBottom: '1rem',
-          color: '#00f0ff',
+          color: 'var(--accent-cyan)',
           fontFamily: "'Teko', sans-serif",
           fontSize: '1.8rem',
           letterSpacing: '1.5px',
@@ -64,10 +64,10 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
           style={{
             flex: 1,
             padding: '0.5rem',
-            border: '1px solid #00f0ff',
+            border: '1px solid var(--accent-cyan)',
             borderRadius: '4px',
-            backgroundColor: activeTab === 'front' ? '#00f0ff' : 'transparent',
-            color: activeTab === 'front' ? '#0a0e17' : '#00f0ff',
+            backgroundColor: activeTab === 'front' ? 'var(--accent-cyan)' : 'transparent',
+            color: activeTab === 'front' ? 'var(--bg-dark)' : 'var(--accent-cyan)',
             fontWeight: 'bold',
             cursor: 'pointer',
             fontFamily: "'Share Tech Mono', monospace"
@@ -80,10 +80,10 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
           style={{
             flex: 1,
             padding: '0.5rem',
-            border: '1px solid #00f0ff',
+            border: '1px solid var(--accent-cyan)',
             borderRadius: '4px',
-            backgroundColor: activeTab === 'back' ? '#00f0ff' : 'transparent',
-            color: activeTab === 'back' ? '#0a0e17' : '#00f0ff',
+            backgroundColor: activeTab === 'back' ? 'var(--accent-cyan)' : 'transparent',
+            color: activeTab === 'back' ? 'var(--bg-dark)' : 'var(--accent-cyan)',
             fontWeight: 'bold',
             cursor: 'pointer',
             fontFamily: "'Share Tech Mono', monospace"
@@ -103,14 +103,13 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
       <div
         style={{
           padding: '1.2rem',
-          background: '#090d16',
+          background: 'var(--card-dice-bg)',
           borderRadius: '8px',
-          border: '1px dashed #00f0ff',
+          border: '1px dashed var(--accent-cyan)',
           marginBottom: '1.2rem',
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center',
-          boxShadow: 'inset 0 0 15px rgba(0,0,0,0.8)'
+          alignItems: 'center'
         }}
       >
         <LandToken
@@ -126,15 +125,14 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
           onClick={() => setActiveTab('front')}
           style={{
             cursor: 'pointer',
-            border: activeTab === 'front' ? '2px solid #00f0ff' : '1px solid #334155',
+            border: activeTab === 'front' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
             borderRadius: '6px',
             padding: '4px',
-            background: '#0f172a',
-            boxShadow: activeTab === 'front' ? '0 0 8px rgba(0,240,255,0.4)' : 'none'
+            background: 'var(--card-dice-bg)'
           }}
         >
           <LandToken id="token-preview-thumb-front" tokenData={tokenData} side="front" size={80} />
-          <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '4px', color: '#94a3b8', fontWeight: 'bold' }}>
+          <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '4px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
             FRONT
           </div>
         </div>
@@ -143,15 +141,14 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
           onClick={() => setActiveTab('back')}
           style={{
             cursor: 'pointer',
-            border: activeTab === 'back' ? '2px solid #00f0ff' : '1px solid #334155',
+            border: activeTab === 'back' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
             borderRadius: '6px',
             padding: '4px',
-            background: '#0f172a',
-            boxShadow: activeTab === 'back' ? '0 0 8px rgba(0,240,255,0.4)' : 'none'
+            background: 'var(--card-dice-bg)'
           }}
         >
           <LandToken id="token-preview-thumb-back" tokenData={tokenData} side="back" size={80} />
-          <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '4px', color: '#94a3b8', fontWeight: 'bold' }}>
+          <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '4px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
             BACK
           </div>
         </div>
@@ -160,7 +157,7 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
       {/* Token Display Size & Export Selection & Download Controls */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', width: '100%' }}>
         <div>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#00f0ff', display: 'block', marginBottom: '0.3rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.3rem' }}>
             Token Display Size (px)
           </label>
           <input
@@ -173,16 +170,16 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
               width: '100%',
               padding: '0.5rem',
               borderRadius: '4px',
-              border: '1px solid #00f0ff',
-              background: '#0d1322',
-              color: '#00f0ff',
+              border: '1px solid var(--accent-cyan)',
+              background: 'var(--input-bg)',
+              color: 'var(--accent-cyan)',
               fontFamily: "'Share Tech Mono', monospace"
             }}
           />
         </div>
 
         <div>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#00f0ff', display: 'block', marginBottom: '0.3rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.3rem' }}>
             Export Face Selection
           </label>
           <select
@@ -192,9 +189,9 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
               width: '100%',
               padding: '0.5rem',
               borderRadius: '4px',
-              border: '1px solid #00f0ff',
-              background: '#0d1322',
-              color: '#00f0ff',
+              border: '1px solid var(--accent-cyan)',
+              background: 'var(--input-bg)',
+              color: 'var(--accent-cyan)',
               fontFamily: "'Share Tech Mono', monospace"
             }}
           >
@@ -208,8 +205,8 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
           onClick={onDownloadPNG}
           style={{
             padding: '0.85rem',
-            backgroundColor: '#00f0ff',
-            color: '#0a0e17',
+            backgroundColor: 'var(--accent-cyan)',
+            color: 'var(--bg-dark)',
             border: 'none',
             borderRadius: '4px',
             fontWeight: 'bold',
@@ -220,8 +217,7 @@ export function TokenPreview({ tokenData, onChange, exportFace, onExportFaceChan
             justifyContent: 'center',
             gap: '0.5rem',
             fontFamily: "'Teko', sans-serif",
-            letterSpacing: '1px',
-            boxShadow: '0 0 12px rgba(0, 240, 255, 0.4)'
+            letterSpacing: '1px'
           }}
         >
           <span>📥</span> DOWNLOAD TOKEN IMAGE ({exportFace === 'both' ? 'BOTH FACES' : exportFace.toUpperCase()})
