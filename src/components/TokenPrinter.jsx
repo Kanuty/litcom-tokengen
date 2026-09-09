@@ -486,6 +486,16 @@ export function TokenPrinter({
 
   // Export Layout to JSON
   const handleExportLayoutJSON = () => {
+    const defaultName = `token_layout_${paperKey.toLowerCase()}_${sheetTokens.length}_tokens`;
+    const userFilename = window.prompt(
+      'Enter custom filename for exported printer layout:',
+      defaultName
+    );
+
+    if (userFilename === null) return; // User cancelled prompt
+
+    const finalFilename = (userFilename.trim() || defaultName).replace(/\.json$/i, '') + '.json';
+
     const layoutPayload = {
       app: 'Littoral Commander Suite',
       version: 1,
@@ -513,7 +523,7 @@ export function TokenPrinter({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `token_layout_${paperKey.toLowerCase()}_${sheetTokens.length}_tokens.json`;
+    a.download = finalFilename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

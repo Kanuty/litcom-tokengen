@@ -1312,8 +1312,8 @@ function App() {
         <p>Unofficial tool for rapid design of custom tokens, unit trackers, and joint capability cards</p>
       </header>
 
-      {/* RENDER TOKEN PRINTER PAGE WHEN ACTIVE VIEW IS PRINTER */}
-      {activeView === 'printer' ? (
+      {/* TOKEN PRINTER PAGE CONTAINER (Kept mounted in DOM to preserve placed tokens and layout state) */}
+      <div style={{ display: activeView === 'printer' ? 'block' : 'none' }}>
         <TokenPrinter
           activeTokenData={tokenData}
           savedItems={savedItems}
@@ -1322,9 +1322,11 @@ function App() {
           onExportPDF={generateTokenPrinterPDF}
           onRefreshSavedItems={refreshSavedItems}
         />
-      ) : (
-        <>
-          {/* SAVED PRESETS LIBRARY SECTION */}
+      </div>
+
+      {/* EDITOR SUITE CONTAINER */}
+      <div style={{ display: activeView === 'suite' ? 'block' : 'none' }}>
+        {/* SAVED PRESETS LIBRARY SECTION */}
           <SavedLibrary
             items={savedItems}
             onLoadItem={handleLoadItem}
@@ -3476,8 +3478,7 @@ function App() {
               </div>
             </div>
           </section>
-        </>
-      )}
+      </div>
     </div>
   );
 }
