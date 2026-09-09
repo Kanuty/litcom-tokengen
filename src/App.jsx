@@ -112,6 +112,57 @@ const DEFAULT_CARD_DATA = {
   customBackImageUrl: null
 };
 
+const BUILTIN_TRACKER_STYLES = {
+  classic: {
+    name: 'Classic Style',
+    bgColor: '#ffffff',
+    camoColor: '#4a5568',
+    titleColor: '#000000',
+    descriptionColor: '#1a202c',
+    triangleNumberColor: '#000000',
+    footerNameColor: '#000000',
+    attachmentTextColor: '#000000',
+    squareNumberColor: '#8c939d',
+    squareBgColor: '#ffffff',
+    backBgColor: '#2b6cb0',
+    backCamoColor: '#1a365d',
+    applySingleTrackerTextColor: false,
+    singleTrackerTextColor: '#000000'
+  },
+  cyber: {
+    name: 'Cyber Style',
+    bgColor: '#0f172a',
+    camoColor: '#1e293b',
+    titleColor: '#00f0ff',
+    descriptionColor: '#00f0ff',
+    triangleNumberColor: '#0f172a',
+    footerNameColor: '#00f0ff',
+    attachmentTextColor: '#00f0ff',
+    squareNumberColor: '#00f0ff',
+    squareBgColor: '#0f172a',
+    backBgColor: '#0f172a',
+    backCamoColor: '#1e293b',
+    applySingleTrackerTextColor: false,
+    singleTrackerTextColor: '#00f0ff'
+  },
+  vaporwave: {
+    name: 'Bubble-Gum / Vaporwave Style',
+    bgColor: '#fdf2f8',
+    camoColor: '#fbcfe8',
+    titleColor: '#db2777',
+    descriptionColor: '#9d174d',
+    triangleNumberColor: '#db2777',
+    footerNameColor: '#db2777',
+    attachmentTextColor: '#9d174d',
+    squareNumberColor: '#f472b6',
+    squareBgColor: '#fce7f3',
+    backBgColor: '#f472b6',
+    backCamoColor: '#fbcfe8',
+    applySingleTrackerTextColor: false,
+    singleTrackerTextColor: '#db2777'
+  }
+};
+
 const BUILTIN_CARD_STYLES = {
   classic: {
     name: 'Classic Style',
@@ -160,27 +211,27 @@ const BUILTIN_CARD_STYLES = {
     backEmblemColor: '#00f0ff'
   },
   vaporwave: {
-    name: 'Vaporwave Style',
-    borderColor: '#ff71ce',
-    borderWidth: 4,
-    bgColor: '#2b1055',
-    camoColor: '#05ffa1',
-    cardTextColor: '#01cdfe',
-    topStripTextColor: '#fffb96',
-    loreBgColor: '#1a0836',
-    loreTextColor: '#ff71ce',
-    backBgColor: '#1a0836',
-    backCamoColor: '#ff71ce',
-    featureIconColor: '#01cdfe',
-    titleTextColor: '#fffb96',
-    costTextColor: '#fffb96',
-    cardTypeTextColor: '#fffb96',
-    bodyTextColor: '#01cdfe',
-    setNumTextColor: '#05ffa1',
+    name: 'Bubble-Gum / Vaporwave Style',
+    borderColor: '#ff70a6',
+    borderWidth: 6,
+    bgColor: '#fdf2f8',
+    camoColor: '#fbcfe8',
+    cardTextColor: '#db2777',
+    topStripTextColor: '#ffffff',
+    loreBgColor: '#fce7f3',
+    loreTextColor: '#9d174d',
+    backBgColor: '#f472b6',
+    backCamoColor: '#fbcfe8',
+    featureIconColor: '#ffffff',
+    titleTextColor: '#ffffff',
+    costTextColor: '#ffffff',
+    cardTypeTextColor: '#ffffff',
+    bodyTextColor: '#9d174d',
+    setNumTextColor: '#db2777',
     applySingleTextColor: false,
-    singleTextColor: '#ff71ce',
-    placeholderColor: '#ff71ce',
-    backEmblemColor: '#01cdfe'
+    singleTextColor: '#db2777',
+    placeholderColor: '#f472b6',
+    backEmblemColor: '#ffffff'
   }
 };
 
@@ -260,6 +311,187 @@ function App() {
   const [cardPreviewSide, setCardPreviewSide] = useState('front');
   const [cardSaveName, setCardSaveName] = useState('');
   const [cardData, setCardData] = useState(DEFAULT_CARD_DATA);
+
+  // Custom Tracker Styles state
+  const [customTrackerStyles, setCustomTrackerStyles] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lc_tracker_custom_styles_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to load custom tracker styles from localStorage', e);
+      return [];
+    }
+  });
+  const [selectedTrackerStyleKey, setSelectedTrackerStyleKey] = useState('');
+
+  const applyTrackerStyle = (styleObj) => {
+    if (!styleObj) return;
+    setTrackerData((prev) => ({
+      ...prev,
+      bgColor: styleObj.bgColor ?? prev.bgColor,
+      camoColor: styleObj.camoColor ?? prev.camoColor,
+      titleColor: styleObj.titleColor ?? prev.titleColor,
+      descriptionColor: styleObj.descriptionColor ?? prev.descriptionColor,
+      triangleNumberColor: styleObj.triangleNumberColor ?? prev.triangleNumberColor,
+      footerNameColor: styleObj.footerNameColor ?? prev.footerNameColor,
+      attachmentTextColor: styleObj.attachmentTextColor ?? prev.attachmentTextColor,
+      squareNumberColor: styleObj.squareNumberColor ?? prev.squareNumberColor,
+      squareBgColor: styleObj.squareBgColor ?? prev.squareBgColor,
+      backBgColor: styleObj.backBgColor ?? prev.backBgColor,
+      backCamoColor: styleObj.backCamoColor ?? prev.backCamoColor,
+      applySingleTrackerTextColor: Boolean(styleObj.applySingleTrackerTextColor),
+      singleTrackerTextColor: styleObj.singleTrackerTextColor ?? prev.singleTrackerTextColor
+    }));
+  };
+
+  const handleSelectTrackerStylePreset = (key) => {
+    setSelectedTrackerStyleKey(key);
+    if (!key) return;
+    if (BUILTIN_TRACKER_STYLES[key]) {
+      applyTrackerStyle(BUILTIN_TRACKER_STYLES[key]);
+    } else {
+      const custom = customTrackerStyles.find((s) => s.id === key);
+      if (custom) {
+        applyTrackerStyle(custom);
+      }
+    }
+  };
+
+  const handleSaveTrackerStyle = () => {
+    const name = window.prompt('Enter a name for your custom tracker style:', 'My Tracker Style');
+    if (!name || !name.trim()) return;
+
+    const styleId = 'tracker_style_' + (customTrackerStyles.length + 1);
+    const newStyle = {
+      id: styleId,
+      name: name.trim(),
+      bgColor: trackerData.bgColor,
+      camoColor: trackerData.camoColor,
+      titleColor: trackerData.titleColor,
+      descriptionColor: trackerData.descriptionColor,
+      triangleNumberColor: trackerData.triangleNumberColor,
+      footerNameColor: trackerData.footerNameColor,
+      attachmentTextColor: trackerData.attachmentTextColor,
+      squareNumberColor: trackerData.squareNumberColor,
+      squareBgColor: trackerData.squareBgColor,
+      backBgColor: trackerData.backBgColor,
+      backCamoColor: trackerData.backCamoColor,
+      applySingleTrackerTextColor: trackerData.applySingleTrackerTextColor,
+      singleTrackerTextColor: trackerData.singleTrackerTextColor
+    };
+
+    const updated = [...customTrackerStyles, newStyle];
+    setCustomTrackerStyles(updated);
+    try {
+      localStorage.setItem('lc_tracker_custom_styles_v1', JSON.stringify(updated));
+      setSelectedTrackerStyleKey(styleId);
+      showNotification({ title: 'TRACKER STYLE SAVED', message: `Saved tracker style "${name.trim()}".` });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleExportTrackerStyles = () => {
+    const exportPayload = {
+      version: 1,
+      type: 'tracker_styles',
+      customStyles: customTrackerStyles,
+      currentTrackerStyle: {
+        bgColor: trackerData.bgColor,
+        camoColor: trackerData.camoColor,
+        titleColor: trackerData.titleColor,
+        descriptionColor: trackerData.descriptionColor,
+        triangleNumberColor: trackerData.triangleNumberColor,
+        footerNameColor: trackerData.footerNameColor,
+        attachmentTextColor: trackerData.attachmentTextColor,
+        squareNumberColor: trackerData.squareNumberColor,
+        squareBgColor: trackerData.squareBgColor,
+        backBgColor: trackerData.backBgColor,
+        backCamoColor: trackerData.backCamoColor,
+        applySingleTrackerTextColor: trackerData.applySingleTrackerTextColor,
+        singleTrackerTextColor: trackerData.singleTrackerTextColor
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tracker_styles.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportTrackerStyles = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const parsed = JSON.parse(content);
+
+        let importedList = [];
+        if (Array.isArray(parsed)) {
+          importedList = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.customStyles)) {
+            importedList = parsed.customStyles;
+          } else if (parsed.name || parsed.bgColor) {
+            importedList = [parsed];
+          }
+        }
+
+        if (importedList.length === 0) {
+          throw new Error('Invalid format');
+        }
+
+        const validStyles = importedList.map((st, idx) => ({
+          id: st.id || 'imp_tr_style_' + (customTrackerStyles.length + idx + 1),
+          name: st.name || `Imported Tracker Style ${idx + 1}`,
+          bgColor: st.bgColor || '#ffffff',
+          camoColor: st.camoColor || '#4a5568',
+          titleColor: st.titleColor || '#000000',
+          descriptionColor: st.descriptionColor || '#1a202c',
+          triangleNumberColor: st.triangleNumberColor || '#000000',
+          footerNameColor: st.footerNameColor || '#000000',
+          attachmentTextColor: st.attachmentTextColor || '#000000',
+          squareNumberColor: st.squareNumberColor || '#8c939d',
+          squareBgColor: st.squareBgColor || '#ffffff',
+          backBgColor: st.backBgColor || '#2b6cb0',
+          backCamoColor: st.backCamoColor || '#1a365d',
+          applySingleTrackerTextColor: Boolean(st.applySingleTrackerTextColor),
+          singleTrackerTextColor: st.singleTrackerTextColor || '#000000'
+        }));
+
+        const merged = [...customTrackerStyles];
+        validStyles.forEach((v) => {
+          if (!merged.some((m) => m.name === v.name)) {
+            merged.push(v);
+          }
+        });
+
+        setCustomTrackerStyles(merged);
+        localStorage.setItem('lc_tracker_custom_styles_v1', JSON.stringify(merged));
+
+        if (validStyles.length > 0) {
+          applyTrackerStyle(validStyles[0]);
+          setSelectedTrackerStyleKey(validStyles[0].id);
+        }
+
+        showNotification({ title: 'TRACKER STYLES IMPORTED', message: `Successfully imported ${validStyles.length} tracker style(s).` });
+      } catch (err) {
+        console.error(err);
+        window.alert('Error: The uploaded file is not a valid tracker styles file or is corrupted.');
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
 
   // Custom Card Styles state
   const [customCardStyles, setCustomCardStyles] = useState(() => {
@@ -1605,45 +1837,352 @@ function App() {
                     </div>
                   </div>
 
-                  {/* 5. COLORS & BACKGROUND STYLING */}
+                  {/* 5. COLORS, TEXT & STYLE PRESETS */}
                   <div className="tint-card tint-card-colors">
-                    <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Tracker Colors & Style Presets</h3>
 
-                    <div className="color-picker-grid-4">
-                      <div className="color-cell">
-                        <span className="cell-label">Base Card Color</span>
-                        <input
-                          type="color"
-                          value={trackerData.bgColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
-                        />
+                      {/* Tracker Style Selector & Save/Export/Import Buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        <select
+                          value={selectedTrackerStyleKey}
+                          onChange={(e) => handleSelectTrackerStylePreset(e.target.value)}
+                          style={{ fontSize: '0.78rem', padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px' }}
+                        >
+                          <option value="">-- Select Tracker Style --</option>
+                          <optgroup label="Built-in Styles">
+                            <option value="classic">Classic Style</option>
+                            <option value="cyber">Cyber Style</option>
+                            <option value="vaporwave">Bubble-Gum Style</option>
+                          </optgroup>
+                          {customTrackerStyles.length > 0 && (
+                            <optgroup label="My Custom Styles">
+                              {customTrackerStyles.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={handleSaveTrackerStyle}
+                          title="Save current tracker style settings"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem', background: 'var(--accent-blue)', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          💾 Save Style
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleExportTrackerStyles}
+                          title="Export tracker styles to JSON file"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          📤 Export
+                        </button>
+
+                        <label
+                          title="Import tracker styles from JSON file"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          📥 Import
+                          <input
+                            type="file"
+                            accept=".json"
+                            onChange={handleImportTrackerStyles}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
                       </div>
+                    </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Front Camo Color</span>
-                        <input
-                          type="color"
-                          value={trackerData.camoColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
-                        />
+                    {/* Single Color for All Tracker Texts Option */}
+                    <div style={{ background: 'var(--color-cell-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)', marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <label style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(trackerData.applySingleTrackerTextColor)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              const color = trackerData.singleTrackerTextColor || '#000000';
+                              setTrackerData((prev) => ({
+                                ...prev,
+                                applySingleTrackerTextColor: checked,
+                                ...(checked
+                                  ? {
+                                      titleColor: color,
+                                      descriptionColor: color,
+                                      triangleNumberColor: color,
+                                      footerNameColor: color,
+                                      attachmentTextColor: color,
+                                      squareNumberColor: color
+                                    }
+                                  : {})
+                              }));
+                            }}
+                          />
+                          Apply Single Text Color to Whole Tracker
+                        </label>
+
+                        {trackerData.applySingleTrackerTextColor && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Single Color:</span>
+                            <input
+                              type="color"
+                              value={trackerData.singleTrackerTextColor || '#000000'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTrackerData((prev) => ({
+                                  ...prev,
+                                  singleTrackerTextColor: val,
+                                  titleColor: val,
+                                  descriptionColor: val,
+                                  triangleNumberColor: val,
+                                  footerNameColor: val,
+                                  attachmentTextColor: val,
+                                  squareNumberColor: val
+                                }));
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.singleTrackerTextColor || '#000000'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTrackerData((prev) => ({
+                                  ...prev,
+                                  singleTrackerTextColor: val,
+                                  titleColor: val,
+                                  descriptionColor: val,
+                                  triangleNumberColor: val,
+                                  footerNameColor: val,
+                                  attachmentTextColor: val,
+                                  squareNumberColor: val
+                                }));
+                              }}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        )}
                       </div>
+                    </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Backside BG Color</span>
-                        <input
-                          type="color"
-                          value={trackerData.backBgColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
-                        />
+                    {/* Individual Text Colors Sub-section */}
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <span className="cell-label" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                        ✒️ Text Colors (Title, Description, Numbers, Attachment, Footer)
+                      </span>
+                      <div className="color-picker-grid-3">
+                        <div className="color-cell">
+                          <span className="cell-label">Title</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.titleColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, titleColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.titleColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, titleColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Description</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.descriptionColor || '#1a202c'}
+                              onChange={(e) => setTrackerData({ ...trackerData, descriptionColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.descriptionColor || '#1a202c'}
+                              onChange={(e) => setTrackerData({ ...trackerData, descriptionColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Triangle Num</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.triangleNumberColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, triangleNumberColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.triangleNumberColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, triangleNumberColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Attachment Text</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.attachmentTextColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, attachmentTextColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.attachmentTextColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, attachmentTextColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Footer Name</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.footerNameColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, footerNameColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.footerNameColor || '#000000'}
+                              onChange={(e) => setTrackerData({ ...trackerData, footerNameColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Square Numbers</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.squareNumberColor === 'bgColor' ? (trackerData.bgColor || '#ffffff') : (trackerData.squareNumberColor || '#8c939d')}
+                              onChange={(e) => setTrackerData({ ...trackerData, squareNumberColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.squareNumberColor === 'bgColor' ? (trackerData.bgColor || '#ffffff') : (trackerData.squareNumberColor || '#8c939d')}
+                              onChange={(e) => setTrackerData({ ...trackerData, squareNumberColor: e.target.value })}
+                              disabled={trackerData.applySingleTrackerTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
                       </div>
+                    </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Backside Camo Color</span>
-                        <input
-                          type="color"
-                          value={trackerData.backCamoColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, backCamoColor: e.target.value })}
-                        />
+                    {/* Backgrounds & Structure Sub-section */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span className="cell-label" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                        🎨 Tracker Backgrounds & Longsquares
+                      </span>
+                      <div className="color-picker-grid-3">
+                        <div className="color-cell">
+                          <span className="cell-label">Base Card BG</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.bgColor || '#ffffff'}
+                              onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.bgColor || '#ffffff'}
+                              onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Front Camo Color</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.camoColor || '#4a5568'}
+                              onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.camoColor || '#4a5568'}
+                              onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Longsquare BG</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.squareBgColor || '#ffffff'}
+                              onChange={(e) => setTrackerData({ ...trackerData, squareBgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.squareBgColor || '#ffffff'}
+                              onChange={(e) => setTrackerData({ ...trackerData, squareBgColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Backside BG Color</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.backBgColor || '#2b6cb0'}
+                              onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.backBgColor || '#2b6cb0'}
+                              onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Backside Camo Color</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={trackerData.backCamoColor || '#1a365d'}
+                              onChange={(e) => setTrackerData({ ...trackerData, backCamoColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={trackerData.backCamoColor || '#1a365d'}
+                              onChange={(e) => setTrackerData({ ...trackerData, backCamoColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -1674,91 +2213,6 @@ function App() {
                         />
                         Longsquare Borders
                       </label>
-                    </div>
-                  </div>
-
-                  {/* 6. TEXT ELEMENTS COLORING */}
-                  <div className="tint-card tint-card-text">
-                    <h3 className="subsection-header">✒️ Text Elements Coloring</h3>
-
-                    <div className="color-picker-grid-6">
-                      <div className="color-cell">
-                        <span className="cell-label">Title</span>
-                        <input
-                          type="color"
-                          value={trackerData.titleColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, titleColor: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="color-cell">
-                        <span className="cell-label">Description</span>
-                        <input
-                          type="color"
-                          value={trackerData.descriptionColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, descriptionColor: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="color-cell">
-                        <span className="cell-label">Triangle Num</span>
-                        <input
-                          type="color"
-                          value={trackerData.triangleNumberColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, triangleNumberColor: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="color-cell">
-                        <span className="cell-label">Attachment Text</span>
-                        <input
-                          type="color"
-                          value={trackerData.attachmentTextColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, attachmentTextColor: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="color-cell">
-                        <span className="cell-label">Footer Name</span>
-                        <input
-                          type="color"
-                          value={trackerData.footerNameColor}
-                          onChange={(e) => setTrackerData({ ...trackerData, footerNameColor: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="color-cell">
-                        <span className="cell-label">Square Numbers</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
-                          <input
-                            type="color"
-                            value={trackerData.squareNumberColor === 'bgColor' ? trackerData.bgColor : trackerData.squareNumberColor}
-                            onChange={(e) => setTrackerData({ ...trackerData, squareNumberColor: e.target.value })}
-                          />
-                          <button
-                            type="button"
-                            title="Set square numbers color to background color"
-                            onClick={() =>
-                              setTrackerData({
-                                ...trackerData,
-                                squareNumberColor: trackerData.squareNumberColor === 'bgColor' ? '#8c939d' : 'bgColor'
-                              })
-                            }
-                            style={{
-                              fontSize: '0.68rem',
-                              padding: '2px 5px',
-                              background: trackerData.squareNumberColor === 'bgColor' ? 'var(--accent-cyan)' : 'var(--input-bg)',
-                              color: trackerData.squareNumberColor === 'bgColor' ? 'var(--bg-dark)' : 'var(--text-primary)',
-                              border: '1px solid var(--panel-border)',
-                              borderRadius: '3px',
-                              cursor: 'pointer',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {trackerData.squareNumberColor === 'bgColor' ? 'Matched' : 'Match BG'}
-                          </button>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -2361,7 +2815,7 @@ function App() {
                           <optgroup label="Built-in Styles">
                             <option value="classic">Classic Style</option>
                             <option value="cyber">Cyber Style</option>
-                            <option value="vaporwave">Vaporwave Style</option>
+                            <option value="vaporwave">Bubble-Gum Style</option>
                           </optgroup>
                           {customCardStyles.length > 0 && (
                             <optgroup label="My Custom Styles">
@@ -2747,6 +3201,40 @@ function App() {
                               type="text"
                               value={cardData.backCamoColor || '#1a365d'}
                               onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Default Photo Image & Text</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.placeholderColor || '#64748b'}
+                              onChange={(e) => setCardData({ ...cardData, placeholderColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.placeholderColor || '#64748b'}
+                              onChange={(e) => setCardData({ ...cardData, placeholderColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Backside Emblem & Text</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.backEmblemColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, backEmblemColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.backEmblemColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, backEmblemColor: e.target.value })}
                               style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
                             />
                           </div>
