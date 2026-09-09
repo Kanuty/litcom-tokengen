@@ -96,12 +96,92 @@ const DEFAULT_CARD_DATA = {
   topStripTextColor: '#ffffff',
   loreBgColor: '#ffffff',
   loreTextColor: '#000000',
+  // Text color customization
+  applySingleTextColor: false,
+  singleTextColor: '#000000',
+  titleTextColor: '#ffffff',
+  costTextColor: '#ffffff',
+  cardTypeTextColor: '#ffffff',
+  bodyTextColor: '#000000',
+  setNumTextColor: '#000000',
   placeholderColor: '#64748b',
   backEmblemColor: '#ffffff',
   backBgColor: '#2b6cb0',
   backCamoColor: '#1a365d',
   showBackCamo: true,
   customBackImageUrl: null
+};
+
+const BUILTIN_CARD_STYLES = {
+  classic: {
+    name: 'Classic Style',
+    borderColor: '#000000',
+    borderWidth: 10,
+    bgColor: '#e2e8f0',
+    camoColor: '#94a3b8',
+    cardTextColor: '#000000',
+    topStripTextColor: '#ffffff',
+    loreBgColor: '#ffffff',
+    loreTextColor: '#000000',
+    backBgColor: '#2b6cb0',
+    backCamoColor: '#1a365d',
+    featureIconColor: '#ffffff',
+    titleTextColor: '#ffffff',
+    costTextColor: '#ffffff',
+    cardTypeTextColor: '#ffffff',
+    bodyTextColor: '#000000',
+    setNumTextColor: '#000000',
+    applySingleTextColor: false,
+    singleTextColor: '#000000',
+    placeholderColor: '#64748b',
+    backEmblemColor: '#ffffff'
+  },
+  cyber: {
+    name: 'Cyber Style',
+    borderColor: '#00f0ff',
+    borderWidth: 2,
+    bgColor: '#0f172a',
+    camoColor: '#1e293b',
+    cardTextColor: '#00f0ff',
+    topStripTextColor: '#ffffff',
+    loreBgColor: '#0f172a',
+    loreTextColor: '#00f0ff',
+    backBgColor: '#0f172a',
+    backCamoColor: '#1e293b',
+    featureIconColor: '#00f0ff',
+    titleTextColor: '#ffffff',
+    costTextColor: '#ffffff',
+    cardTypeTextColor: '#ffffff',
+    bodyTextColor: '#00f0ff',
+    setNumTextColor: '#00f0ff',
+    applySingleTextColor: false,
+    singleTextColor: '#00f0ff',
+    placeholderColor: '#00f0ff',
+    backEmblemColor: '#00f0ff'
+  },
+  vaporwave: {
+    name: 'Vaporwave Style',
+    borderColor: '#ff71ce',
+    borderWidth: 4,
+    bgColor: '#2b1055',
+    camoColor: '#05ffa1',
+    cardTextColor: '#01cdfe',
+    topStripTextColor: '#fffb96',
+    loreBgColor: '#1a0836',
+    loreTextColor: '#ff71ce',
+    backBgColor: '#1a0836',
+    backCamoColor: '#ff71ce',
+    featureIconColor: '#01cdfe',
+    titleTextColor: '#fffb96',
+    costTextColor: '#fffb96',
+    cardTypeTextColor: '#fffb96',
+    bodyTextColor: '#01cdfe',
+    setNumTextColor: '#05ffa1',
+    applySingleTextColor: false,
+    singleTextColor: '#ff71ce',
+    placeholderColor: '#ff71ce',
+    backEmblemColor: '#01cdfe'
+  }
 };
 
 function App() {
@@ -180,6 +260,215 @@ function App() {
   const [cardPreviewSide, setCardPreviewSide] = useState('front');
   const [cardSaveName, setCardSaveName] = useState('');
   const [cardData, setCardData] = useState(DEFAULT_CARD_DATA);
+
+  // Custom Card Styles state
+  const [customCardStyles, setCustomCardStyles] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lc_card_custom_styles_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to load custom card styles from localStorage', e);
+      return [];
+    }
+  });
+  const [selectedStyleKey, setSelectedStyleKey] = useState('');
+
+  const applyCardStyle = (styleObj) => {
+    if (!styleObj) return;
+    setCardData((prev) => ({
+      ...prev,
+      borderColor: styleObj.borderColor ?? prev.borderColor,
+      borderWidth: styleObj.borderWidth ?? prev.borderWidth,
+      bgColor: styleObj.bgColor ?? prev.bgColor,
+      camoColor: styleObj.camoColor ?? prev.camoColor,
+      cardTextColor: styleObj.cardTextColor ?? prev.cardTextColor,
+      topStripTextColor: styleObj.topStripTextColor ?? prev.topStripTextColor,
+      loreBgColor: styleObj.loreBgColor ?? prev.loreBgColor,
+      loreTextColor: styleObj.loreTextColor ?? prev.loreTextColor,
+      backBgColor: styleObj.backBgColor ?? prev.backBgColor,
+      backCamoColor: styleObj.backCamoColor ?? prev.backCamoColor,
+      featureIconColor: styleObj.featureIconColor ?? prev.featureIconColor,
+      titleTextColor: styleObj.titleTextColor ?? prev.titleTextColor,
+      costTextColor: styleObj.costTextColor ?? prev.costTextColor,
+      cardTypeTextColor: styleObj.cardTypeTextColor ?? prev.cardTypeTextColor,
+      bodyTextColor: styleObj.bodyTextColor ?? prev.bodyTextColor,
+      setNumTextColor: styleObj.setNumTextColor ?? prev.setNumTextColor,
+      applySingleTextColor: Boolean(styleObj.applySingleTextColor),
+      singleTextColor: styleObj.singleTextColor ?? prev.singleTextColor,
+      placeholderColor: styleObj.placeholderColor ?? prev.placeholderColor,
+      backEmblemColor: styleObj.backEmblemColor ?? prev.backEmblemColor
+    }));
+  };
+
+  const handleSelectStylePreset = (key) => {
+    setSelectedStyleKey(key);
+    if (!key) return;
+    if (BUILTIN_CARD_STYLES[key]) {
+      applyCardStyle(BUILTIN_CARD_STYLES[key]);
+    } else {
+      const custom = customCardStyles.find((s) => s.id === key);
+      if (custom) {
+        applyCardStyle(custom);
+      }
+    }
+  };
+
+  const handleSaveCardStyle = () => {
+    const name = window.prompt('Enter a name for your custom style:', 'My Custom Style');
+    if (!name || !name.trim()) return;
+
+    const styleId = 'style_custom_' + (customCardStyles.length + 1);
+    const newStyle = {
+      id: styleId,
+      name: name.trim(),
+      borderColor: cardData.borderColor,
+      borderWidth: cardData.borderWidth,
+      bgColor: cardData.bgColor,
+      camoColor: cardData.camoColor,
+      cardTextColor: cardData.cardTextColor,
+      topStripTextColor: cardData.topStripTextColor,
+      loreBgColor: cardData.loreBgColor,
+      loreTextColor: cardData.loreTextColor,
+      backBgColor: cardData.backBgColor,
+      backCamoColor: cardData.backCamoColor,
+      featureIconColor: cardData.featureIconColor,
+      titleTextColor: cardData.titleTextColor,
+      costTextColor: cardData.costTextColor,
+      cardTypeTextColor: cardData.cardTypeTextColor,
+      bodyTextColor: cardData.bodyTextColor,
+      setNumTextColor: cardData.setNumTextColor,
+      applySingleTextColor: cardData.applySingleTextColor,
+      singleTextColor: cardData.singleTextColor,
+      placeholderColor: cardData.placeholderColor,
+      backEmblemColor: cardData.backEmblemColor
+    };
+
+    const updated = [...customCardStyles, newStyle];
+    setCustomCardStyles(updated);
+    try {
+      localStorage.setItem('lc_card_custom_styles_v1', JSON.stringify(updated));
+      setSelectedStyleKey(styleId);
+      showNotification({ title: 'STYLE SAVED', message: `Saved custom style "${name.trim()}".` });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleExportCardStyles = () => {
+    const exportPayload = {
+      version: 1,
+      type: 'card_styles',
+      customStyles: customCardStyles,
+      currentCardStyle: {
+        borderColor: cardData.borderColor,
+        borderWidth: cardData.borderWidth,
+        bgColor: cardData.bgColor,
+        camoColor: cardData.camoColor,
+        cardTextColor: cardData.cardTextColor,
+        topStripTextColor: cardData.topStripTextColor,
+        loreBgColor: cardData.loreBgColor,
+        loreTextColor: cardData.loreTextColor,
+        backBgColor: cardData.backBgColor,
+        backCamoColor: cardData.backCamoColor,
+        featureIconColor: cardData.featureIconColor,
+        titleTextColor: cardData.titleTextColor,
+        costTextColor: cardData.costTextColor,
+        cardTypeTextColor: cardData.cardTypeTextColor,
+        bodyTextColor: cardData.bodyTextColor,
+        setNumTextColor: cardData.setNumTextColor,
+        applySingleTextColor: cardData.applySingleTextColor,
+        singleTextColor: cardData.singleTextColor,
+        placeholderColor: cardData.placeholderColor,
+        backEmblemColor: cardData.backEmblemColor
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'card_styles.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportCardStyles = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const parsed = JSON.parse(content);
+
+        let importedList = [];
+        if (Array.isArray(parsed)) {
+          importedList = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.customStyles)) {
+            importedList = parsed.customStyles;
+          } else if (parsed.name || parsed.bgColor) {
+            importedList = [parsed];
+          }
+        }
+
+        if (importedList.length === 0) {
+          throw new Error('Invalid format');
+        }
+
+        const validStyles = importedList.map((st, idx) => ({
+          id: st.id || 'imp_style_' + (customCardStyles.length + idx + 1),
+          name: st.name || `Imported Style ${idx + 1}`,
+          borderColor: st.borderColor || '#000000',
+          borderWidth: st.borderWidth ?? 10,
+          bgColor: st.bgColor || '#e2e8f0',
+          camoColor: st.camoColor || '#94a3b8',
+          cardTextColor: st.cardTextColor || '#000000',
+          topStripTextColor: st.topStripTextColor || '#ffffff',
+          loreBgColor: st.loreBgColor || '#ffffff',
+          loreTextColor: st.loreTextColor || '#000000',
+          backBgColor: st.backBgColor || '#2b6cb0',
+          backCamoColor: st.backCamoColor || '#1a365d',
+          featureIconColor: st.featureIconColor || '#ffffff',
+          titleTextColor: st.titleTextColor || '#ffffff',
+          costTextColor: st.costTextColor || '#ffffff',
+          cardTypeTextColor: st.cardTypeTextColor || '#ffffff',
+          bodyTextColor: st.bodyTextColor || '#000000',
+          setNumTextColor: st.setNumTextColor || '#000000',
+          applySingleTextColor: Boolean(st.applySingleTextColor),
+          singleTextColor: st.singleTextColor || '#000000',
+          placeholderColor: st.placeholderColor || '#64748b',
+          backEmblemColor: st.backEmblemColor || '#ffffff'
+        }));
+
+        const merged = [...customCardStyles];
+        validStyles.forEach((v) => {
+          if (!merged.some((m) => m.name === v.name)) {
+            merged.push(v);
+          }
+        });
+
+        setCustomCardStyles(merged);
+        localStorage.setItem('lc_card_custom_styles_v1', JSON.stringify(merged));
+
+        if (validStyles.length > 0) {
+          applyCardStyle(validStyles[0]);
+          setSelectedStyleKey(validStyles[0].id);
+        }
+
+        showNotification({ title: 'STYLES IMPORTED', message: `Successfully imported ${validStyles.length} style(s).` });
+      } catch (err) {
+        console.error(err);
+        window.alert('Error: The uploaded file is not a valid card styles file or is corrupted.');
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const [clickMode, setClickMode] = useState('dice'); // 'dice' or 'hp'
   const [selectedDieIndex, setSelectedDieIndex] = useState('supply'); // 'supply' or index of tokenData.dice
@@ -2056,144 +2345,412 @@ function App() {
                     )}
                   </div>
 
-                  {/* 4. COLORS & BACKSIDE OPTIONS */}
+                  {/* 4. COLORS, STYLES & BACKSIDE OPTIONS */}
                   <div className="tint-card tint-card-colors">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
-                      <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Card Colors & Customization</h3>
-                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Card Colors & Style Presets</h3>
+
+                      {/* Style Selector & Save/Export/Import Buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        <select
+                          value={selectedStyleKey}
+                          onChange={(e) => handleSelectStylePreset(e.target.value)}
+                          style={{ fontSize: '0.78rem', padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px' }}
+                        >
+                          <option value="">-- Select Style Preset --</option>
+                          <optgroup label="Built-in Styles">
+                            <option value="classic">Classic Style</option>
+                            <option value="cyber">Cyber Style</option>
+                            <option value="vaporwave">Vaporwave Style</option>
+                          </optgroup>
+                          {customCardStyles.length > 0 && (
+                            <optgroup label="My Custom Styles">
+                              {customCardStyles.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+
                         <button
                           type="button"
-                          onClick={() => setCardData((prev) => ({
-                            ...prev,
-                            borderColor: '#00f0ff',
-                            borderWidth: 2,
-                            bgColor: '#0f172a',
-                            camoColor: '#1e293b',
-                            cardTextColor: '#00f0ff',
-                            topStripTextColor: '#ffffff',
-                            loreBgColor: '#0f172a',
-                            loreTextColor: '#00f0ff',
-                            backBgColor: '#0f172a',
-                            backCamoColor: '#1e293b',
-                            featureIconColor: '#00f0ff',
-                            placeholderColor: '#00f0ff',
-                            backEmblemColor: '#00f0ff'
-                          }))}
-                          style={{
-                            fontSize: '0.72rem',
-                            padding: '0.2rem 0.5rem',
-                            background: '#00f0ff',
-                            color: '#0f172a',
-                            border: 'none',
-                            borderRadius: '3px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
+                          onClick={handleSaveCardStyle}
+                          title="Save current style settings"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem', background: 'var(--accent-blue)', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
                         >
-                          ⚡ Apply Cyber Style
+                          💾 Save Style
                         </button>
+
                         <button
                           type="button"
-                          onClick={() => setCardData((prev) => ({
-                            ...prev,
-                            borderColor: DEFAULT_CARD_DATA.borderColor,
-                            borderWidth: DEFAULT_CARD_DATA.borderWidth,
-                            bgColor: DEFAULT_CARD_DATA.bgColor,
-                            camoColor: DEFAULT_CARD_DATA.camoColor,
-                            cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
-                            topStripTextColor: DEFAULT_CARD_DATA.topStripTextColor,
-                            loreBgColor: DEFAULT_CARD_DATA.loreBgColor,
-                            loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
-                            backBgColor: DEFAULT_CARD_DATA.backBgColor,
-                            backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
-                            featureIconColor: DEFAULT_CARD_DATA.featureIconColor,
-                            placeholderColor: DEFAULT_CARD_DATA.placeholderColor,
-                            backEmblemColor: DEFAULT_CARD_DATA.backEmblemColor
-                          }))}
-                          style={{
-                            fontSize: '0.72rem',
-                            padding: '0.2rem 0.5rem',
-                            background: 'var(--input-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--panel-border)',
-                            borderRadius: '3px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
+                          onClick={handleExportCardStyles}
+                          title="Export styles to JSON file"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
                         >
-                          Reset Colors
+                          📤 Export
                         </button>
+
+                        <label
+                          title="Import styles from JSON file"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          📥 Import
+                          <input
+                            type="file"
+                            accept=".json"
+                            onChange={handleImportCardStyles}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
                       </div>
                     </div>
 
-                    <div className="color-picker-grid-6">
-                      <div className="color-cell">
-                        <span className="cell-label">Border Color</span>
-                        <input
-                          type="color"
-                          value={cardData.borderColor}
-                          onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
-                        />
-                      </div>
+                    {/* Single Color for All Texts Option */}
+                    <div style={{ background: 'var(--color-cell-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)', marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <label style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(cardData.applySingleTextColor)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              const color = cardData.singleTextColor || '#000000';
+                              setCardData((prev) => ({
+                                ...prev,
+                                applySingleTextColor: checked,
+                                ...(checked
+                                  ? {
+                                      titleTextColor: color,
+                                      costTextColor: color,
+                                      cardTypeTextColor: color,
+                                      bodyTextColor: color,
+                                      setNumTextColor: color,
+                                      loreTextColor: color,
+                                      featureIconColor: color,
+                                      cardTextColor: color,
+                                      topStripTextColor: color
+                                    }
+                                  : {})
+                              }));
+                            }}
+                          />
+                          Apply Single Text Color to Whole Card
+                        </label>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Border Width (px)</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="20"
-                          value={cardData.borderWidth ?? 8}
-                          onChange={(e) => {
-                            const val = Math.min(20, Math.max(0, parseInt(e.target.value) || 0));
-                            setCardData({ ...cardData, borderWidth: val });
-                          }}
-                          style={{ width: '100%', height: '36px', textAlign: 'center', fontWeight: 'bold' }}
-                        />
+                        {cardData.applySingleTextColor && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Single Color:</span>
+                            <input
+                              type="color"
+                              value={cardData.singleTextColor || '#000000'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCardData((prev) => ({
+                                  ...prev,
+                                  singleTextColor: val,
+                                  titleTextColor: val,
+                                  costTextColor: val,
+                                  cardTypeTextColor: val,
+                                  bodyTextColor: val,
+                                  setNumTextColor: val,
+                                  loreTextColor: val,
+                                  featureIconColor: val,
+                                  cardTextColor: val,
+                                  topStripTextColor: val
+                                }));
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.singleTextColor || '#000000'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCardData((prev) => ({
+                                  ...prev,
+                                  singleTextColor: val,
+                                  titleTextColor: val,
+                                  costTextColor: val,
+                                  cardTypeTextColor: val,
+                                  bodyTextColor: val,
+                                  setNumTextColor: val,
+                                  loreTextColor: val,
+                                  featureIconColor: val,
+                                  cardTextColor: val,
+                                  topStripTextColor: val
+                                }));
+                              }}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        )}
                       </div>
+                    </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Card BG</span>
-                        <input
-                          type="color"
-                          value={cardData.bgColor}
-                          onChange={(e) => setCardData({ ...cardData, bgColor: e.target.value })}
-                        />
+                    {/* Individual Text Colors Sub-section */}
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <span className="cell-label" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                        ✍️ Text Colors (Title, Cost, Description, Numbers, Lore, Feature Icons)
+                      </span>
+                      <div className="color-picker-grid-3">
+                        <div className="color-cell">
+                          <span className="cell-label">Title Text</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.titleTextColor || cardData.topStripTextColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, titleTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.titleTextColor || cardData.topStripTextColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, titleTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Cost Number</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.costTextColor || cardData.topStripTextColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, costTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.costTextColor || cardData.topStripTextColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, costTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Card Type Icon</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.cardTypeTextColor || cardData.topStripTextColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, cardTypeTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.cardTypeTextColor || cardData.topStripTextColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, cardTypeTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Body Description</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.bodyTextColor || cardData.cardTextColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, bodyTextColor: e.target.value, cardTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.bodyTextColor || cardData.cardTextColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, bodyTextColor: e.target.value, cardTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Set Number (USMC 999)</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.setNumTextColor || cardData.cardTextColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, setNumTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.setNumTextColor || cardData.cardTextColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, setNumTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Lore Text</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.loreTextColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, loreTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.loreTextColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, loreTextColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Feature Tag Icons</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.featureIconColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, featureIconColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.featureIconColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, featureIconColor: e.target.value })}
+                              disabled={cardData.applySingleTextColor}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
                       </div>
+                    </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Front Camo</span>
-                        <input
-                          type="color"
-                          value={cardData.camoColor}
-                          onChange={(e) => setCardData({ ...cardData, camoColor: e.target.value })}
-                        />
-                      </div>
+                    {/* Card & Background Colors Sub-section */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span className="cell-label" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                        🎨 Card Structure & Background Colors
+                      </span>
+                      <div className="color-picker-grid-3">
+                        <div className="color-cell">
+                          <span className="cell-label">Border Color</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.borderColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.borderColor || '#000000'}
+                              onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Feature Icons</span>
-                        <input
-                          type="color"
-                          value={cardData.featureIconColor || '#ffffff'}
-                          onChange={(e) => setCardData({ ...cardData, featureIconColor: e.target.value })}
-                        />
-                      </div>
+                        <div className="color-cell">
+                          <span className="cell-label">Border Width (px)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="20"
+                            value={cardData.borderWidth ?? 10}
+                            onChange={(e) => {
+                              const val = Math.min(20, Math.max(0, parseInt(e.target.value) || 0));
+                              setCardData({ ...cardData, borderWidth: val });
+                            }}
+                            style={{ width: '100%', height: '32px', textAlign: 'center', fontWeight: 'bold' }}
+                          />
+                        </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Backside BG</span>
-                        <input
-                          type="color"
-                          value={cardData.backBgColor}
-                          onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
-                        />
-                      </div>
+                        <div className="color-cell">
+                          <span className="cell-label">Front Card BG</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.bgColor || '#e2e8f0'}
+                              onChange={(e) => setCardData({ ...cardData, bgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.bgColor || '#e2e8f0'}
+                              onChange={(e) => setCardData({ ...cardData, bgColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
 
-                      <div className="color-cell">
-                        <span className="cell-label">Back Camo</span>
-                        <input
-                          type="color"
-                          value={cardData.backCamoColor}
-                          onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
-                        />
+                        <div className="color-cell">
+                          <span className="cell-label">Front Camo Color</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.camoColor || '#94a3b8'}
+                              onChange={(e) => setCardData({ ...cardData, camoColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.camoColor || '#94a3b8'}
+                              onChange={(e) => setCardData({ ...cardData, camoColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Lore Bar BG</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.loreBgColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, loreBgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.loreBgColor || '#ffffff'}
+                              onChange={(e) => setCardData({ ...cardData, loreBgColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Backside BG</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.backBgColor || '#2b6cb0'}
+                              onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.backBgColor || '#2b6cb0'}
+                              onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="color-cell">
+                          <span className="cell-label">Back Camo Color</span>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                            <input
+                              type="color"
+                              value={cardData.backCamoColor || '#1a365d'}
+                              onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={cardData.backCamoColor || '#1a365d'}
+                              onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
+                              style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
 

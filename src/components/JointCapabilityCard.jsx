@@ -165,6 +165,14 @@ export function JointCapabilityCard({
     topStripTextColor = '#ffffff',
     loreBgColor = '#ffffff', // pure white background per requirement
     loreTextColor = '#000000', // black text per requirement
+    // Individual text colors & global text color toggle
+    applySingleTextColor = false,
+    singleTextColor = '#000000',
+    titleTextColor,
+    costTextColor,
+    cardTypeTextColor,
+    bodyTextColor,
+    setNumTextColor,
     placeholderColor = '#64748b',
     backEmblemColor = '#ffffff',
     // Back side options
@@ -173,6 +181,15 @@ export function JointCapabilityCard({
     showBackCamo = true,
     customBackImageUrl = null
   } = cardData;
+
+  // Compute effective text colors with single-color override or individual fallback
+  const effTitleColor = applySingleTextColor ? singleTextColor : (titleTextColor || topStripTextColor || '#ffffff');
+  const effCostColor = applySingleTextColor ? singleTextColor : (costTextColor || topStripTextColor || '#ffffff');
+  const effTypeColor = applySingleTextColor ? singleTextColor : (cardTypeTextColor || topStripTextColor || '#ffffff');
+  const effBodyColor = applySingleTextColor ? singleTextColor : (bodyTextColor || cardTextColor || '#000000');
+  const effSetNumColor = applySingleTextColor ? singleTextColor : (setNumTextColor || cardTextColor || '#000000');
+  const effLoreColor = applySingleTextColor ? singleTextColor : (loreTextColor || '#000000');
+  const effFeatureIconColor = applySingleTextColor ? singleTextColor : (featureIconColor || '#ffffff');
 
   // Height calculated strictly for 5.5cm wide x 9.5cm height ratio
   // 9.5 / 5.5 = 1.727272...
@@ -359,7 +376,8 @@ export function JointCapabilityCard({
               fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
               lineHeight: 1,
               flexShrink: 0,
-              borderRight: '2px solid rgba(0, 0, 0, 0.4)'
+              borderRight: '2px solid rgba(0, 0, 0, 0.4)',
+              color: effCostColor
             }}
             title={`Cost: ${cost}`}
           >
@@ -399,7 +417,8 @@ export function JointCapabilityCard({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   lineHeight: 1.1,
-                  fontFamily: titleFont
+                  fontFamily: titleFont,
+                  color: effTitleColor
                 }}
               >
                 {title}
@@ -435,7 +454,7 @@ export function JointCapabilityCard({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: topStripTextColor
+                  color: effTypeColor
                 }}
               >
                 {selectedTypeObj.icon}
@@ -511,7 +530,7 @@ export function JointCapabilityCard({
                 key={iconItem.key || idx}
                 style={{
                   backgroundColor: '#0f172a',
-                  color: featureIconColor,
+                  color: effFeatureIconColor,
                   borderRadius: '4px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -559,7 +578,7 @@ export function JointCapabilityCard({
           style={{
             flex: 1,
             backgroundColor: 'transparent',
-            color: cardTextColor,
+            color: effBodyColor,
             padding: '2px 0',
             fontSize: `${Math.round(height * 0.024)}px`,
             lineHeight: 1.35,
@@ -585,7 +604,7 @@ export function JointCapabilityCard({
               fontSize: `${Math.round(height * 0.022)}px`,
               fontWeight: '900',
               fontFamily: "'Share Tech Mono', 'Trebuchet MS', monospace",
-              color: cardTextColor,
+              color: effSetNumColor,
               letterSpacing: '1px',
               paddingLeft: '2px',
               userSelect: 'none'
@@ -602,7 +621,7 @@ export function JointCapabilityCard({
           style={{
             width: '100%',
             backgroundColor: loreBgColor,
-            color: loreTextColor,
+            color: effLoreColor,
             padding: '6px 10px',
             fontSize: `${Math.round(height * 0.02)}px`,
             fontStyle: 'italic',
