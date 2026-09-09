@@ -5,6 +5,7 @@ import { UnitTracker } from './components/UnitTracker';
 import { JointCapabilityCard } from './components/JointCapabilityCard';
 import { SavedLibrary } from './components/SavedLibrary';
 import { TokenPrinter } from './components/TokenPrinter';
+import { CustomModal } from './components/CustomModal';
 import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG, generateTokenPrinterPDF } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
@@ -312,6 +313,21 @@ function App() {
   const [cardSaveName, setCardSaveName] = useState('');
   const [cardData, setCardData] = useState(DEFAULT_CARD_DATA);
 
+  // Custom Modal dialog state
+  const [customModalConfig, setCustomModalConfig] = useState({
+    isOpen: false,
+    type: 'alert',
+    title: '',
+    message: '',
+    defaultValue: '',
+    onConfirm: () => {},
+    onCancel: null
+  });
+
+  const closeCustomModal = () => {
+    setCustomModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Custom Tracker Styles state
   const [customTrackerStyles, setCustomTrackerStyles] = useState(() => {
     try {
@@ -358,37 +374,47 @@ function App() {
   };
 
   const handleSaveTrackerStyle = () => {
-    const name = window.prompt('Enter a name for your custom tracker style:', 'My Tracker Style');
-    if (!name || !name.trim()) return;
+    setCustomModalConfig({
+      isOpen: true,
+      type: 'prompt',
+      title: 'SAVE TRACKER STYLE',
+      message: 'Enter a name for your custom tracker style:',
+      defaultValue: 'My Tracker Style',
+      onConfirm: (name) => {
+        closeCustomModal();
+        if (!name || !name.trim()) return;
 
-    const styleId = 'tracker_style_' + (customTrackerStyles.length + 1);
-    const newStyle = {
-      id: styleId,
-      name: name.trim(),
-      bgColor: trackerData.bgColor,
-      camoColor: trackerData.camoColor,
-      titleColor: trackerData.titleColor,
-      descriptionColor: trackerData.descriptionColor,
-      triangleNumberColor: trackerData.triangleNumberColor,
-      footerNameColor: trackerData.footerNameColor,
-      attachmentTextColor: trackerData.attachmentTextColor,
-      squareNumberColor: trackerData.squareNumberColor,
-      squareBgColor: trackerData.squareBgColor,
-      backBgColor: trackerData.backBgColor,
-      backCamoColor: trackerData.backCamoColor,
-      applySingleTrackerTextColor: trackerData.applySingleTrackerTextColor,
-      singleTrackerTextColor: trackerData.singleTrackerTextColor
-    };
+        const styleId = 'tracker_style_' + (customTrackerStyles.length + 1);
+        const newStyle = {
+          id: styleId,
+          name: name.trim(),
+          bgColor: trackerData.bgColor,
+          camoColor: trackerData.camoColor,
+          titleColor: trackerData.titleColor,
+          descriptionColor: trackerData.descriptionColor,
+          triangleNumberColor: trackerData.triangleNumberColor,
+          footerNameColor: trackerData.footerNameColor,
+          attachmentTextColor: trackerData.attachmentTextColor,
+          squareNumberColor: trackerData.squareNumberColor,
+          squareBgColor: trackerData.squareBgColor,
+          backBgColor: trackerData.backBgColor,
+          backCamoColor: trackerData.backCamoColor,
+          applySingleTrackerTextColor: trackerData.applySingleTrackerTextColor,
+          singleTrackerTextColor: trackerData.singleTrackerTextColor
+        };
 
-    const updated = [...customTrackerStyles, newStyle];
-    setCustomTrackerStyles(updated);
-    try {
-      localStorage.setItem('lc_tracker_custom_styles_v1', JSON.stringify(updated));
-      setSelectedTrackerStyleKey(styleId);
-      showNotification({ title: 'TRACKER STYLE SAVED', message: `Saved tracker style "${name.trim()}".` });
-    } catch (e) {
-      console.error(e);
-    }
+        const updated = [...customTrackerStyles, newStyle];
+        setCustomTrackerStyles(updated);
+        try {
+          localStorage.setItem('lc_tracker_custom_styles_v1', JSON.stringify(updated));
+          setSelectedTrackerStyleKey(styleId);
+          showNotification({ title: 'TRACKER STYLE SAVED', message: `Saved tracker style "${name.trim()}".` });
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      onCancel: closeCustomModal
+    });
   };
 
   const handleExportTrackerStyles = () => {
@@ -485,7 +511,13 @@ function App() {
         showNotification({ title: 'TRACKER STYLES IMPORTED', message: `Successfully imported ${validStyles.length} tracker style(s).` });
       } catch (err) {
         console.error(err);
-        window.alert('Error: The uploaded file is not a valid tracker styles file or is corrupted.');
+        setCustomModalConfig({
+          isOpen: true,
+          type: 'alert',
+          title: 'FILE IMPORT ERROR',
+          message: 'Error: The uploaded file is not a valid tracker styles file or is corrupted.',
+          onConfirm: closeCustomModal
+        });
       } finally {
         event.target.value = '';
       }
@@ -546,44 +578,54 @@ function App() {
   };
 
   const handleSaveCardStyle = () => {
-    const name = window.prompt('Enter a name for your custom style:', 'My Custom Style');
-    if (!name || !name.trim()) return;
+    setCustomModalConfig({
+      isOpen: true,
+      type: 'prompt',
+      title: 'SAVE CARD STYLE',
+      message: 'Enter a name for your custom style:',
+      defaultValue: 'My Custom Style',
+      onConfirm: (name) => {
+        closeCustomModal();
+        if (!name || !name.trim()) return;
 
-    const styleId = 'style_custom_' + (customCardStyles.length + 1);
-    const newStyle = {
-      id: styleId,
-      name: name.trim(),
-      borderColor: cardData.borderColor,
-      borderWidth: cardData.borderWidth,
-      bgColor: cardData.bgColor,
-      camoColor: cardData.camoColor,
-      cardTextColor: cardData.cardTextColor,
-      topStripTextColor: cardData.topStripTextColor,
-      loreBgColor: cardData.loreBgColor,
-      loreTextColor: cardData.loreTextColor,
-      backBgColor: cardData.backBgColor,
-      backCamoColor: cardData.backCamoColor,
-      featureIconColor: cardData.featureIconColor,
-      titleTextColor: cardData.titleTextColor,
-      costTextColor: cardData.costTextColor,
-      cardTypeTextColor: cardData.cardTypeTextColor,
-      bodyTextColor: cardData.bodyTextColor,
-      setNumTextColor: cardData.setNumTextColor,
-      applySingleTextColor: cardData.applySingleTextColor,
-      singleTextColor: cardData.singleTextColor,
-      placeholderColor: cardData.placeholderColor,
-      backEmblemColor: cardData.backEmblemColor
-    };
+        const styleId = 'style_custom_' + (customCardStyles.length + 1);
+        const newStyle = {
+          id: styleId,
+          name: name.trim(),
+          borderColor: cardData.borderColor,
+          borderWidth: cardData.borderWidth,
+          bgColor: cardData.bgColor,
+          camoColor: cardData.camoColor,
+          cardTextColor: cardData.cardTextColor,
+          topStripTextColor: cardData.topStripTextColor,
+          loreBgColor: cardData.loreBgColor,
+          loreTextColor: cardData.loreTextColor,
+          backBgColor: cardData.backBgColor,
+          backCamoColor: cardData.backCamoColor,
+          featureIconColor: cardData.featureIconColor,
+          titleTextColor: cardData.titleTextColor,
+          costTextColor: cardData.costTextColor,
+          cardTypeTextColor: cardData.cardTypeTextColor,
+          bodyTextColor: cardData.bodyTextColor,
+          setNumTextColor: cardData.setNumTextColor,
+          applySingleTextColor: cardData.applySingleTextColor,
+          singleTextColor: cardData.singleTextColor,
+          placeholderColor: cardData.placeholderColor,
+          backEmblemColor: cardData.backEmblemColor
+        };
 
-    const updated = [...customCardStyles, newStyle];
-    setCustomCardStyles(updated);
-    try {
-      localStorage.setItem('lc_card_custom_styles_v1', JSON.stringify(updated));
-      setSelectedStyleKey(styleId);
-      showNotification({ title: 'STYLE SAVED', message: `Saved custom style "${name.trim()}".` });
-    } catch (e) {
-      console.error(e);
-    }
+        const updated = [...customCardStyles, newStyle];
+        setCustomCardStyles(updated);
+        try {
+          localStorage.setItem('lc_card_custom_styles_v1', JSON.stringify(updated));
+          setSelectedStyleKey(styleId);
+          showNotification({ title: 'STYLE SAVED', message: `Saved custom style "${name.trim()}".` });
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      onCancel: closeCustomModal
+    });
   };
 
   const handleExportCardStyles = () => {
@@ -694,7 +736,13 @@ function App() {
         showNotification({ title: 'STYLES IMPORTED', message: `Successfully imported ${validStyles.length} style(s).` });
       } catch (err) {
         console.error(err);
-        window.alert('Error: The uploaded file is not a valid card styles file or is corrupted.');
+        setCustomModalConfig({
+          isOpen: true,
+          type: 'alert',
+          title: 'FILE IMPORT ERROR',
+          message: 'Error: The uploaded file is not a valid card styles file or is corrupted.',
+          onConfirm: closeCustomModal
+        });
       } finally {
         event.target.value = '';
       }
@@ -3479,6 +3527,17 @@ function App() {
             </div>
           </section>
       </div>
+
+      {/* THEMED CUSTOM MODAL DIALOG */}
+      <CustomModal
+        isOpen={customModalConfig.isOpen}
+        type={customModalConfig.type}
+        title={customModalConfig.title}
+        message={customModalConfig.message}
+        defaultValue={customModalConfig.defaultValue}
+        onConfirm={customModalConfig.onConfirm}
+        onCancel={customModalConfig.onCancel}
+      />
     </div>
   );
 }

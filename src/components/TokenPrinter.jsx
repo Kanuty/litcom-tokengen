@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { LandToken } from './LandToken';
+import { CustomModal } from './CustomModal';
 import { saveItem, getSavedItems } from '../utils/storage';
 
 const PAPER_PRESETS = {
@@ -54,6 +55,21 @@ export function TokenPrinter({
   const [draggingId, setDraggingId] = useState(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const paperRef = useRef(null);
+
+  // Custom Themed Modal state
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: 'alert',
+    title: '',
+    message: '',
+    defaultValue: '',
+    onConfirm: () => {},
+    onCancel: null
+  });
+
+  const closeModal = () => {
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const paperConfig = PAPER_PRESETS[paperKey] || PAPER_PRESETS.A4_P;
   const paperWidthMM = paperConfig.width;
@@ -487,47 +503,54 @@ export function TokenPrinter({
   // Export Layout to JSON
   const handleExportLayoutJSON = () => {
     const defaultName = `token_layout_${paperKey.toLowerCase()}_${sheetTokens.length}_tokens`;
-    const userFilename = window.prompt(
-      'Enter custom filename for exported printer layout:',
-      defaultName
-    );
 
-    if (userFilename === null) return; // User cancelled prompt
+    setModalConfig({
+      isOpen: true,
+      type: 'prompt',
+      title: 'EXPORT LAYOUT FILENAME',
+      message: 'Enter custom filename for exported printer layout:',
+      defaultValue: defaultName,
+      onConfirm: (userFilename) => {
+        closeModal();
+        if (userFilename === null || userFilename === undefined) return;
 
-    const finalFilename = (userFilename.trim() || defaultName).replace(/\.json$/i, '') + '.json';
+        const finalFilename = (userFilename.trim() || defaultName).replace(/\.json$/i, '') + '.json';
 
-    const layoutPayload = {
-      app: 'Littoral Commander Suite',
-      version: 1,
-      type: 'token_printer_layout',
-      exportDate: new Date().toISOString(),
-      settings: {
-        paperKey,
-        sizeOption,
-        tokenSizeMM,
-        gapX,
-        gapY,
-        marginTop,
-        marginBottom,
-        marginLeft,
-        marginRight,
-        defaultFace,
-        duplicatePairTogether,
-        showGridLines,
-        snapToGrid
+        const layoutPayload = {
+          app: 'Littoral Commander Suite',
+          version: 1,
+          type: 'token_printer_layout',
+          exportDate: new Date().toISOString(),
+          settings: {
+            paperKey,
+            sizeOption,
+            tokenSizeMM,
+            gapX,
+            gapY,
+            marginTop,
+            marginBottom,
+            marginLeft,
+            marginRight,
+            defaultFace,
+            duplicatePairTogether,
+            showGridLines,
+            snapToGrid
+          },
+          sheetTokens
+        };
+
+        const blob = new Blob([JSON.stringify(layoutPayload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = finalFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       },
-      sheetTokens
-    };
-
-    const blob = new Blob([JSON.stringify(layoutPayload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = finalFilename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      onCancel: closeModal
+    });
   };
 
   // Import Tokens from sheet layout to saved tokens library
@@ -621,7 +644,13 @@ export function TokenPrinter({
         }
       } catch (err) {
         console.error(err);
-        window.alert('Error: The uploaded file is not a valid token printer layout file or is corrupted.');
+        setModalConfig({
+          isOpen: true,
+          type: 'alert',
+          title: 'FILE IMPORT ERROR',
+          message: 'Error: The uploaded file is not a valid token printer layout file or is corrupted.',
+          onConfirm: closeModal
+        });
       } finally {
         event.target.value = '';
       }
@@ -1540,6 +1569,17 @@ export function TokenPrinter({
 
         </div>
       </div>
+
+      {/* THEMED CUSTOM MODAL */}
+      <CustomModal
+        isOpen={modalConfig.isOpen}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        defaultValue={modalConfig.defaultValue}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={modalConfig.onCancel}
+      />
     </div>
   );
 }
