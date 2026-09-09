@@ -656,46 +656,48 @@ function App() {
       </div>
 
       <nav className="sticky-nav">
-        <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
+        {/* BRAND TITLE + VIEW TOGGLE AT FIXED LEFT POSITION */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
 
-        {/* VIEW TABS */}
-        <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--input-bg)', padding: '0.2rem 0.4rem', borderRadius: '6px', border: '1px solid var(--panel-border)' }}>
-          <button
-            type="button"
-            onClick={() => setActiveView('suite')}
-            style={{
-              padding: '0.35rem 0.8rem',
-              borderRadius: '4px',
-              border: 'none',
-              background: activeView === 'suite' ? 'var(--accent-cyan)' : 'transparent',
-              color: activeView === 'suite' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              fontFamily: "'Teko', sans-serif",
-              fontSize: '1.05rem',
-              letterSpacing: '1px'
-            }}
-          >
-            🎯 EDITOR SUITE
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView('printer')}
-            style={{
-              padding: '0.35rem 0.8rem',
-              borderRadius: '4px',
-              border: 'none',
-              background: activeView === 'printer' ? 'var(--accent-cyan)' : 'transparent',
-              color: activeView === 'printer' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              fontFamily: "'Teko', sans-serif",
-              fontSize: '1.05rem',
-              letterSpacing: '1px'
-            }}
-          >
-            🖨️ TOKEN PRINTER
-          </button>
+          <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--input-bg)', padding: '0.2rem 0.4rem', borderRadius: '6px', border: '1px solid var(--panel-border)' }}>
+            <button
+              type="button"
+              onClick={() => setActiveView('suite')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '4px',
+                border: 'none',
+                background: activeView === 'suite' ? 'var(--accent-cyan)' : 'transparent',
+                color: activeView === 'suite' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.05rem',
+                letterSpacing: '1px'
+              }}
+            >
+              🎯 EDITOR SUITE
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('printer')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '4px',
+                border: 'none',
+                background: activeView === 'printer' ? 'var(--accent-cyan)' : 'transparent',
+                color: activeView === 'printer' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.05rem',
+                letterSpacing: '1px'
+              }}
+            >
+              🖨️ TOKEN PRINTER
+            </button>
+          </div>
         </div>
 
         <div className="nav-links" style={{ alignItems: 'center' }}>
