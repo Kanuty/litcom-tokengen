@@ -777,8 +777,8 @@ export function TokenForm({ tokenData, onChange }) {
               </div>
             </div>
 
-            {/* Custom Die Color & Border Options */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem', alignItems: 'center', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.4rem' }}>
+            {/* Custom Die Color, Border & Number Options */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem', alignItems: 'end', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.4rem' }}>
               <div>
                 <label className="field-label" style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>Fill Color</label>
                 <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
@@ -787,38 +787,58 @@ export function TokenForm({ tokenData, onChange }) {
                     value={d.color || (d.type === 'green' ? '#2e7d32' : d.type === 'purple' ? '#7b1fa2' : d.type === 'blue' ? '#1976d2' : '#c83232')}
                     onChange={(e) => handleDiceChange(index, 'color', e.target.value)}
                   />
-                  <button
-                    type="button"
-                    onClick={() => handleDiceChange(index, 'color', '')}
-                    style={{ fontSize: '10px', padding: '2px 5px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
-                  >
-                    Default
-                  </button>
+                  <input
+                    type="text"
+                    value={d.color || (d.type === 'green' ? '#2e7d32' : d.type === 'purple' ? '#7b1fa2' : d.type === 'blue' ? '#1976d2' : '#c83232')}
+                    onChange={(e) => handleDiceChange(index, 'color', e.target.value)}
+                    style={{ width: '65px', fontSize: '0.75rem' }}
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="field-label" style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>
-                  Non-Interceptable Indicator
-                </label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <label style={{ fontSize: '0.78rem', color: '#f3f4f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={d.hasThickBorder || false}
-                      onChange={(e) => handleDiceChange(index, 'hasThickBorder', e.target.checked)}
-                    />
-                    Thick Border
-                  </label>
-                  {d.hasThickBorder && (
-                    <input
-                      type="color"
-                      value={d.borderColor || '#ffcc00'}
-                      onChange={(e) => handleDiceChange(index, 'borderColor', e.target.value)}
-                      title="Border Color"
-                    />
-                  )}
+                <label className="field-label" style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>Number / Text Color</label>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={d.numberColor || '#ffffff'}
+                    onChange={(e) => handleDiceChange(index, 'numberColor', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    value={d.numberColor || '#ffffff'}
+                    onChange={(e) => handleDiceChange(index, 'numberColor', e.target.value)}
+                    style={{ width: '65px', fontSize: '0.75rem' }}
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="field-label" style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>Border Color</label>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={d.borderColor || (d.hasThickBorder ? '#ffcc00' : '#ffffff')}
+                    onChange={(e) => handleDiceChange(index, 'borderColor', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    value={d.borderColor || (d.hasThickBorder ? '#ffcc00' : '#ffffff')}
+                    onChange={(e) => handleDiceChange(index, 'borderColor', e.target.value)}
+                    style={{ width: '65px', fontSize: '0.75rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.78rem', color: '#f3f4f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', height: '32px' }}>
+                  <input
+                    type="checkbox"
+                    checked={d.hasThickBorder || false}
+                    onChange={(e) => handleDiceChange(index, 'hasThickBorder', e.target.checked)}
+                  />
+                  Thick Border (Non-Interceptable)
+                </label>
               </div>
             </div>
           </div>

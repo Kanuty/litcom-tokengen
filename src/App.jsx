@@ -146,20 +146,20 @@ const BUILTIN_TRACKER_STYLES = {
     singleTrackerTextColor: '#00f0ff'
   },
   vaporwave: {
-    name: 'Bubble-Gum / Vaporwave Style',
-    bgColor: '#fdf2f8',
-    camoColor: '#fbcfe8',
-    titleColor: '#db2777',
-    descriptionColor: '#9d174d',
-    triangleNumberColor: '#db2777',
-    footerNameColor: '#db2777',
-    attachmentTextColor: '#9d174d',
-    squareNumberColor: '#f472b6',
-    squareBgColor: '#fce7f3',
-    backBgColor: '#f472b6',
-    backCamoColor: '#fbcfe8',
+    name: 'Vaporwave Style',
+    bgColor: '#120429',
+    camoColor: '#3a135a',
+    titleColor: '#ff71ce',
+    descriptionColor: '#01cdfe',
+    triangleNumberColor: '#ff71ce',
+    footerNameColor: '#ff71ce',
+    attachmentTextColor: '#01cdfe',
+    squareNumberColor: '#b967ff',
+    squareBgColor: '#200b41',
+    backBgColor: '#200b41',
+    backCamoColor: '#3a135a',
     applySingleTrackerTextColor: false,
-    singleTrackerTextColor: '#db2777'
+    singleTrackerTextColor: '#ff71ce'
   }
 };
 
@@ -211,27 +211,27 @@ const BUILTIN_CARD_STYLES = {
     backEmblemColor: '#00f0ff'
   },
   vaporwave: {
-    name: 'Bubble-Gum / Vaporwave Style',
-    borderColor: '#ff70a6',
+    name: 'Vaporwave Style',
+    borderColor: '#01cdfe',
     borderWidth: 6,
-    bgColor: '#fdf2f8',
-    camoColor: '#fbcfe8',
-    cardTextColor: '#db2777',
+    bgColor: '#120429',
+    camoColor: '#3a135a',
+    cardTextColor: '#ff71ce',
     topStripTextColor: '#ffffff',
-    loreBgColor: '#fce7f3',
-    loreTextColor: '#9d174d',
-    backBgColor: '#f472b6',
-    backCamoColor: '#fbcfe8',
-    featureIconColor: '#ffffff',
+    loreBgColor: '#200b41',
+    loreTextColor: '#fffb96',
+    backBgColor: '#200b41',
+    backCamoColor: '#3a135a',
+    featureIconColor: '#01cdfe',
     titleTextColor: '#ffffff',
     costTextColor: '#ffffff',
     cardTypeTextColor: '#ffffff',
-    bodyTextColor: '#9d174d',
-    setNumTextColor: '#db2777',
+    bodyTextColor: '#01cdfe',
+    setNumTextColor: '#ff71ce',
     applySingleTextColor: false,
-    singleTextColor: '#db2777',
-    placeholderColor: '#f472b6',
-    backEmblemColor: '#ffffff'
+    singleTextColor: '#ff71ce',
+    placeholderColor: '#ff71ce',
+    backEmblemColor: '#ff71ce'
   }
 };
 
@@ -1320,6 +1320,7 @@ function App() {
           showNotification={showNotification}
           confirmAction={confirmAction}
           onExportPDF={generateTokenPrinterPDF}
+          onRefreshSavedItems={refreshSavedItems}
         />
       ) : (
         <>
@@ -1853,7 +1854,7 @@ function App() {
                           <optgroup label="Built-in Styles">
                             <option value="classic">Classic Style</option>
                             <option value="cyber">Cyber Style</option>
-                            <option value="vaporwave">Bubble-Gum Style</option>
+                            <option value="vaporwave">Vaporwave Style</option>
                           </optgroup>
                           {customTrackerStyles.length > 0 && (
                             <optgroup label="My Custom Styles">
@@ -2815,7 +2816,7 @@ function App() {
                           <optgroup label="Built-in Styles">
                             <option value="classic">Classic Style</option>
                             <option value="cyber">Cyber Style</option>
-                            <option value="vaporwave">Bubble-Gum Style</option>
+                            <option value="vaporwave">Vaporwave Style</option>
                           </optgroup>
                           {customCardStyles.length > 0 && (
                             <optgroup label="My Custom Styles">

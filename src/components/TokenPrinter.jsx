@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { LandToken } from './LandToken';
+import { saveItem, getSavedItems } from '../utils/storage';
 
 const PAPER_PRESETS = {
   A4_P: { name: 'A4 Portrait (210 x 297 mm)', width: 210, height: 297 },
@@ -13,8 +14,10 @@ const PAPER_PRESETS = {
 export function TokenPrinter({
   activeTokenData,
   savedItems = [],
+  showNotification,
   confirmAction,
-  onExportPDF
+  onExportPDF,
+  onRefreshSavedItems
 }) {
   // Paper & Sheet settings
   const [paperKey, setPaperKey] = useState('A4_P');
@@ -35,6 +38,12 @@ export function TokenPrinter({
 
   // Quantity selector for adding tokens
   const [addQuantity, setAddQuantity] = useState(1);
+
+  // Token Search in Palette
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Skip duplicate option when importing tokens from layout to saved library
+  const [skipDuplicatesOnImport, setSkipDuplicatesOnImport] = useState(true);
 
   // Tokens placed on print sheet
   // Item structure: { id, presetId, name, data, side, x, y } (x, y in mm)
@@ -79,7 +88,16 @@ export function TokenPrinter({
   }, [paperKey]);
 
   // Saved tokens filter
-  const savedTokens = savedItems.filter((i) => i.type === 'token');
+  const savedTokens = useMemo(() => {
+    const all = savedItems.filter((i) => i.type === 'token');
+    if (!searchTerm.trim()) return all;
+    const term = searchTerm.toLowerCase().trim();
+    return all.filter((i) => {
+      const title = (i.name || '').toLowerCase();
+      const unitName = (i.data?.unitName || '').toLowerCase();
+      return title.includes(term) || unitName.includes(term);
+    });
+  }, [savedItems, searchTerm]);
 
   // Detect overlapping tokens for pulsing red border glow
   const overlappingTokenIds = useMemo(() => {
@@ -466,10 +484,145 @@ export function TokenPrinter({
     }
   };
 
-  // Direct Browser Print
-  const handlePrintClick = () => {
+  // Export Layout to JSON
+  const handleExportLayoutJSON = () => {
+    const layoutPayload = {
+      app: 'Littoral Commander Suite',
+      version: 1,
+      type: 'token_printer_layout',
+      exportDate: new Date().toISOString(),
+      settings: {
+        paperKey,
+        sizeOption,
+        tokenSizeMM,
+        gapX,
+        gapY,
+        marginTop,
+        marginBottom,
+        marginLeft,
+        marginRight,
+        defaultFace,
+        duplicatePairTogether,
+        showGridLines,
+        snapToGrid
+      },
+      sheetTokens
+    };
+
+    const blob = new Blob([JSON.stringify(layoutPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `token_layout_${paperKey.toLowerCase()}_${sheetTokens.length}_tokens.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import Tokens from sheet layout to saved tokens library
+  const importTokensToLibrary = (tokensToImportList, skipDupes) => {
+    const currentSaved = getSavedItems().filter((i) => i.type === 'token');
+    let importedCount = 0;
+    let skippedCount = 0;
+
+    // Track processed token data signatures to avoid adding duplicate entries within the same layout import
+    const processedSignatures = new Set();
+
+    tokensToImportList.forEach((st) => {
+      if (!st || !st.data) return;
+      const tokenData = st.data;
+      const name = (tokenData.unitName || st.name || 'Token').replace(/\s*\((Front|Back)\)$/i, '');
+      const signature = JSON.stringify(tokenData);
+
+      if (skipDupes) {
+        const isDuplicateInSaved = currentSaved.some(
+          (item) => JSON.stringify(item.data) === signature
+        );
+        if (isDuplicateInSaved || processedSignatures.has(signature)) {
+          skippedCount++;
+          return;
+        }
+      }
+
+      processedSignatures.add(signature);
+      saveItem({
+        name,
+        type: 'token',
+        category: tokenData.category || 'land',
+        data: tokenData
+      });
+      importedCount++;
+    });
+
+    if (onRefreshSavedItems) onRefreshSavedItems();
+
+    if (showNotification) {
+      showNotification({
+        title: 'TOKENS IMPORTED TO LIBRARY',
+        message: `Imported ${importedCount} token(s) into your saved library.${
+          skippedCount > 0 ? ` (${skippedCount} duplicate(s) skipped)` : ''
+        }`
+      });
+    }
+  };
+
+  // Import Layout from JSON
+  const handleImportLayoutJSON = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const parsed = JSON.parse(content);
+
+        if (!parsed || (parsed.type !== 'token_printer_layout' && !Array.isArray(parsed.sheetTokens))) {
+          throw new Error('Invalid layout file format');
+        }
+
+        const settings = parsed.settings || {};
+        if (settings.paperKey) setPaperKey(settings.paperKey);
+        if (settings.sizeOption) setSizeOption(settings.sizeOption);
+        if (settings.tokenSizeMM) setTokenSizeMM(settings.tokenSizeMM);
+        if (settings.gapX !== undefined) setGapX(settings.gapX);
+        if (settings.gapY !== undefined) setGapY(settings.gapY);
+        if (settings.marginTop !== undefined) setMarginTop(settings.marginTop);
+        if (settings.marginBottom !== undefined) setMarginBottom(settings.marginBottom);
+        if (settings.marginLeft !== undefined) setMarginLeft(settings.marginLeft);
+        if (settings.marginRight !== undefined) setMarginRight(settings.marginRight);
+        if (settings.defaultFace) setDefaultFace(settings.defaultFace);
+        if (settings.duplicatePairTogether !== undefined) setDuplicatePairTogether(settings.duplicatePairTogether);
+        if (settings.showGridLines !== undefined) setShowGridLines(settings.showGridLines);
+        if (settings.snapToGrid !== undefined) setSnapToGrid(settings.snapToGrid);
+
+        const loadedTokens = Array.isArray(parsed.sheetTokens) ? parsed.sheetTokens : [];
+        setSheetTokens(loadedTokens);
+
+        if (loadedTokens.length > 0) {
+          // Import tokens to library automatically or ask user
+          importTokensToLibrary(loadedTokens, skipDuplicatesOnImport);
+        } else if (showNotification) {
+          showNotification({
+            title: 'LAYOUT LOADED',
+            message: 'Successfully loaded printer layout settings.'
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        window.alert('Error: The uploaded file is not a valid token printer layout file or is corrupted.');
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Manual trigger to import placed tokens on current sheet into library
+  const handleManualImportSheetTokensToLibrary = () => {
     if (sheetTokens.length === 0) return;
-    window.print();
+    importTokensToLibrary(sheetTokens, skipDuplicatesOnImport);
   };
 
   return (
@@ -521,7 +674,7 @@ export function TokenPrinter({
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               type="button"
               onClick={handleExportPDFClick}
@@ -547,10 +700,11 @@ export function TokenPrinter({
 
             <button
               type="button"
-              onClick={handlePrintClick}
+              onClick={handleExportLayoutJSON}
               disabled={sheetTokens.length === 0}
+              title="Export current page layout and placed tokens to a JSON file"
               style={{
-                padding: '0.6rem 1.2rem',
+                padding: '0.6rem 1rem',
                 background: sheetTokens.length === 0 ? 'var(--card-colors-bg)' : 'var(--accent-blue)',
                 color: '#ffffff',
                 border: 'none',
@@ -565,8 +719,35 @@ export function TokenPrinter({
                 gap: '0.4rem'
               }}
             >
-              🖨️ BROWSER PRINT
+              📤 EXPORT LAYOUT
             </button>
+
+            <label
+              title="Import saved page layout and tokens from a JSON file"
+              style={{
+                padding: '0.6rem 1rem',
+                background: 'var(--input-bg)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--accent-cyan)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.2rem',
+                letterSpacing: '1px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              📥 IMPORT LAYOUT
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImportLayoutJSON}
+                style={{ display: 'none' }}
+              />
+            </label>
 
             {sheetTokens.length > 0 && (
               <button
@@ -704,6 +885,41 @@ export function TokenPrinter({
                 <p style={{ margin: '0.2rem 0 0 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   When enabled, duplicating a token automatically duplicates both its front and back sides.
                 </p>
+              </div>
+
+              {/* LAYOUT IMPORT TOKEN DUPES TOGGLE & MANUAL IMPORT BUTTON */}
+              <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--panel-border)', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold' }}>
+                  <input
+                    type="checkbox"
+                    checked={skipDuplicatesOnImport}
+                    onChange={(e) => setSkipDuplicatesOnImport(e.target.checked)}
+                  />
+                  Skip Duplicate Tokens when Importing Layout
+                </label>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.2' }}>
+                  Skips saving tokens to library if ALL fields match an existing token entry.
+                </p>
+
+                {sheetTokens.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleManualImportSheetTokensToLibrary}
+                    style={{
+                      marginTop: '0.2rem',
+                      padding: '0.35rem 0.5rem',
+                      background: 'var(--accent-blue)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    💾 Save All Placed Tokens to Library
+                  </button>
+                )}
               </div>
 
               {/* MARGINS INPUTS */}
@@ -1197,15 +1413,36 @@ export function TokenPrinter({
               </div>
             </div>
 
-            {/* B) SAVED TOKENS LIBRARY LIST */}
-            <div style={{ marginTop: '0.5rem' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                Saved Tokens Library ({savedTokens.length})
+            {/* B) SAVED TOKENS LIBRARY LIST WITH SEARCH INPUT */}
+            <div style={{ marginTop: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                  Saved Tokens Library ({savedTokens.length})
+                </div>
+              </div>
+
+              {/* TOKEN SEARCH INPUT */}
+              <div style={{ marginBottom: '0.5rem' }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Search tokens by title..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.35rem 0.6rem',
+                    fontSize: '0.8rem',
+                    background: 'var(--input-bg)',
+                    border: '1px solid var(--panel-border)',
+                    borderRadius: '4px',
+                    color: 'var(--text-primary)'
+                  }}
+                />
               </div>
 
               {savedTokens.length === 0 ? (
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.8rem', background: 'var(--input-bg)', borderRadius: '4px', border: '1px dashed var(--panel-border)' }}>
-                  No saved token presets found. Save tokens from the Token Generator section to use them here!
+                  {searchTerm.trim() ? `No tokens matching "${searchTerm}" found.` : 'No saved token presets found. Save tokens from the Token Generator section to use them here!'}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.2rem' }}>
