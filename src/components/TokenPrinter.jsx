@@ -13,7 +13,6 @@ const PAPER_PRESETS = {
 export function TokenPrinter({
   activeTokenData,
   savedItems = [],
-  showNotification,
   confirmAction,
   onExportPDF
 }) {
@@ -27,10 +26,11 @@ export function TokenPrinter({
   const [marginLeft, setMarginLeft] = useState(10); // mm
   const [marginRight, setMarginRight] = useState(10); // mm
   const [defaultFace, setDefaultFace] = useState('both'); // 'front' | 'back' | 'both'
+  const [duplicatePairTogether, setDuplicatePairTogether] = useState(true);
 
   // Grid Preview & Snapping Controls
   const [showGridLines, setShowGridLines] = useState(true);
-  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(false); // default free hand as requested
 
   // Quantity selector for adding tokens
   const [addQuantity, setAddQuantity] = useState(1);
@@ -50,7 +50,7 @@ export function TokenPrinter({
   const paperHeightMM = paperConfig.height;
 
   // On-screen scale: convert mm to px for screen preview
-  const [canvasPixelWidth, setCanvasPixelWidth] = useState(700);
+  const [canvasPixelWidth, setCanvasPixelWidth] = useState(600);
   const mmToPx = canvasPixelWidth / paperWidthMM;
   const canvasPixelHeight = paperHeightMM * mmToPx;
 
@@ -58,8 +58,8 @@ export function TokenPrinter({
   useEffect(() => {
     const handleResize = () => {
       if (paperRef.current) {
-        const parentW = paperRef.current.parentElement?.clientWidth || 800;
-        const targetW = Math.min(800, Math.max(320, parentW - 40));
+        const parentW = paperRef.current.parentElement?.clientWidth || 600;
+        const targetW = Math.min(750, Math.max(300, parentW - 20));
         setCanvasPixelWidth(targetW);
       }
     };
@@ -93,67 +93,89 @@ export function TokenPrinter({
     };
   }, [gapX, gapY, marginLeft, marginRight, marginTop, marginBottom, paperHeightMM, paperWidthMM, tokenSizeMM]);
 
-  // Auto-Grid Arrangement function
-  const arrangeGrid = useCallback((tokensList = sheetTokens) => {
-    let currX = marginLeft;
-    let currY = marginTop;
+  // Nearest-Slot Auto-Arrange Grid for Free-Hand Mode (when snapToGrid is OFF)
+  const arrangeNearestGridSlots = useCallback(() => {
+    if (sheetTokens.length === 0) return;
 
-    const arranged = tokensList.map((token) => {
-      if (currX + tokenSizeMM > paperWidthMM - marginRight + 0.1) {
-        // move to next row
-        currX = marginLeft;
-        currY += tokenSizeMM + gapY;
+    // Calculate all available grid slots on page
+    const usableW = paperWidthMM - marginLeft - marginRight;
+    const usableH = paperHeightMM - marginTop - marginBottom;
+    const stepX = tokenSizeMM + gapX;
+    const stepY = tokenSizeMM + gapY;
+
+    const cols = Math.floor((usableW + gapX) / stepX);
+    const rows = Math.floor((usableH + gapY) / stepY);
+
+    const slots = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        slots.push({
+          x: Math.round((marginLeft + c * stepX) * 10) / 10,
+          y: Math.round((marginTop + r * stepY) * 10) / 10,
+          taken: false
+        });
       }
+    }
 
-      const itemX = currX;
-      const itemY = currY;
+    if (slots.length === 0) return;
 
-      currX += tokenSizeMM + gapX;
+    // Map each token to its nearest available grid slot
+    const updatedTokens = sheetTokens.map((token) => {
+      let minDistance = Infinity;
+      let bestSlotIndex = -1;
 
-      return {
-        ...token,
-        x: Math.round(itemX * 10) / 10,
-        y: Math.round(itemY * 10) / 10
-      };
+      slots.forEach((slot, idx) => {
+        if (!slot.taken) {
+          const dist = Math.hypot(slot.x - token.x, slot.y - token.y);
+          if (dist < minDistance) {
+            minDistance = dist;
+            bestSlotIndex = idx;
+          }
+        }
+      });
+
+      if (bestSlotIndex !== -1) {
+        slots[bestSlotIndex].taken = true;
+        return {
+          ...token,
+          x: slots[bestSlotIndex].x,
+          y: slots[bestSlotIndex].y
+        };
+      } else {
+        // If all grid slots full, snap to paper bounds
+        return {
+          ...token,
+          x: Math.max(marginLeft, Math.min(paperWidthMM - marginRight - tokenSizeMM, token.x)),
+          y: Math.max(marginTop, Math.min(paperHeightMM - marginBottom - tokenSizeMM, token.y))
+        };
+      }
     });
 
-    setSheetTokens(arranged);
-  }, [gapX, gapY, marginLeft, marginRight, marginTop, paperWidthMM, tokenSizeMM, sheetTokens]);
+    setSheetTokens(updatedTokens);
+  }, [gapX, gapY, marginLeft, marginRight, marginTop, marginBottom, paperHeightMM, paperWidthMM, tokenSizeMM, sheetTokens]);
 
   // Count instances of a token on the sheet
   const getTokenCount = (presetIdOrName) => {
     return sheetTokens.filter(
-      (t) => t.presetId === presetIdOrName || t.name === presetIdOrName
+      (t) => t.presetId === presetIdOrName || t.name.startsWith(presetIdOrName)
     ).length;
   };
 
   // Unique tokens count
   const uniqueTokenTypesCount = new Set(sheetTokens.map((t) => t.presetId || t.name)).size;
 
-  // Add token(s) to sheet with quantity
-  const handleAddTokenToSheet = (tokenObj, presetId = null, qtyToAdd = addQuantity) => {
+  // Add token(s) to sheet silently without pop-ups
+  const handleAddTokenToSheet = (tokenObj, presetId = null, qtyToAdd = addQuantity, targetPos = null) => {
     const name = tokenObj.unitName || tokenObj.name || 'Token';
-    const existingCount = getTokenCount(presetId || name);
     const numCopies = Math.max(1, qtyToAdd);
 
-    // Alert duplicate if token already on sheet
-    if (existingCount > 0) {
-      showNotification({
-        title: '⚠️ DUPLICATE TOKEN ADDED',
-        message: `Added ${numCopies} copy(ies) of "${name}". Total count on sheet: ${existingCount + numCopies * (defaultFace === 'both' ? 2 : 1)}.`,
-        type: 'info'
-      });
-    } else {
-      showNotification({
-        title: 'TOKENS ADDED TO SHEET',
-        message: `Added ${numCopies} copy(ies) of "${name}" to printable page.`,
-        type: 'info'
-      });
-    }
+    const startX = targetPos ? targetPos.x : marginLeft;
+    const startY = targetPos ? targetPos.y : marginTop;
 
     const newItems = [];
     for (let q = 0; q < numCopies; q++) {
       const baseId = 'st_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5) + '_' + q;
+      const initialPos = snapToGrid ? calculateSnapPosition(startX, startY) : { x: startX, y: startY };
 
       if (defaultFace === 'both') {
         newItems.push({
@@ -162,8 +184,8 @@ export function TokenPrinter({
           name: `${name} (Front)`,
           data: tokenObj.data || tokenObj,
           side: 'front',
-          x: marginLeft,
-          y: marginTop
+          x: initialPos.x,
+          y: initialPos.y
         });
         newItems.push({
           id: baseId + '_b',
@@ -171,8 +193,8 @@ export function TokenPrinter({
           name: `${name} (Back)`,
           data: tokenObj.data || tokenObj,
           side: 'back',
-          x: marginLeft,
-          y: marginTop
+          x: initialPos.x,
+          y: initialPos.y
         });
       } else {
         newItems.push({
@@ -181,14 +203,53 @@ export function TokenPrinter({
           name: `${name} (${defaultFace.toUpperCase()})`,
           data: tokenObj.data || tokenObj,
           side: defaultFace,
-          x: marginLeft,
-          y: marginTop
+          x: initialPos.x,
+          y: initialPos.y
         });
       }
     }
 
     const updated = [...sheetTokens, ...newItems];
-    arrangeGrid(updated);
+    setSheetTokens(updated);
+  };
+
+  // HTML5 Drag and Drop Handlers for dragging tokens from palette onto paper canvas
+  const handleDragStartPaletteToken = (e, tokenObj, presetId = null) => {
+    e.dataTransfer.setData(
+      'application/json',
+      JSON.stringify({
+        tokenObj,
+        presetId
+      })
+    );
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleDragOverCanvas = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDropOnCanvas = (e) => {
+    e.preventDefault();
+    try {
+      const rawData = e.dataTransfer.getData('application/json');
+      if (!rawData) return;
+      const { tokenObj, presetId } = JSON.parse(rawData);
+
+      if (paperRef.current) {
+        const rect = paperRef.current.getBoundingClientRect();
+        const dropXMM = (e.clientX - rect.left) / mmToPx - tokenSizeMM / 2;
+        const dropYMM = (e.clientY - rect.top) / mmToPx - tokenSizeMM / 2;
+
+        const constrainedX = Math.max(marginLeft, Math.min(paperWidthMM - marginRight - tokenSizeMM, dropXMM));
+        const constrainedY = Math.max(marginTop, Math.min(paperHeightMM - marginBottom - tokenSizeMM, dropYMM));
+
+        handleAddTokenToSheet(tokenObj, presetId, 1, { x: constrainedX, y: constrainedY });
+      }
+    } catch (err) {
+      console.error('Failed to parse dropped token data', err);
+    }
   };
 
   // Remove token from sheet
@@ -198,34 +259,52 @@ export function TokenPrinter({
     if (selectedTokenId === tokenId) setSelectedTokenId(null);
   };
 
-  // Duplicate a token on sheet
+  // Duplicate token on sheet (seamless, with optional front/back pair duplication)
   const handleDuplicateTokenOnSheet = (tokenId) => {
     const target = sheetTokens.find((t) => t.id === tokenId);
     if (!target) return;
 
-    const name = target.data?.unitName || target.name;
-    const existingCount = getTokenCount(target.presetId || name);
-
-    showNotification({
-      title: '⚠️ DUPLICATE TOKEN CREATED',
-      message: `Duplicated "${target.name}". Total instances on sheet: ${existingCount + 1}.`,
-      type: 'info'
-    });
-
-    const newId = 'st_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
-    const rawX = Math.min(paperWidthMM - tokenSizeMM, target.x + gapX + tokenSizeMM);
+    const baseOffset = tokenSizeMM + gapX;
+    const rawX = Math.min(paperWidthMM - marginRight - tokenSizeMM, target.x + baseOffset);
     const rawY = target.y;
 
     const pos = snapToGrid ? calculateSnapPosition(rawX, rawY) : { x: rawX, y: rawY };
 
-    const newItem = {
-      ...target,
-      id: newId,
-      x: pos.x,
-      y: pos.y
-    };
+    if (duplicatePairTogether) {
+      // Create duplicate of both front and back
+      const baseId = 'st_dup_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
+      const nameWithoutSide = target.name.replace(/\s*\((Front|Back)\)$/i, '');
 
-    setSheetTokens([...sheetTokens, newItem]);
+      const newFront = {
+        ...target,
+        id: baseId + '_f',
+        name: `${nameWithoutSide} (Front)`,
+        side: 'front',
+        x: pos.x,
+        y: pos.y
+      };
+
+      const newBack = {
+        ...target,
+        id: baseId + '_b',
+        name: `${nameWithoutSide} (Back)`,
+        side: 'back',
+        x: pos.x,
+        y: pos.y
+      };
+
+      setSheetTokens((prev) => [...prev, newFront, newBack]);
+    } else {
+      // Create duplicate of single selected side
+      const newId = 'st_dup_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
+      const newItem = {
+        ...target,
+        id: newId,
+        x: pos.x,
+        y: pos.y
+      };
+      setSheetTokens((prev) => [...prev, newItem]);
+    }
   };
 
   // Clear sheet
@@ -236,11 +315,6 @@ export function TokenPrinter({
       onConfirm: () => {
         setSheetTokens([]);
         setSelectedTokenId(null);
-        showNotification({
-          title: 'SHEET CLEARED',
-          message: 'All tokens removed from print page.',
-          type: 'info'
-        });
       }
     });
   };
@@ -293,17 +367,10 @@ export function TokenPrinter({
       }
     }
 
-    const updated = [...sheetTokens, ...fillItems];
-    arrangeGrid(updated);
-
-    showNotification({
-      title: 'SHEET FILLED',
-      message: `Added ${fillItems.length} copies of "${name}" to fill page grid!`,
-      type: 'info'
-    });
+    setSheetTokens(fillItems);
   };
 
-  // Pointer/Mouse events for Drag and Drop on paper with Snap-to-Grid
+  // Pointer/Mouse events for Drag and Drop on paper canvas
   const handleMouseDownToken = (e, token) => {
     e.stopPropagation();
     setSelectedTokenId(token.id);
@@ -354,15 +421,7 @@ export function TokenPrinter({
 
   // PDF Export trigger
   const handleExportPDFClick = () => {
-    if (sheetTokens.length === 0) {
-      showNotification({
-        title: 'EMPTY SHEET',
-        message: 'Please add at least one token to the sheet before exporting PDF.',
-        type: 'danger'
-      });
-      return;
-    }
-
+    if (sheetTokens.length === 0) return;
     if (onExportPDF) {
       onExportPDF({
         sheetTokens,
@@ -376,14 +435,7 @@ export function TokenPrinter({
 
   // Direct Browser Print
   const handlePrintClick = () => {
-    if (sheetTokens.length === 0) {
-      showNotification({
-        title: 'EMPTY SHEET',
-        message: 'Please add tokens to the sheet before printing.',
-        type: 'danger'
-      });
-      return;
-    }
+    if (sheetTokens.length === 0) return;
     window.print();
   };
 
@@ -432,7 +484,7 @@ export function TokenPrinter({
               🖨️ Token Printer & Layout Studio
             </h2>
             <p style={{ margin: '0.2rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Arrange tokens onto printable pages with precise gap spacing, margins, snap-to-grid, and drag & drop positioning.
+              Arrange tokens onto printable pages with precise gap spacing, margins, free-hand nearest-grid snapping, and seamless drag & drop.
             </p>
           </div>
 
@@ -507,24 +559,22 @@ export function TokenPrinter({
         </div>
       </div>
 
-      {/* TWO-COLUMN LAYOUT: CANVAS & CONTROLS ON LEFT | TOKEN PALETTE ON RIGHT */}
+      {/* THREE-COLUMN LAYOUT: SETTINGS ON LEFT | CANVAS IN CENTER | PALETTE ON RIGHT */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr minmax(320px, 420px)',
-          gap: '1.5rem',
+          gridTemplateColumns: 'minmax(290px, 340px) 1fr minmax(290px, 340px)',
+          gap: '1.25rem',
           alignItems: 'start'
         }}
         className="printer-grid"
       >
-        {/* LEFT COLUMN: INTERACTIVE PAPER SHEET & PAPER CONTROLS */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-
-          {/* 1. PAPER & SPACING CONTROLS */}
+        {/* LEFT COLUMN: PAGE SETTINGS & SPACING CONFIGURATION */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="tint-card tint-card-attributes">
-            <h3 className="subsection-header">📄 Paper & Spacing Configuration</h3>
+            <h3 className="subsection-header">📄 Page Settings</h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>
                 <label className="field-label">Paper Format</label>
                 <select
@@ -557,45 +607,45 @@ export function TokenPrinter({
                   <option value="custom">Custom Size...</option>
                 </select>
               </div>
-            </div>
 
-            {![25, 30, 40].includes(tokenSizeMM) && (
-              <div>
-                <label className="field-label">Custom Token Size (mm)</label>
-                <input
-                  type="number"
-                  min="10"
-                  max="100"
-                  value={tokenSizeMM}
-                  onChange={(e) => setTokenSizeMM(Math.max(10, Math.min(100, Number(e.target.value) || 25)))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            )}
+              {![25, 30, 40].includes(tokenSizeMM) && (
+                <div>
+                  <label className="field-label">Custom Size (mm)</label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="100"
+                    value={tokenSizeMM}
+                    onChange={(e) => setTokenSizeMM(Math.max(10, Math.min(100, Number(e.target.value) || 25)))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-              <div>
-                <label className="field-label">Horizontal Gap (X mm)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={gapX}
-                  onChange={(e) => setGapX(Math.max(0, Number(e.target.value) || 0))}
-                  style={{ width: '100%' }}
-                />
-              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <div>
+                  <label className="field-label">Horiz. Gap (X mm)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={gapX}
+                    onChange={(e) => setGapX(Math.max(0, Number(e.target.value) || 0))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
 
-              <div>
-                <label className="field-label">Vertical Gap (Y mm)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={gapY}
-                  onChange={(e) => setGapY(Math.max(0, Number(e.target.value) || 0))}
-                  style={{ width: '100%' }}
-                />
+                <div>
+                  <label className="field-label">Vert. Gap (Y mm)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={gapY}
+                    onChange={(e) => setGapY(Math.max(0, Number(e.target.value) || 0))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
               </div>
 
               <div>
@@ -610,67 +660,75 @@ export function TokenPrinter({
                   <option value="back">Back Side Only</option>
                 </select>
               </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.4rem' }}>
-              <div>
-                <label className="field-label" style={{ fontSize: '0.75rem' }}>Top (mm)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={marginTop}
-                  onChange={(e) => setMarginTop(Math.max(0, Number(e.target.value) || 0))}
-                  style={{ width: '100%', padding: '0.2rem' }}
-                />
+              {/* DUPLICATE PAIR TOGGLE */}
+              <div style={{ background: 'var(--input-bg)', padding: '0.5rem 0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  <input
+                    type="checkbox"
+                    checked={duplicatePairTogether}
+                    onChange={(e) => setDuplicatePairTogether(e.target.checked)}
+                  />
+                  Duplicate Front & Back Pair Together
+                </label>
+                <p style={{ margin: '0.2rem 0 0 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  When enabled, duplicating a token automatically duplicates both its front and back sides.
+                </p>
               </div>
-              <div>
-                <label className="field-label" style={{ fontSize: '0.75rem' }}>Bottom</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={marginBottom}
-                  onChange={(e) => setMarginBottom(Math.max(0, Number(e.target.value) || 0))}
-                  style={{ width: '100%', padding: '0.2rem' }}
-                />
-              </div>
-              <div>
-                <label className="field-label" style={{ fontSize: '0.75rem' }}>Left</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={marginLeft}
-                  onChange={(e) => setMarginLeft(Math.max(0, Number(e.target.value) || 0))}
-                  style={{ width: '100%', padding: '0.2rem' }}
-                />
-              </div>
-              <div>
-                <label className="field-label" style={{ fontSize: '0.75rem' }}>Right</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={marginRight}
-                  onChange={(e) => setMarginRight(Math.max(0, Number(e.target.value) || 0))}
-                  style={{ width: '100%', padding: '0.2rem' }}
-                />
-              </div>
-            </div>
 
-            {/* PREVIEW GRID & SNAP-TO-GRID TOGGLES */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', background: 'var(--input-bg)', padding: '0.5rem 0.8rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
-                <input
-                  type="checkbox"
-                  checked={snapToGrid}
-                  onChange={(e) => setSnapToGrid(e.target.checked)}
-                />
-                🧲 Snap to Grid
-              </label>
+              {/* MARGINS INPUTS */}
+              <div>
+                <label className="field-label" style={{ marginBottom: '0.2rem' }}>Page Margins (mm)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.3rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Top</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={marginTop}
+                      onChange={(e) => setMarginTop(Math.max(0, Number(e.target.value) || 0))}
+                      style={{ width: '100%', padding: '0.2rem' }}
+                    />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Bottom</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={marginBottom}
+                      onChange={(e) => setMarginBottom(Math.max(0, Number(e.target.value) || 0))}
+                      style={{ width: '100%', padding: '0.2rem' }}
+                    />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Left</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={marginLeft}
+                      onChange={(e) => setMarginLeft(Math.max(0, Number(e.target.value) || 0))}
+                      style={{ width: '100%', padding: '0.2rem' }}
+                    />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Right</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={marginRight}
+                      onChange={(e) => setMarginRight(Math.max(0, Number(e.target.value) || 0))}
+                      style={{ width: '100%', padding: '0.2rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
+              {/* GRID LINES TOGGLE */}
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', marginTop: '0.2rem' }}>
                 <input
                   type="checkbox"
                   checked={showGridLines}
@@ -679,209 +737,282 @@ export function TokenPrinter({
                 📐 Show Red Preview Grid Lines
               </label>
 
-              <button
-                type="button"
-                onClick={() => arrangeGrid()}
-                disabled={sheetTokens.length === 0}
+              {/* CONNECTED DIV FOR SNAP TO GRID & AUTO-ARRANGE */}
+              <div
                 style={{
-                  marginLeft: 'auto',
-                  padding: '0.35rem 0.75rem',
-                  background: sheetTokens.length === 0 ? 'var(--card-colors-bg)' : 'var(--accent-cyan)',
-                  color: sheetTokens.length === 0 ? 'var(--text-muted)' : 'var(--bg-dark)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  cursor: sheetTokens.length === 0 ? 'not-allowed' : 'pointer',
-                  fontFamily: "'Teko', sans-serif",
-                  fontSize: '1rem',
-                  letterSpacing: '1px'
+                  background: 'var(--input-bg)',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  border: snapToGrid ? '1px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.6rem',
+                  marginTop: '0.3rem'
                 }}
               >
-                Auto-Arrange Grid
-              </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={snapToGrid}
+                      onChange={(e) => setSnapToGrid(e.target.checked)}
+                    />
+                    🧲 Live Snap to Grid
+                  </label>
+                  <span style={{ fontSize: '0.7rem', color: snapToGrid ? 'var(--accent-cyan)' : 'var(--text-muted)' }}>
+                    {snapToGrid ? 'Active' : 'Free-Hand'}
+                  </span>
+                </div>
+
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: '1.2' }}>
+                  {snapToGrid
+                    ? 'Tokens automatically lock to grid slots during live dragging.'
+                    : 'Tokens can be moved freely anywhere. Use Auto-Arrange below to snap all tokens to their nearest empty grid slots.'}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={arrangeNearestGridSlots}
+                  disabled={snapToGrid || sheetTokens.length === 0}
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.6rem',
+                    background: snapToGrid || sheetTokens.length === 0 ? 'var(--card-colors-bg)' : 'var(--accent-cyan)',
+                    color: snapToGrid || sheetTokens.length === 0 ? 'var(--text-muted)' : 'var(--bg-dark)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    cursor: snapToGrid || sheetTokens.length === 0 ? 'not-allowed' : 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                  title={snapToGrid ? 'Auto-arrange is available when Live Snap to Grid is OFF' : 'Snap free-placed tokens to nearest open grid slots'}
+                >
+                  📐 Auto-Arrange to Nearest Grid Slots
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* CENTER COLUMN: INTERACTIVE PRINTABLE PAPER CANVAS */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+
+          {/* Sheet Stats Header */}
+          <div
+            style={{
+              width: '100%',
+              maxWidth: `${canvasPixelWidth}px`,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.6rem',
+              background: 'var(--input-bg)',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '6px',
+              border: '1px solid var(--panel-border)',
+              fontSize: '0.82rem'
+            }}
+          >
+            <div>
+              <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>Paper:</span> {paperConfig.name} |{' '}
+              <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>Total Tokens:</span> {sheetTokens.length} ({uniqueTokenTypesCount} unique)
+            </div>
+
+            <div>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                💡 Drag tokens from right list onto canvas
+              </span>
             </div>
           </div>
 
-          {/* PRINTABLE PAPER CANVAS SHEET */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-
-            {/* Sheet Stats & Controls Bar */}
+          {/* PAPER CANVAS */}
+          <div
+            id="token-printer-paper-sheet"
+            ref={paperRef}
+            onMouseMove={handleMouseMoveCanvas}
+            onMouseUp={handleMouseUpCanvas}
+            onMouseLeave={handleMouseUpCanvas}
+            onDragOver={handleDragOverCanvas}
+            onDrop={handleDropOnCanvas}
+            style={{
+              width: `${canvasPixelWidth}px`,
+              height: `${canvasPixelHeight}px`,
+              backgroundColor: '#ffffff',
+              borderRadius: '2px',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0,0,0,0.4)',
+              position: 'relative',
+              overflow: 'hidden',
+              userSelect: 'none',
+              cursor: draggingId ? 'grabbing' : 'default',
+              transition: 'height 0.2s ease, width 0.2s ease'
+            }}
+          >
+            {/* Margin Indicator Guidelines */}
             <div
+              className="print-ui-overlay"
               style={{
-                width: '100%',
-                maxWidth: `${canvasPixelWidth}px`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.6rem',
-                background: 'var(--input-bg)',
-                padding: '0.4rem 0.8rem',
-                borderRadius: '6px',
-                border: '1px solid var(--panel-border)',
-                fontSize: '0.82rem'
+                position: 'absolute',
+                top: `${marginTop * mmToPx}px`,
+                bottom: `${marginBottom * mmToPx}px`,
+                left: `${marginLeft * mmToPx}px`,
+                right: `${marginRight * mmToPx}px`,
+                border: '1px dashed #ef4444',
+                pointerEvents: 'none',
+                zIndex: 0
               }}
-            >
-              <div>
-                <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>Paper:</span> {paperConfig.name} |{' '}
-                <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>Total Tokens:</span> {sheetTokens.length} ({uniqueTokenTypesCount} unique)
-              </div>
+            />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                  {snapToGrid ? '🧲 Snapping to grid cell slots' : '🖐️ Free drag & drop enabled'}
-                </span>
-              </div>
-            </div>
+            {/* Red Dotted Preview Grid Lines */}
+            {showGridLines && (
+              <svg
+                className="print-ui-overlay"
+                width="100%"
+                height="100%"
+                style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', opacity: 0.45, zIndex: 0 }}
+              >
+                <defs>
+                  <pattern
+                    id="printer-red-grid-pattern"
+                    x={marginLeft * mmToPx}
+                    y={marginTop * mmToPx}
+                    width={(tokenSizeMM + gapX) * mmToPx}
+                    height={(tokenSizeMM + gapY) * mmToPx}
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <rect
+                      x="0"
+                      y="0"
+                      width={tokenSizeMM * mmToPx}
+                      height={tokenSizeMM * mmToPx}
+                      fill="none"
+                      stroke="#ef4444"
+                      strokeWidth="1"
+                      strokeDasharray="2,2"
+                    />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#printer-red-grid-pattern)" />
+              </svg>
+            )}
 
-            <div
-              id="token-printer-paper-sheet"
-              ref={paperRef}
-              onMouseMove={handleMouseMoveCanvas}
-              onMouseUp={handleMouseUpCanvas}
-              onMouseLeave={handleMouseUpCanvas}
-              style={{
-                width: `${canvasPixelWidth}px`,
-                height: `${canvasPixelHeight}px`,
-                backgroundColor: '#ffffff',
-                borderRadius: '2px',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0,0,0,0.4)',
-                position: 'relative',
-                overflow: 'hidden',
-                userSelect: 'none',
-                cursor: draggingId ? 'grabbing' : 'default',
-                transition: 'height 0.2s ease, width 0.2s ease'
-              }}
-            >
-              {/* Margin Indicator Guidelines (Class print-ui-overlay excluded during export) */}
+            {sheetTokens.length === 0 ? (
               <div
                 className="print-ui-overlay"
                 style={{
                   position: 'absolute',
-                  top: `${marginTop * mmToPx}px`,
-                  bottom: `${marginBottom * mmToPx}px`,
-                  left: `${marginLeft * mmToPx}px`,
-                  right: `${marginRight * mmToPx}px`,
-                  border: '1px dashed #ef4444',
-                  pointerEvents: 'none',
-                  zIndex: 0
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center',
+                  color: '#94a3b8',
+                  fontFamily: "'Share Tech Mono', monospace"
                 }}
-              />
+              >
+                <div style={{ fontSize: '2.5rem', marginBottom: '0.4rem' }}>🖨️</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>PRINTABLE PAGE SHEET IS EMPTY</div>
+                <div style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>Drag or click tokens from the right panel to place them on this page!</div>
+              </div>
+            ) : (
+              sheetTokens.map((token) => {
+                const tokenPxSize = tokenSizeMM * mmToPx;
+                const leftPx = token.x * mmToPx;
+                const topPx = token.y * mmToPx;
+                const isSelected = selectedTokenId === token.id;
 
-              {/* Red Dotted Preview Grid Lines (Class print-ui-overlay excluded during export & print) */}
-              {showGridLines && (
-                <svg
-                  className="print-ui-overlay"
-                  width="100%"
-                  height="100%"
-                  style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', opacity: 0.45, zIndex: 0 }}
-                >
-                  <defs>
-                    <pattern
-                      id="printer-red-grid-pattern"
-                      x={marginLeft * mmToPx}
-                      y={marginTop * mmToPx}
-                      width={(tokenSizeMM + gapX) * mmToPx}
-                      height={(tokenSizeMM + gapY) * mmToPx}
-                      patternUnits="userSpaceOnUse"
-                    >
-                      <rect
-                        x="0"
-                        y="0"
-                        width={tokenSizeMM * mmToPx}
-                        height={tokenSizeMM * mmToPx}
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="1"
-                        strokeDasharray="2,2"
-                      />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#printer-red-grid-pattern)" />
-                </svg>
-              )}
+                return (
+                  <div
+                    key={token.id}
+                    onMouseDown={(e) => handleMouseDownToken(e, token)}
+                    style={{
+                      position: 'absolute',
+                      left: `${leftPx}px`,
+                      top: `${topPx}px`,
+                      width: `${tokenPxSize}px`,
+                      height: `${tokenPxSize}px`,
+                      cursor: 'grab',
+                      zIndex: isSelected ? 10 : 1,
+                      transition: draggingId === token.id ? 'none' : 'box-shadow 0.15s ease'
+                    }}
+                  >
+                    {/* Render Land Token */}
+                    <LandToken
+                      tokenData={token.data}
+                      side={token.side || 'front'}
+                      size={tokenPxSize}
+                    />
 
-              {sheetTokens.length === 0 ? (
-                <div
-                  className="print-ui-overlay"
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    color: '#94a3b8',
-                    fontFamily: "'Share Tech Mono', monospace"
-                  }}
-                >
-                  <div style={{ fontSize: '2.5rem', marginBottom: '0.4rem' }}>🖨️</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>PRINTABLE PAGE SHEET IS EMPTY</div>
-                  <div style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>Select tokens from the right panel to place them on this page!</div>
-                </div>
-              ) : (
-                sheetTokens.map((token) => {
-                  const tokenPxSize = tokenSizeMM * mmToPx;
-                  const leftPx = token.x * mmToPx;
-                  const topPx = token.y * mmToPx;
-                  const isSelected = selectedTokenId === token.id;
-
-                  return (
+                    {/* Selection & Hover Controls Overlay */}
                     <div
-                      key={token.id}
-                      onMouseDown={(e) => handleMouseDownToken(e, token)}
+                      className="print-ui-overlay"
                       style={{
                         position: 'absolute',
-                        left: `${leftPx}px`,
-                        top: `${topPx}px`,
-                        width: `${tokenPxSize}px`,
-                        height: `${tokenPxSize}px`,
-                        cursor: 'grab',
-                        zIndex: isSelected ? 10 : 1,
-                        transition: draggingId === token.id ? 'none' : 'box-shadow 0.15s ease'
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: `${tokenPxSize * 0.08}px`,
+                        border: isSelected ? '2px solid #00f0ff' : '1px solid transparent',
+                        boxShadow: isSelected ? '0 0 8px rgba(0,240,255,0.8)' : 'none',
+                        pointerEvents: 'none'
+                      }}
+                    />
+
+                    {/* Quick Action Delete Button */}
+                    <button
+                      type="button"
+                      className="print-ui-overlay"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveToken(token.id);
+                      }}
+                      title="Remove token from sheet"
+                      style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        background: '#ef4444',
+                        color: '#ffffff',
+                        border: '1px solid #ffffff',
+                        borderRadius: '50%',
+                        width: `${Math.max(18, tokenPxSize * 0.28)}px`,
+                        height: `${Math.max(18, tokenPxSize * 0.28)}px`,
+                        fontSize: `${Math.max(10, tokenPxSize * 0.16)}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                        zIndex: 20
                       }}
                     >
-                      {/* Render Land Token */}
-                      <LandToken
-                        tokenData={token.data}
-                        side={token.side || 'front'}
-                        size={tokenPxSize}
-                      />
+                      ✕
+                    </button>
 
-                      {/* Selection & Hover Controls Overlay (Class print-ui-overlay excluded during export) */}
-                      <div
-                        className="print-ui-overlay"
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          borderRadius: `${tokenPxSize * 0.08}px`,
-                          border: isSelected ? '2px solid #00f0ff' : '1px solid transparent',
-                          boxShadow: isSelected ? '0 0 8px rgba(0,240,255,0.8)' : 'none',
-                          pointerEvents: 'none'
-                        }}
-                      />
-
-                      {/* Quick Action Delete Button (Class print-ui-overlay excluded during export) */}
+                    {/* Duplicate Button on Select */}
+                    {isSelected && (
                       <button
                         type="button"
                         className="print-ui-overlay"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRemoveToken(token.id);
+                          handleDuplicateTokenOnSheet(token.id);
                         }}
-                        title="Remove token from sheet"
+                        title={duplicatePairTogether ? 'Duplicate both front & back pair' : 'Duplicate this token'}
                         style={{
                           position: 'absolute',
-                          top: '-8px',
+                          bottom: '-8px',
                           right: '-8px',
-                          background: '#ef4444',
-                          color: '#ffffff',
+                          background: '#00f0ff',
+                          color: '#0a0e17',
                           border: '1px solid #ffffff',
                           borderRadius: '50%',
                           width: `${Math.max(18, tokenPxSize * 0.28)}px`,
                           height: `${Math.max(18, tokenPxSize * 0.28)}px`,
                           fontSize: `${Math.max(10, tokenPxSize * 0.16)}px`,
+                          fontWeight: 'bold',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -890,47 +1021,13 @@ export function TokenPrinter({
                           zIndex: 20
                         }}
                       >
-                        ✕
+                        +
                       </button>
-
-                      {/* Duplicate Button on Select (Class print-ui-overlay excluded during export) */}
-                      {isSelected && (
-                        <button
-                          type="button"
-                          className="print-ui-overlay"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDuplicateTokenOnSheet(token.id);
-                          }}
-                          title="Duplicate this token"
-                          style={{
-                            position: 'absolute',
-                            bottom: '-8px',
-                            right: '-8px',
-                            background: '#00f0ff',
-                            color: '#0a0e17',
-                            border: '1px solid #ffffff',
-                            borderRadius: '50%',
-                            width: `${Math.max(18, tokenPxSize * 0.28)}px`,
-                            height: `${Math.max(18, tokenPxSize * 0.28)}px`,
-                            fontSize: `${Math.max(10, tokenPxSize * 0.16)}px`,
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
-                            zIndex: 20
-                          }}
-                        >
-                          +
-                        </button>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -940,7 +1037,7 @@ export function TokenPrinter({
           {/* TOKEN ADD QUANTITY CONTROLLER */}
           <div className="tint-card tint-card-dice">
             <h3 className="subsection-header">🎯 Token Selection Palette</h3>
-            <p className="field-help-text">Specify batch quantity and click any token to place copies on the printable page!</p>
+            <p className="field-help-text">Click or drag any token onto the printable page sheet on the left!</p>
 
             {/* BATCH QUANTITY INPUT */}
             <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--panel-border)', marginBottom: '0.5rem' }}>
@@ -952,7 +1049,7 @@ export function TokenPrinter({
                   max="50"
                   value={addQuantity}
                   onChange={(e) => setAddQuantity(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
-                  style={{ width: '80px', fontWeight: 'bold', textAlign: 'center' }}
+                  style={{ width: '70px', fontWeight: 'bold', textAlign: 'center' }}
                 />
 
                 <div style={{ display: 'flex', gap: '0.3rem' }}>
@@ -962,7 +1059,7 @@ export function TokenPrinter({
                       type="button"
                       onClick={() => setAddQuantity(q)}
                       style={{
-                        padding: '0.25rem 0.5rem',
+                        padding: '0.25rem 0.45rem',
                         background: addQuantity === q ? 'var(--accent-cyan)' : 'var(--card-colors-bg)',
                         color: addQuantity === q ? 'var(--bg-dark)' : 'var(--text-primary)',
                         border: '1px solid var(--panel-border)',
@@ -981,6 +1078,8 @@ export function TokenPrinter({
 
             {/* A) ACTIVE TOKEN FROM GENERATOR */}
             <div
+              draggable
+              onDragStart={(e) => handleDragStartPaletteToken(e, activeTokenData, 'active_token')}
               style={{
                 background: 'var(--input-bg)',
                 border: '1px solid var(--accent-cyan)',
@@ -989,7 +1088,8 @@ export function TokenPrinter({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '0.8rem'
+                gap: '0.8rem',
+                cursor: 'grab'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
@@ -1056,7 +1156,7 @@ export function TokenPrinter({
                   No saved token presets found. Save tokens from the Token Generator section to use them here!
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '380px', overflowY: 'auto', paddingRight: '0.2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.2rem' }}>
                   {savedTokens.map((item) => {
                     const count = getTokenCount(item.id);
                     const tokenData = item.data;
@@ -1064,6 +1164,8 @@ export function TokenPrinter({
                     return (
                       <div
                         key={item.id}
+                        draggable
+                        onDragStart={(e) => handleDragStartPaletteToken(e, item.data, item.id)}
                         style={{
                           background: 'var(--input-bg)',
                           border: count > 0 ? '1px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
@@ -1072,7 +1174,8 @@ export function TokenPrinter({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          gap: '0.6rem'
+                          gap: '0.6rem',
+                          cursor: 'grab'
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: 0 }}>
