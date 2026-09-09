@@ -330,141 +330,156 @@ export function JointCapabilityCard({
         </svg>
       )}
 
-      {/* 1. TOP STRIP (VERTICAL DIVIDER BETWEEN COST AND TITLE) */}
-      <div
-        style={{
-          backgroundColor: stripBgColor,
-          color: topStripTextColor,
-          height: `${Math.round(height * 0.09)}px`,
-          padding: '0 8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '3px solid #000000',
-          boxSizing: 'border-box',
-          position: 'relative',
-          zIndex: 2
-        }}
-      >
-        {/* Left Side: Cost Number with vertical divider */}
+      {/* 1. TOP STRIP WITH CUT CORNERS & DROP SHADOW + PHOTO AREA */}
+      <div style={{ position: 'relative', width: '100%', zIndex: 2 }}>
+        {/* TOP STRIP */}
         <div
           style={{
+            backgroundColor: stripBgColor,
+            color: topStripTextColor,
+            height: `${Math.round(height * 0.09)}px`,
+            margin: '6px 4px 0 4px', // inset slightly from side borders
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: `${Math.round(height * 0.065)}px`,
-            height: '100%',
-            fontSize: `${Math.round(height * 0.055)}px`,
-            fontWeight: '900',
-            fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
-            lineHeight: 1,
-            flexShrink: 0,
-            borderRight: '2px solid rgba(255, 255, 255, 0.4)'
-          }}
-          title={`Cost: ${cost}`}
-        >
-          {cost}
-        </div>
-
-        {/* Title */}
-        <div
-          style={{
-            flex: 1,
-            textAlign: 'left',
-            paddingLeft: '10px',
-            paddingRight: '6px',
-            overflow: 'hidden'
+            alignItems: 'stretch',
+            position: 'relative',
+            zIndex: 3,
+            filter: 'drop-shadow(0 4px 5px rgba(0, 0, 0, 0.75))',
+            boxSizing: 'border-box'
           }}
         >
+          {/* Left Cost Block (rectangular box) */}
           <div
             style={{
-              fontSize: `${Math.round(height * 0.033)}px`,
-              fontWeight: '900',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              lineHeight: 1.1,
-              fontFamily: titleFont
-            }}
-          >
-            {title}
-          </div>
-        </div>
-
-        {/* Right Side: Size Triangle and Type Icon */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          {showSizeTriangle && (
-            <div
-              style={{
-                position: 'relative',
-                width: `${Math.round(height * 0.088)}px`,
-                height: `${Math.round(height * 0.062)}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title={`Size: ${sizeNumber}`}
-            >
-              <svg width="100%" height="100%" viewBox="0 0 140 100" preserveAspectRatio="none">
-                <polygon points="70,5 138,95 2,95" fill="#ffffff" stroke="none" />
-                <text x="70" y="80" fill="#000000" fontSize="54" fontWeight="900" textAnchor="middle" fontFamily="'Trebuchet MS', sans-serif">
-                  {sizeNumber}
-                </text>
-              </svg>
-            </div>
-          )}
-
-          {/* Type Icon */}
-          <div
-            style={{
+              width: `${Math.round(height * 0.07)}px`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: topStripTextColor
+              fontSize: `${Math.round(height * 0.055)}px`,
+              fontWeight: '900',
+              fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
+              lineHeight: 1,
+              flexShrink: 0,
+              borderRight: '2px solid rgba(0, 0, 0, 0.4)'
+            }}
+            title={`Cost: ${cost}`}
+          >
+            {cost}
+          </div>
+
+          {/* Right Main Strip with Cut Corner top-right and Notch at bottom-left */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingLeft: '8px',
+              paddingRight: '10px',
+              clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%, 0 calc(100% - 8px), 8px 100%, 0 100%)',
+              position: 'relative',
+              overflow: 'hidden'
             }}
           >
-            {selectedTypeObj.icon}
+            {/* Title */}
+            <div
+              style={{
+                flex: 1,
+                textAlign: 'left',
+                overflow: 'hidden',
+                paddingRight: '6px'
+              }}
+            >
+              <div
+                style={{
+                  fontSize: `${Math.round(height * 0.033)}px`,
+                  fontWeight: '900',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.1,
+                  fontFamily: titleFont
+                }}
+              >
+                {title}
+              </div>
+            </div>
+
+            {/* Right Side: Size Triangle and Type Icon */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              {showSizeTriangle && (
+                <div
+                  style={{
+                    position: 'relative',
+                    width: `${Math.round(height * 0.088)}px`,
+                    height: `${Math.round(height * 0.062)}px`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  title={`Size: ${sizeNumber}`}
+                >
+                  <svg width="100%" height="100%" viewBox="0 0 140 100" preserveAspectRatio="none">
+                    <polygon points="70,5 138,95 2,95" fill="#ffffff" stroke="none" />
+                    <text x="70" y="80" fill="#000000" fontSize="54" fontWeight="900" textAnchor="middle" fontFamily="'Trebuchet MS', sans-serif">
+                      {sizeNumber}
+                    </text>
+                  </svg>
+                </div>
+              )}
+
+              {/* Type Icon */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: topStripTextColor
+                }}
+              >
+                {selectedTypeObj.icon}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 2. PHOTO CONTAINER (STRAIGHT RECTANGLE) */}
-      <div
-        style={{
-          width: '100%',
-          height: `${Math.round(height * 0.38)}px`,
-          backgroundColor: '#0f172a',
-          position: 'relative',
-          overflow: 'hidden',
-          borderBottom: '3px solid #000000',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1
-        }}
-      >
-        {customImageUrl ? (
-          <img
-            src={customImageUrl}
-            alt={title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-          />
-        ) : (
-          <div style={{ textAlign: 'center', color: placeholderColor, padding: '10px' }}>
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={placeholderColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 6px auto', display: 'block' }}>
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            <span style={{ fontSize: `${Math.round(width * 0.035)}px`, letterSpacing: '1px', fontWeight: 'bold' }}>PHOTO AREA</span>
-          </div>
-        )}
+        {/* 2. PHOTO CONTAINER (Narrower than top strip, covered by strip shadow) */}
+        <div
+          style={{
+            margin: '-12px 10px 0 10px', // slightly inset horizontally so top strip is wider than image
+            height: `${Math.round(height * 0.36)}px`,
+            backgroundColor: '#0f172a',
+            position: 'relative',
+            overflow: 'hidden',
+            borderBottom: '3px solid #000000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1
+          }}
+        >
+          {customImageUrl ? (
+            <img
+              src={customImageUrl}
+              alt={title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', color: placeholderColor, padding: '10px' }}>
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={placeholderColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 6px auto', display: 'block' }}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <span style={{ fontSize: `${Math.round(width * 0.035)}px`, letterSpacing: '1px', fontWeight: 'bold' }}>PHOTO AREA</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 3. MAIN BODY: FEATURE ICONS VERTICALLY ON THE LEFT SIDE (STRICTLY SQUARE DARK BLOCKS) + DESCRIPTION TEXT */}

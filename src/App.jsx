@@ -88,7 +88,7 @@ const DEFAULT_CARD_DATA = {
   bodyFont: "'Trebuchet MS', 'Arial Bold', sans-serif",
   loreFont: "'Trebuchet MS', 'Arial Bold', sans-serif",
   borderColor: '#000000',
-  borderWidth: 6,
+  borderWidth: 10,
   bgColor: '#e2e8f0',
   camoColor: '#94a3b8',
   showCamo: true,
@@ -2133,6 +2133,21 @@ function App() {
                           type="color"
                           value={cardData.borderColor}
                           onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Border Width (px)</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="20"
+                          value={cardData.borderWidth ?? 8}
+                          onChange={(e) => {
+                            const val = Math.min(20, Math.max(0, parseInt(e.target.value) || 0));
+                            setCardData({ ...cardData, borderWidth: val });
+                          }}
+                          style={{ width: '100%', height: '36px', textAlign: 'center', fontWeight: 'bold' }}
                         />
                       </div>
 
