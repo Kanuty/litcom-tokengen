@@ -95,20 +95,10 @@ const FEATURE_TAG_ICONS = {
       <circle cx="19" cy="11.5" r="1.3" fill="currentColor" />
     </svg>
   ),
-  // SAM Launcher / Missile Truck silhouette
+  // SAM Launcher / Missile Truck silhouette from SAM.png
   INTERCEPT: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      {/* SAM Launcher tilted box pod */}
-      <polygon points="3,11 12,6.5 14.5,10.5 5.5,15" />
-      {/* Hydraulic / actuator support */}
-      <line x1="6" y1="14" x2="8" y2="17" stroke="currentColor" strokeWidth="1.8" />
-      {/* Truck bed & cab */}
-      <path d="M2.5,16.5 L20.5,16.5 C20.5,16.5 21,13.5 18,11 L14,11 L14,16.5 Z" />
-      <path d="M14,11.5 L17.5,11.5 L19.5,13.8 L14,13.8 Z" fill="#0f172a" />
-      {/* Wheels */}
-      <circle cx="5.5" cy="18" r="2.2" />
-      <circle cx="9" cy="18" r="2.2" />
-      <circle cx="17.5" cy="18" r="2.2" />
+      <polygon points="11.3,4.8 12.9,8.9 9.6,10.8 9.0,14.4 14.6,14.7 15.0,12.2 15.6,11.6 21.2,11.0 23.0,13.6 23.0,15.7 22.6,16.3 21.5,16.4 21.1,18.4 19.9,19.2 18.7,19.0 17.9,18.0 16.6,19.0 15.2,19.0 14.2,18.2 14.1,16.9 9.2,17.1 8.2,18.6 7.1,19.0 5.5,17.9 4.1,18.8 2.7,18.8 1.8,17.9 1.0,15.3 2.0,12.6 1.0,9.9" />
     </svg>
   ),
   // Paperclip icon
@@ -124,10 +114,10 @@ const FEATURE_TAG_ICONS = {
       <line x1="18" y1="6" x2="6" y2="18" />
     </svg>
   ),
-  // Fighter jet silhouette pointing top-right
+  // Fighter jet silhouette from FTR.png
   FTR: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M 20.5 3.5 C 20.5 3.5 19 6.5 16 9 L 12.5 7.5 L 5 4.5 L 6.5 7.5 L 11 11 L 7.5 14.5 L 4.5 13.5 L 3.5 15.5 L 6.5 17.5 L 7.5 18.5 L 9.5 15.5 L 8.5 12.5 L 12 9 L 14.5 13.5 L 17.5 15 L 14.5 7.5 C 17 4.5 20.5 3.5 20.5 3.5 Z" />
+      <polygon points="22.8,1.0 22.1,3.4 18.1,8.3 18.3,9.8 17.2,11.1 17.0,19.1 18.1,20.0 16.0,22.2 15.0,23.0 14.6,22.6 12.6,15.2 11.4,16.3 10.9,21.9 10.3,22.8 9.4,22.3 7.7,19.6 4.5,19.3 4.9,17.8 4.5,16.1 1.2,13.5 2.5,12.7 7.7,12.4 9.0,11.2 1.5,8.8 1.5,8.3 4.5,5.3 4.9,5.3 4.7,6.6 13.1,6.6 13.9,5.8 15.7,6.0 20.4,2.1" />
     </svg>
   ),
   CUSTOM: (
