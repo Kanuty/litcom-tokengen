@@ -316,6 +316,12 @@ body {
   }
 }
 
+@media (max-width: 1023px) {
+  .printer-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .form-section {
   background: transparent;
   padding: 0;
@@ -570,4 +576,61 @@ input[type="color"]::-webkit-color-swatch {
 input[type="color"]::-moz-color-swatch {
   border: none;
   border-radius: 4px;
+}
+
+/* PULSING RED GLOW FOR OVERLAPPING TOKENS IN TOKEN PRINTER */
+@keyframes pulseRedGlow {
+  0% {
+    box-shadow: 0 0 4px #ef4444, inset 0 0 4px #ef4444;
+    border-color: #ef4444;
+  }
+  50% {
+    box-shadow: 0 0 16px #ef4444, inset 0 0 10px #ef4444;
+    border-color: #f87171;
+  }
+  100% {
+    box-shadow: 0 0 4px #ef4444, inset 0 0 4px #ef4444;
+    border-color: #ef4444;
+  }
+}
+
+.pulsing-overlap-glow {
+  animation: pulseRedGlow 1.2s infinite ease-in-out;
+  border-radius: 4px;
+}
+
+/* BROWSER PRINT STYLES */
+@media print {
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+  }
+  .sticky-nav,
+  .app-header,
+  nav,
+  header,
+  footer,
+  button,
+  .tint-card,
+  .printer-grid > div:first-child,
+  #saved-presets-library,
+  #token-generator,
+  #unit-tracker,
+  #capability-card {
+    display: none !important;
+  }
+  .token-printer-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  #token-printer-paper-sheet {
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid;
+  }
+  #token-printer-paper-sheet button {
+    display: none !important;
+  }
 }

@@ -191,3 +191,48 @@ export async function generatePrintablePDF(frontElementId, backElementId, unitNa
     console.error('Error generating printable PDF:', err);
   }
 }
+
+/**
+ * Generates and downloads a true-scale printable PDF from the Token Printer paper sheet.
+ * Excludes interactive UI elements (buttons, selection rings, grid overlays) from the exported PDF.
+ * @param {Object} options - { paperKey, paperWidthMM, paperHeightMM, elementId }
+ */
+export async function generateTokenPrinterPDF({
+  paperWidthMM = 210,
+  paperHeightMM = 297,
+  elementId = 'token-printer-paper-sheet'
+}) {
+  const paperEl = document.getElementById(elementId);
+  if (!paperEl) {
+    console.error(`Token printer element #${elementId} not found`);
+    return;
+  }
+
+  try {
+    // Filter out interactive UI overlay elements during rendering
+    const dataUrl = await toPng(paperEl, {
+      pixelRatio: 4,
+      cacheBust: true,
+      filter: (node) => {
+        if (node.classList && node.classList.contains('print-ui-overlay')) {
+          return false;
+        }
+        return true;
+      }
+    });
+
+    const isLandscape = paperWidthMM > paperHeightMM;
+    const orientation = isLandscape ? 'landscape' : 'portrait';
+
+    const pdf = new jsPDF({
+      orientation,
+      unit: 'mm',
+      format: [paperWidthMM, paperHeightMM]
+    });
+
+    pdf.addImage(dataUrl, 'PNG', 0, 0, paperWidthMM, paperHeightMM);
+    pdf.save(`littoral-commander-tokens-print-sheet.pdf`);
+  } catch (err) {
+    console.error('Error generating token printer PDF:', err);
+  }
+}

@@ -4,7 +4,8 @@ import { TokenPreview } from './components/TokenPreview';
 import { UnitTracker } from './components/UnitTracker';
 import { JointCapabilityCard } from './components/JointCapabilityCard';
 import { SavedLibrary } from './components/SavedLibrary';
-import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG } from './utils/export';
+import { TokenPrinter } from './components/TokenPrinter';
+import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG, generateTokenPrinterPDF } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
 
@@ -104,6 +105,8 @@ const DEFAULT_CARD_DATA = {
 };
 
 function App() {
+  const [activeView, setActiveView] = useState('suite'); // 'suite' | 'printer'
+
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('lc_app_theme') || 'cyber-blue';
   });
@@ -260,8 +263,11 @@ function App() {
   const handleLoadItem = (item) => {
     if (item.type === 'token') {
       setTokenData(item.data);
-      const elem = document.getElementById('token-generator');
-      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      if (activeView !== 'suite') setActiveView('suite');
+      setTimeout(() => {
+        const elem = document.getElementById('token-generator');
+        if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
       showNotification({
         title: 'PRESET LOADED',
         message: `Loaded token configuration "${item.name}".`,
@@ -269,8 +275,11 @@ function App() {
       });
     } else if (item.type === 'tracker') {
       setTrackerData(item.data);
-      const elem = document.getElementById('unit-tracker');
-      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      if (activeView !== 'suite') setActiveView('suite');
+      setTimeout(() => {
+        const elem = document.getElementById('unit-tracker');
+        if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
       showNotification({
         title: 'PRESET LOADED',
         message: `Loaded Unit Tracker configuration "${item.name}".`,
@@ -278,8 +287,11 @@ function App() {
       });
     } else if (item.type === 'card') {
       setCardData({ ...DEFAULT_CARD_DATA, ...item.data });
-      const elem = document.getElementById('capability-card');
-      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      if (activeView !== 'suite') setActiveView('suite');
+      setTimeout(() => {
+        const elem = document.getElementById('capability-card');
+        if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
       showNotification({
         title: 'PRESET LOADED',
         message: `Loaded Capability Card configuration "${item.name}".`,
@@ -644,12 +656,59 @@ function App() {
       </div>
 
       <nav className="sticky-nav">
-        <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
+        {/* BRAND TITLE + VIEW TOGGLE AT FIXED LEFT POSITION */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div className="nav-brand">LITTORAL COMMANDER SUITE</div>
+
+          <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--input-bg)', padding: '0.2rem 0.4rem', borderRadius: '6px', border: '1px solid var(--panel-border)' }}>
+            <button
+              type="button"
+              onClick={() => setActiveView('suite')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '4px',
+                border: 'none',
+                background: activeView === 'suite' ? 'var(--accent-cyan)' : 'transparent',
+                color: activeView === 'suite' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.05rem',
+                letterSpacing: '1px'
+              }}
+            >
+              🎯 EDITOR SUITE
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('printer')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '4px',
+                border: 'none',
+                background: activeView === 'printer' ? 'var(--accent-cyan)' : 'transparent',
+                color: activeView === 'printer' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.05rem',
+                letterSpacing: '1px'
+              }}
+            >
+              🖨️ TOKEN PRINTER
+            </button>
+          </div>
+        </div>
+
         <div className="nav-links" style={{ alignItems: 'center' }}>
-          <a href="#saved-presets-library" className="nav-link">💾 SAVED PRESETS</a>
-          <a href="#token-generator" className="nav-link">🎯 TOKEN GENERATOR</a>
-          <a href="#unit-tracker" className="nav-link">📋 UNIT TRACKER</a>
-          <a href="#capability-card" className="nav-link">🃏 CAPABILITY CARDS</a>
+          {activeView === 'suite' && (
+            <>
+              <a href="#saved-presets-library" className="nav-link">💾 SAVED PRESETS</a>
+              <a href="#token-generator" className="nav-link">🎯 TOKEN GENERATOR</a>
+              <a href="#unit-tracker" className="nav-link">📋 UNIT TRACKER</a>
+              <a href="#capability-card" className="nav-link">🃏 CAPABILITY CARDS</a>
+            </>
+          )}
 
           {/* Social & External Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: '0.2rem' }}>
@@ -732,416 +791,382 @@ function App() {
         <p>Unofficial tool for rapid design of custom tokens, unit trackers, and joint capability cards</p>
       </header>
 
-      {/* SAVED PRESETS LIBRARY SECTION */}
-      <SavedLibrary
-        items={savedItems}
-        onLoadItem={handleLoadItem}
-        onDeleteItem={handleDeleteSavedItem}
-        onUpdateItemName={handleUpdateItemName}
-        onRefreshItems={refreshSavedItems}
-        showNotification={showNotification}
-        confirmAction={confirmAction}
-      />
+      {/* RENDER TOKEN PRINTER PAGE WHEN ACTIVE VIEW IS PRINTER */}
+      {activeView === 'printer' ? (
+        <TokenPrinter
+          activeTokenData={tokenData}
+          savedItems={savedItems}
+          showNotification={showNotification}
+          confirmAction={confirmAction}
+          onExportPDF={generateTokenPrinterPDF}
+        />
+      ) : (
+        <>
+          {/* SAVED PRESETS LIBRARY SECTION */}
+          <SavedLibrary
+            items={savedItems}
+            onLoadItem={handleLoadItem}
+            onDeleteItem={handleDeleteSavedItem}
+            onUpdateItemName={handleUpdateItemName}
+            onRefreshItems={refreshSavedItems}
+            showNotification={showNotification}
+            confirmAction={confirmAction}
+          />
 
-      {/* TOKEN GENERATOR SECTION */}
-      <section className="token-generator-section" id="token-generator" style={{ marginTop: '1.5rem' }}>
-        <div className="token-generator-panel">
-          <h2>Token Generator</h2>
+          {/* TOKEN GENERATOR SECTION */}
+          <section className="token-generator-section" id="token-generator" style={{ marginTop: '1.5rem' }}>
+            <div className="token-generator-panel">
+              <h2>Token Generator</h2>
 
-          <div className="token-grid">
-            <div className="form-section">
-              <TokenForm tokenData={tokenData} onChange={setTokenData} />
+              <div className="token-grid">
+                <div className="form-section">
+                  <TokenForm tokenData={tokenData} onChange={setTokenData} />
 
-              {/* TOKEN SAVE PRESET BOX */}
+                  {/* TOKEN SAVE PRESET BOX */}
+                  <div
+                    style={{
+                      marginTop: '1.2rem',
+                      paddingTop: '0.8rem',
+                      borderTop: '1px dashed var(--panel-border)'
+                    }}
+                  >
+                    <h4 style={{ margin: '0 0 0.4rem 0', color: 'var(--accent-cyan)', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                      💾 Save Token Preset
+                    </h4>
+                    <form onSubmit={handleSaveTokenPreset} style={{ display: 'flex', gap: '0.6rem' }}>
+                      <input
+                        type="text"
+                        placeholder={tokenData.unitName || 'Preset Name...'}
+                        value={tokenSaveName}
+                        onChange={(e) => setTokenSaveName(e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <button
+                        type="submit"
+                        style={{
+                          padding: '0.4rem 1rem',
+                          background: 'var(--accent-cyan)',
+                          color: 'var(--bg-dark)',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          fontFamily: "'Teko', sans-serif",
+                          fontSize: '1.1rem',
+                          letterSpacing: '1px'
+                        }}
+                      >
+                        SAVE TOKEN
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                <div className="preview-section">
+                  <TokenPreview
+                    tokenData={tokenData}
+                    onChange={setTokenData}
+                    exportFace={exportFace}
+                    onExportFaceChange={setExportFace}
+                    onDownloadPNG={handleDownloadPNG}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* UNIT TRACKER SECTION */}
+          <section className="unit-tracker-section" id="unit-tracker" style={{ marginTop: '2.5rem' }}>
+            <div
+              style={{
+                background: 'var(--panel-bg)',
+                padding: '1.25rem',
+                borderRadius: '8px',
+                boxShadow: 'var(--hud-glow)',
+                border: '1px solid var(--panel-border)',
+                position: 'relative'
+              }}
+            >
               <div
                 style={{
-                  marginTop: '1.2rem',
-                  paddingTop: '0.8rem',
-                  borderTop: '1px dashed var(--panel-border)'
+                  position: 'absolute',
+                  top: '-10px',
+                  left: '15px',
+                  background: 'var(--panel-bg)',
+                  color: 'var(--accent-cyan)',
+                  fontSize: '0.75rem',
+                  padding: '0 8px',
+                  letterSpacing: '1.5px',
+                  border: '1px solid var(--accent-cyan)'
                 }}
               >
-                <h4 style={{ margin: '0 0 0.4rem 0', color: 'var(--accent-cyan)', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
-                  💾 Save Token Preset
-                </h4>
-                <form onSubmit={handleSaveTokenPreset} style={{ display: 'flex', gap: '0.6rem' }}>
-                  <input
-                    type="text"
-                    placeholder={tokenData.unitName || 'Preset Name...'}
-                    value={tokenSaveName}
-                    onChange={(e) => setTokenSaveName(e.target.value)}
-                    style={{ flex: 1 }}
-                  />
-                  <button
-                    type="submit"
-                    style={{
-                      padding: '0.4rem 1rem',
-                      background: 'var(--accent-cyan)',
-                      color: 'var(--bg-dark)',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      fontFamily: "'Teko', sans-serif",
-                      fontSize: '1.1rem',
-                      letterSpacing: '1px'
-                    }}
-                  >
-                    SAVE TOKEN
-                  </button>
-                </form>
-              </div>
-            </div>
-
-            <div className="preview-section">
-              <TokenPreview
-                tokenData={tokenData}
-                onChange={setTokenData}
-                exportFace={exportFace}
-                onExportFaceChange={setExportFace}
-                onDownloadPNG={handleDownloadPNG}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* UNIT TRACKER SECTION */}
-      <section className="unit-tracker-section" id="unit-tracker" style={{ marginTop: '2.5rem' }}>
-        <div
-          style={{
-            background: 'var(--panel-bg)',
-            padding: '1.25rem',
-            borderRadius: '8px',
-            boxShadow: 'var(--hud-glow)',
-            border: '1px solid var(--panel-border)',
-            position: 'relative'
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: '-10px',
-              left: '15px',
-              background: 'var(--panel-bg)',
-              color: 'var(--accent-cyan)',
-              fontSize: '0.75rem',
-              padding: '0 8px',
-              letterSpacing: '1.5px',
-              border: '1px solid var(--accent-cyan)'
-            }}
-          >
-            /// UNIT_TRACKER_GENERATOR
-          </div>
-
-          <h2
-            style={{
-              marginTop: '0',
-              marginBottom: '1rem',
-              color: 'var(--accent-cyan)',
-              fontFamily: "'Teko', sans-serif",
-              fontSize: '1.8rem',
-              letterSpacing: '1.5px',
-              borderBottom: '1px solid var(--panel-border)',
-              paddingBottom: '0.4rem',
-              textTransform: 'uppercase'
-            }}
-          >
-            Unit Tracker Builder
-          </h2>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '1.5rem',
-              alignItems: 'start'
-            }}
-            className="tracker-grid"
-          >
-            {/* Tracker Form Controls */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-
-              {/* 1. BASIC TRACKER IDENTIFICATION */}
-              <div className="tint-card tint-card-attributes">
-                <h3 className="subsection-header">📋 Tracker Identification & Designation</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label className="field-label">Tracker Type</label>
-                    <select
-                      value={trackerData.trackerType}
-                      onChange={(e) => {
-                        const newType = e.target.value;
-                        setTrackerData({
-                          ...trackerData,
-                          trackerType: newType,
-                          showReverseTriangle: newType === 'carrier' ? true : trackerData.showReverseTriangle
-                        });
-                      }}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="standard">Standard Unit Tracker</option>
-                      <option value="carrier">Carrier Unit Tracker (Embarked Aircraft Box)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="field-label">Bottom Right Tracker Name</label>
-                    <input
-                      type="text"
-                      value={trackerData.footerName}
-                      onChange={(e) => setTrackerData({ ...trackerData, footerName: e.target.value })}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="field-label">Tracker Title</label>
-                  <input
-                    type="text"
-                    value={trackerData.title}
-                    onChange={(e) => setTrackerData({ ...trackerData, title: e.target.value })}
-                    style={{ width: '100%' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="field-label">Description (Under Title)</label>
-                  <textarea
-                    rows="2"
-                    value={trackerData.description}
-                    onChange={(e) => setTrackerData({ ...trackerData, description: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.4rem 0.5rem',
-                      borderRadius: '4px',
-                      fontFamily: 'inherit',
-                      fontSize: '0.82rem',
-                      resize: 'vertical'
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
-                  <div>
-                    <label className="field-label">Triangle ▲ Num (1-50)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={trackerData.triangleNumber}
-                      onChange={(e) => {
-                        const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
-                        setTrackerData({ ...trackerData, triangleNumber: val });
-                      }}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="field-label">Reversed ▲ Num (1-50)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={trackerData.reverseTriangleNumber}
-                      onChange={(e) => {
-                        const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
-                        setTrackerData({ ...trackerData, reverseTriangleNumber: val });
-                      }}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="field-label">Initial HP Square (1-20)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={trackerData.initialHpSquare || ''}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === '') {
-                          setTrackerData({ ...trackerData, initialHpSquare: null });
-                        } else {
-                          const val = Math.min(20, Math.max(1, parseInt(raw) || 1));
-                          setTrackerData({ ...trackerData, initialHpSquare: val });
-                        }
-                      }}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                </div>
+                /// UNIT_TRACKER_GENERATOR
               </div>
 
-              {/* 2. AIRCRAFT DISPLAY OPTIONS (CARRIER MODE) */}
-              {trackerData.trackerType === 'carrier' && (
-                <div className="tint-card tint-card-aircraft">
-                  <h3 className="subsection-header">✈️ Embarked Aircraft Display Options</h3>
+              <h2
+                style={{
+                  marginTop: '0',
+                  marginBottom: '1rem',
+                  color: 'var(--accent-cyan)',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '1.8rem',
+                  letterSpacing: '1.5px',
+                  borderBottom: '1px solid var(--panel-border)',
+                  paddingBottom: '0.4rem',
+                  textTransform: 'uppercase'
+                }}
+              >
+                Unit Tracker Builder
+              </h2>
 
-                  <div>
-                    <label className="field-label">Visible Aircraft Types</label>
-                    <select
-                      value={
-                        trackerData.showJetIcon && trackerData.showHelicopterIcon
-                          ? 'both'
-                          : trackerData.showJetIcon
-                          ? 'jet'
-                          : trackerData.showHelicopterIcon
-                          ? 'helicopter'
-                          : 'none'
-                      }
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setTrackerData((prev) => ({
-                          ...prev,
-                          showJetIcon: val === 'both' || val === 'jet',
-                          showHelicopterIcon: val === 'both' || val === 'helicopter'
-                        }));
-                      }}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="both">Both (Airplane & Helicopter)</option>
-                      <option value="jet">Airplane Only</option>
-                      <option value="helicopter">Helicopter Only</option>
-                      <option value="none">None</option>
-                    </select>
-                  </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr',
+                  gap: '1.5rem',
+                  alignItems: 'start'
+                }}
+                className="tracker-grid"
+              >
+                {/* Tracker Form Controls */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div>
-                      <label className="field-label" style={{ fontSize: '0.78rem' }}>Custom Airplane Image</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleJetIconUpload}
-                        style={{ width: '100%', fontSize: '0.78rem' }}
-                      />
-                      {trackerData.customJetIconUrl && (
-                        <button
-                          onClick={() => setTrackerData({ ...trackerData, customJetIconUrl: null })}
-                          style={{
-                            marginTop: '0.3rem',
-                            fontSize: '0.72rem',
-                            padding: '2px 6px',
-                            background: '#dc2626',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '3px',
-                            cursor: 'pointer'
+                  {/* 1. BASIC TRACKER IDENTIFICATION */}
+                  <div className="tint-card tint-card-attributes">
+                    <h3 className="subsection-header">📋 Tracker Identification & Designation</h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div>
+                        <label className="field-label">Tracker Type</label>
+                        <select
+                          value={trackerData.trackerType}
+                          onChange={(e) => {
+                            const newType = e.target.value;
+                            setTrackerData({
+                              ...trackerData,
+                              trackerType: newType,
+                              showReverseTriangle: newType === 'carrier' ? true : trackerData.showReverseTriangle
+                            });
                           }}
+                          style={{ width: '100%' }}
                         >
-                          Reset Airplane Image
-                        </button>
-                      )}
+                          <option value="standard">Standard Unit Tracker</option>
+                          <option value="carrier">Carrier Unit Tracker (Embarked Aircraft Box)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="field-label">Bottom Right Tracker Name</label>
+                        <input
+                          type="text"
+                          value={trackerData.footerName}
+                          onChange={(e) => setTrackerData({ ...trackerData, footerName: e.target.value })}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label className="field-label" style={{ fontSize: '0.78rem' }}>Custom Helicopter Image</label>
+                      <label className="field-label">Tracker Title</label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleHelicopterIconUpload}
-                        style={{ width: '100%', fontSize: '0.78rem' }}
+                        type="text"
+                        value={trackerData.title}
+                        onChange={(e) => setTrackerData({ ...trackerData, title: e.target.value })}
+                        style={{ width: '100%' }}
                       />
-                      {trackerData.customHelicopterIconUrl && (
-                        <button
-                          onClick={() => setTrackerData({ ...trackerData, customHelicopterIconUrl: null })}
-                          style={{
-                            marginTop: '0.3rem',
-                            fontSize: '0.72rem',
-                            padding: '2px 6px',
-                            background: '#dc2626',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '3px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Reset Helicopter Image
-                        </button>
-                      )}
                     </div>
-                  </div>
-                </div>
-              )}
 
-              {/* 3. INTERACTIVE GRID PLACEMENT MODE WITH MINI DIE GRAPHICS */}
-              <div className="tint-card tint-card-grid">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 className="subsection-header">🎯 Interactive Grid Placement Mode</h3>
-                  <button
-                    onClick={handleClearAllMarkers}
-                    style={{
-                      fontSize: '0.75rem',
-                      padding: '0.25rem 0.5rem',
-                      background: '#dc2626',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    🗑️ Clear Markers
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => setClickMode('dice')}
-                    style={{
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '4px',
-                      border: clickMode === 'dice' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
-                      background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '0.82rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                  >
-                    <MiniDieIcon die={tokenData.dice?.[0]} /> Place Token / Supply Dice
-                  </button>
-                  <button
-                    onClick={() => setClickMode('hp')}
-                    style={{
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '4px',
-                      border: clickMode === 'hp' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
-                      background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '0.82rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                  >
-                    <MiniDieIcon isHp /> Set HP Marker
-                  </button>
-                </div>
-
-                {clickMode === 'dice' && (
-                  <div>
-                    <p className="field-help-text">
-                      Select a die below, then click any numbered square (1–20) on the preview to place/remove it!
-                    </p>
-
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div
-                        onClick={() => setSelectedDieIndex('supply')}
+                    <div>
+                      <label className="field-label">Description (Under Title)</label>
+                      <textarea
+                        rows="2"
+                        value={trackerData.description}
+                        onChange={(e) => setTrackerData({ ...trackerData, description: e.target.value })}
                         style={{
-                          padding: '0.4rem 0.75rem',
+                          width: '100%',
+                          padding: '0.4rem 0.5rem',
                           borderRadius: '4px',
-                          border: selectedDieIndex === 'supply' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
-                          background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : 'var(--input-bg)',
+                          fontFamily: 'inherit',
+                          fontSize: '0.82rem',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
+                      <div>
+                        <label className="field-label">Triangle ▲ Num (1-50)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={trackerData.triangleNumber}
+                          onChange={(e) => {
+                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            setTrackerData({ ...trackerData, triangleNumber: val });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="field-label">Reversed ▲ Num (1-50)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={trackerData.reverseTriangleNumber}
+                          onChange={(e) => {
+                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            setTrackerData({ ...trackerData, reverseTriangleNumber: val });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="field-label">Initial HP Square (1-20)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={trackerData.initialHpSquare || ''}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === '') {
+                              setTrackerData({ ...trackerData, initialHpSquare: null });
+                            } else {
+                              const val = Math.min(20, Math.max(1, parseInt(raw) || 1));
+                              setTrackerData({ ...trackerData, initialHpSquare: val });
+                            }
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. AIRCRAFT DISPLAY OPTIONS (CARRIER MODE) */}
+                  {trackerData.trackerType === 'carrier' && (
+                    <div className="tint-card tint-card-aircraft">
+                      <h3 className="subsection-header">✈️ Embarked Aircraft Display Options</h3>
+
+                      <div>
+                        <label className="field-label">Visible Aircraft Types</label>
+                        <select
+                          value={
+                            trackerData.showJetIcon && trackerData.showHelicopterIcon
+                              ? 'both'
+                              : trackerData.showJetIcon
+                              ? 'jet'
+                              : trackerData.showHelicopterIcon
+                              ? 'helicopter'
+                              : 'none'
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setTrackerData((prev) => ({
+                              ...prev,
+                              showJetIcon: val === 'both' || val === 'jet',
+                              showHelicopterIcon: val === 'both' || val === 'helicopter'
+                            }));
+                          }}
+                          style={{ width: '100%' }}
+                        >
+                          <option value="both">Both (Airplane & Helicopter)</option>
+                          <option value="jet">Airplane Only</option>
+                          <option value="helicopter">Helicopter Only</option>
+                          <option value="none">None</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div>
+                          <label className="field-label" style={{ fontSize: '0.78rem' }}>Custom Airplane Image</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleJetIconUpload}
+                            style={{ width: '100%', fontSize: '0.78rem' }}
+                          />
+                          {trackerData.customJetIconUrl && (
+                            <button
+                              onClick={() => setTrackerData({ ...trackerData, customJetIconUrl: null })}
+                              style={{
+                                marginTop: '0.3rem',
+                                fontSize: '0.72rem',
+                                padding: '2px 6px',
+                                background: '#dc2626',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '3px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Reset Airplane Image
+                            </button>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="field-label" style={{ fontSize: '0.78rem' }}>Custom Helicopter Image</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleHelicopterIconUpload}
+                            style={{ width: '100%', fontSize: '0.78rem' }}
+                          />
+                          {trackerData.customHelicopterIconUrl && (
+                            <button
+                              onClick={() => setTrackerData({ ...trackerData, customHelicopterIconUrl: null })}
+                              style={{
+                                marginTop: '0.3rem',
+                                fontSize: '0.72rem',
+                                padding: '2px 6px',
+                                background: '#dc2626',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '3px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Reset Helicopter Image
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. INTERACTIVE GRID PLACEMENT MODE WITH MINI DIE GRAPHICS */}
+                  <div className="tint-card tint-card-grid">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 className="subsection-header">🎯 Interactive Grid Placement Mode</h3>
+                      <button
+                        onClick={handleClearAllMarkers}
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.25rem 0.5rem',
+                          background: '#dc2626',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        🗑️ Clear Markers
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => setClickMode('dice')}
+                        style={{
+                          padding: '0.4rem 0.8rem',
+                          borderRadius: '4px',
+                          border: clickMode === 'dice' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                          background: clickMode === 'dice' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
                           color: 'var(--text-primary)',
                           cursor: 'pointer',
                           fontWeight: 'bold',
@@ -1151,729 +1176,668 @@ function App() {
                           gap: '0.4rem'
                         }}
                       >
-                        <MiniDieIcon isSupply /> Supply Die
+                        <MiniDieIcon die={tokenData.dice?.[0]} /> Place Token / Supply Dice
+                      </button>
+                      <button
+                        onClick={() => setClickMode('hp')}
+                        style={{
+                          padding: '0.4rem 0.8rem',
+                          borderRadius: '4px',
+                          border: clickMode === 'hp' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                          background: clickMode === 'hp' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '0.82rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <MiniDieIcon isHp /> Set HP Marker
+                      </button>
+                    </div>
+
+                    {clickMode === 'dice' && (
+                      <div>
+                        <p className="field-help-text">
+                          Select a die below, then click any numbered square (1–20) on the preview to place/remove it!
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div
+                            onClick={() => setSelectedDieIndex('supply')}
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              borderRadius: '4px',
+                              border: selectedDieIndex === 'supply' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                              background: selectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : 'var(--input-bg)',
+                              color: 'var(--text-primary)',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '0.82rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem'
+                            }}
+                          >
+                            <MiniDieIcon isSupply /> Supply Die
+                          </div>
+
+                          {tokenData.dice && tokenData.dice.map((die, idx) => (
+                            <div
+                              key={idx}
+                              onClick={() => setSelectedDieIndex(idx)}
+                              style={{
+                                padding: '0.4rem 0.75rem',
+                                borderRadius: '4px',
+                                border: selectedDieIndex === idx ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                                background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : 'var(--input-bg)',
+                                color: 'var(--text-primary)',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: '0.82rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem'
+                              }}
+                            >
+                              <MiniDieIcon die={die} /> Die #{idx + 1}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {clickMode === 'hp' && (
+                      <p className="field-help-text" style={{ margin: 0 }}>
+                        Click any numbered square (1–20) on the preview to place or move the black Initial HP square!
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 4. CUSTOM TOKEN & BACKSIDE IMAGES */}
+                  <div className="tint-card tint-card-colors">
+                    <h3 className="subsection-header">🖼️ Custom Token & Backside Images</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                      <div>
+                        <label className="field-label">Front Token Image Override</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          style={{ width: '100%', fontSize: '0.78rem' }}
+                        />
+                        {trackerData.customImageUrl && (
+                          <button
+                            onClick={() => setTrackerData({ ...trackerData, customImageUrl: null })}
+                            style={{
+                              marginTop: '0.3rem',
+                              fontSize: '0.72rem',
+                              padding: '2px 6px',
+                              background: '#dc2626',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Reset Front Image
+                          </button>
+                        )}
                       </div>
 
-                      {tokenData.dice && tokenData.dice.map((die, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => setSelectedDieIndex(idx)}
-                          style={{
-                            padding: '0.4rem 0.75rem',
-                            borderRadius: '4px',
-                            border: selectedDieIndex === idx ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
-                            background: selectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : 'var(--input-bg)',
-                            color: 'var(--text-primary)',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            fontSize: '0.82rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem'
-                          }}
-                        >
-                          <MiniDieIcon die={die} /> Die #{idx + 1}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {clickMode === 'hp' && (
-                  <p className="field-help-text" style={{ margin: 0 }}>
-                    Click any numbered square (1–20) on the preview to place or move the black Initial HP square!
-                  </p>
-                )}
-              </div>
-
-              {/* 4. CUSTOM TOKEN & BACKSIDE IMAGES */}
-              <div className="tint-card tint-card-colors">
-                <h3 className="subsection-header">🖼️ Custom Token & Backside Images</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                  <div>
-                    <label className="field-label">Front Token Image Override</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      style={{ width: '100%', fontSize: '0.78rem' }}
-                    />
-                    {trackerData.customImageUrl && (
-                      <button
-                        onClick={() => setTrackerData({ ...trackerData, customImageUrl: null })}
-                        style={{
-                          marginTop: '0.3rem',
-                          fontSize: '0.72rem',
-                          padding: '2px 6px',
-                          background: '#dc2626',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Reset Front Image
-                      </button>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="field-label">Backside Image Override</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleBackImageUpload}
-                      style={{ width: '100%', fontSize: '0.78rem' }}
-                    />
-                    {trackerData.customBackImageUrl && (
-                      <button
-                        onClick={() => setTrackerData({ ...trackerData, customBackImageUrl: null })}
-                        style={{
-                          marginTop: '0.3rem',
-                          fontSize: '0.72rem',
-                          padding: '2px 6px',
-                          background: '#dc2626',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Reset Backside Image
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 5. COLORS & BACKGROUND STYLING */}
-              <div className="tint-card tint-card-colors">
-                <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
-
-                <div className="color-picker-grid-4">
-                  <div className="color-cell">
-                    <span className="cell-label">Base Card Color</span>
-                    <input
-                      type="color"
-                      value={trackerData.bgColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Front Camo Color</span>
-                    <input
-                      type="color"
-                      value={trackerData.camoColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Backside BG Color</span>
-                    <input
-                      type="color"
-                      value={trackerData.backBgColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Backside Camo Color</span>
-                    <input
-                      type="color"
-                      value={trackerData.backCamoColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, backCamoColor: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', background: 'var(--color-cell-bg)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={trackerData.showCamo}
-                      onChange={(e) => setTrackerData({ ...trackerData, showCamo: e.target.checked })}
-                    />
-                    Front Camo
-                  </label>
-
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={trackerData.showBackCamo}
-                      onChange={(e) => setTrackerData({ ...trackerData, showBackCamo: e.target.checked })}
-                    />
-                    Backside Camo
-                  </label>
-
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={trackerData.showSquareBorders}
-                      onChange={(e) => setTrackerData({ ...trackerData, showSquareBorders: e.target.checked })}
-                    />
-                    Longsquare Borders
-                  </label>
-                </div>
-              </div>
-
-              {/* 6. TEXT ELEMENTS COLORING */}
-              <div className="tint-card tint-card-text">
-                <h3 className="subsection-header">✒️ Text Elements Coloring</h3>
-
-                <div className="color-picker-grid-6">
-                  <div className="color-cell">
-                    <span className="cell-label">Title</span>
-                    <input
-                      type="color"
-                      value={trackerData.titleColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, titleColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Description</span>
-                    <input
-                      type="color"
-                      value={trackerData.descriptionColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, descriptionColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Triangle Num</span>
-                    <input
-                      type="color"
-                      value={trackerData.triangleNumberColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, triangleNumberColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Attachment Text</span>
-                    <input
-                      type="color"
-                      value={trackerData.attachmentTextColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, attachmentTextColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Footer Name</span>
-                    <input
-                      type="color"
-                      value={trackerData.footerNameColor}
-                      onChange={(e) => setTrackerData({ ...trackerData, footerNameColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Square Numbers</span>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
-                      <input
-                        type="color"
-                        value={trackerData.squareNumberColor === 'bgColor' ? trackerData.bgColor : trackerData.squareNumberColor}
-                        onChange={(e) => setTrackerData({ ...trackerData, squareNumberColor: e.target.value })}
-                      />
-                      <button
-                        type="button"
-                        title="Set square numbers color to background color"
-                        onClick={() =>
-                          setTrackerData({
-                            ...trackerData,
-                            squareNumberColor: trackerData.squareNumberColor === 'bgColor' ? '#8c939d' : 'bgColor'
-                          })
-                        }
-                        style={{
-                          fontSize: '0.68rem',
-                          padding: '2px 5px',
-                          background: trackerData.squareNumberColor === 'bgColor' ? 'var(--accent-cyan)' : 'var(--input-bg)',
-                          color: trackerData.squareNumberColor === 'bgColor' ? 'var(--bg-dark)' : 'var(--text-primary)',
-                          border: '1px solid var(--panel-border)',
-                          borderRadius: '3px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {trackerData.squareNumberColor === 'bgColor' ? 'Matched' : 'Match BG'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 7. EXPORT & PRESET ACTIONS CARD */}
-              <div className="tint-card tint-card-attributes">
-                <h3 className="subsection-header">💾 Export & Preset Storage</h3>
-
-                <div>
-                  <label className="field-label">Tracker Export Side</label>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    {['front', 'back', 'both'].map((f) => (
-                      <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                      <div>
+                        <label className="field-label">Backside Image Override</label>
                         <input
-                          type="radio"
-                          name="trackerExportFace"
-                          value={f}
-                          checked={trackerExportFace === f}
-                          onChange={(e) => setTrackerExportFace(e.target.value)}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBackImageUpload}
+                          style={{ width: '100%', fontSize: '0.78rem' }}
                         />
-                        {f.toUpperCase()}
-                      </label>
-                    ))}
+                        {trackerData.customBackImageUrl && (
+                          <button
+                            onClick={() => setTrackerData({ ...trackerData, customBackImageUrl: null })}
+                            style={{
+                              marginTop: '0.3rem',
+                              fontSize: '0.72rem',
+                              padding: '2px 6px',
+                              background: '#dc2626',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Reset Backside Image
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  onClick={handleDownloadTrackerPNG}
-                  style={{
-                    padding: '0.75rem',
-                    backgroundColor: 'var(--accent-cyan)',
-                    color: 'var(--bg-dark)',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    fontSize: '1.1rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    fontFamily: "'Teko', sans-serif",
-                    letterSpacing: '1px'
-                  }}
-                >
-                  <span>📥</span> EXPORT UNIT TRACKER ({trackerExportFace.toUpperCase()})
-                </button>
+                  {/* 5. COLORS & BACKGROUND STYLING */}
+                  <div className="tint-card tint-card-colors">
+                    <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
 
-                {/* TRACKER SAVE PRESET BOX */}
-                <div style={{ paddingTop: '0.6rem', borderTop: '1px dashed var(--panel-border)' }}>
-                  <form onSubmit={handleSaveTrackerPreset} style={{ display: 'flex', gap: '0.6rem' }}>
-                    <input
-                      type="text"
-                      placeholder={trackerData.title || 'Preset Name...'}
-                      value={trackerSaveName}
-                      onChange={(e) => setTrackerSaveName(e.target.value)}
-                      style={{ flex: 1 }}
-                    />
+                    <div className="color-picker-grid-4">
+                      <div className="color-cell">
+                        <span className="cell-label">Base Card Color</span>
+                        <input
+                          type="color"
+                          value={trackerData.bgColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, bgColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Front Camo Color</span>
+                        <input
+                          type="color"
+                          value={trackerData.camoColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, camoColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Backside BG Color</span>
+                        <input
+                          type="color"
+                          value={trackerData.backBgColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, backBgColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Backside Camo Color</span>
+                        <input
+                          type="color"
+                          value={trackerData.backCamoColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, backCamoColor: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', background: 'var(--color-cell-bg)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={trackerData.showCamo}
+                          onChange={(e) => setTrackerData({ ...trackerData, showCamo: e.target.checked })}
+                        />
+                        Front Camo
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={trackerData.showBackCamo}
+                          onChange={(e) => setTrackerData({ ...trackerData, showBackCamo: e.target.checked })}
+                        />
+                        Backside Camo
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={trackerData.showSquareBorders}
+                          onChange={(e) => setTrackerData({ ...trackerData, showSquareBorders: e.target.checked })}
+                        />
+                        Longsquare Borders
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* 6. TEXT ELEMENTS COLORING */}
+                  <div className="tint-card tint-card-text">
+                    <h3 className="subsection-header">✒️ Text Elements Coloring</h3>
+
+                    <div className="color-picker-grid-6">
+                      <div className="color-cell">
+                        <span className="cell-label">Title</span>
+                        <input
+                          type="color"
+                          value={trackerData.titleColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, titleColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Description</span>
+                        <input
+                          type="color"
+                          value={trackerData.descriptionColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, descriptionColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Triangle Num</span>
+                        <input
+                          type="color"
+                          value={trackerData.triangleNumberColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, triangleNumberColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Attachment Text</span>
+                        <input
+                          type="color"
+                          value={trackerData.attachmentTextColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, attachmentTextColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Footer Name</span>
+                        <input
+                          type="color"
+                          value={trackerData.footerNameColor}
+                          onChange={(e) => setTrackerData({ ...trackerData, footerNameColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Square Numbers</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
+                          <input
+                            type="color"
+                            value={trackerData.squareNumberColor === 'bgColor' ? trackerData.bgColor : trackerData.squareNumberColor}
+                            onChange={(e) => setTrackerData({ ...trackerData, squareNumberColor: e.target.value })}
+                          />
+                          <button
+                            type="button"
+                            title="Set square numbers color to background color"
+                            onClick={() =>
+                              setTrackerData({
+                                ...trackerData,
+                                squareNumberColor: trackerData.squareNumberColor === 'bgColor' ? '#8c939d' : 'bgColor'
+                              })
+                            }
+                            style={{
+                              fontSize: '0.68rem',
+                              padding: '2px 5px',
+                              background: trackerData.squareNumberColor === 'bgColor' ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                              color: trackerData.squareNumberColor === 'bgColor' ? 'var(--bg-dark)' : 'var(--text-primary)',
+                              border: '1px solid var(--panel-border)',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {trackerData.squareNumberColor === 'bgColor' ? 'Matched' : 'Match BG'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 7. EXPORT & PRESET ACTIONS CARD */}
+                  <div className="tint-card tint-card-attributes">
+                    <h3 className="subsection-header">💾 Export & Preset Storage</h3>
+
+                    <div>
+                      <label className="field-label">Tracker Export Side</label>
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        {['front', 'back', 'both'].map((f) => (
+                          <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                            <input
+                              type="radio"
+                              name="trackerExportFace"
+                              value={f}
+                              checked={trackerExportFace === f}
+                              onChange={(e) => setTrackerExportFace(e.target.value)}
+                            />
+                            {f.toUpperCase()}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     <button
-                      type="submit"
+                      onClick={handleDownloadTrackerPNG}
                       style={{
-                        padding: '0.4rem 1rem',
-                        background: 'var(--accent-cyan)',
+                        padding: '0.75rem',
+                        backgroundColor: 'var(--accent-cyan)',
                         color: 'var(--bg-dark)',
                         border: 'none',
                         borderRadius: '4px',
                         fontWeight: 'bold',
-                        cursor: 'pointer',
-                        fontFamily: "'Teko', sans-serif",
                         fontSize: '1.1rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        fontFamily: "'Teko', sans-serif",
                         letterSpacing: '1px'
                       }}
                     >
-                      SAVE TRACKER
+                      <span>📥</span> EXPORT UNIT TRACKER ({trackerExportFace.toUpperCase()})
                     </button>
-                  </form>
-                </div>
-              </div>
 
-            </div>
-
-            {/* SWAPPABLE UNIT TRACKER LIVE PREVIEW WITH TABS (STICKY WITHIN SECTION) */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem',
-                position: 'sticky',
-                top: '80px'
-              }}
-            >
-              {/* Swappable Face Tabs */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  background: 'var(--input-bg)',
-                  padding: '0.35rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--panel-border)'
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setTrackerPreviewSide('front')}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: trackerPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
-                    color: trackerPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontFamily: "'Teko', sans-serif",
-                    fontSize: '1rem',
-                    letterSpacing: '1px'
-                  }}
-                >
-                  FRONT SIDE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTrackerPreviewSide('back')}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: trackerPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
-                    color: trackerPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontFamily: "'Teko', sans-serif",
-                    fontSize: '1rem',
-                    letterSpacing: '1px'
-                  }}
-                >
-                  BACK SIDE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTrackerPreviewSide('both')}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: trackerPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
-                    color: trackerPreviewSide === 'both' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontFamily: "'Teko', sans-serif",
-                    fontSize: '1rem',
-                    letterSpacing: '1px'
-                  }}
-                >
-                  BOTH SIDES
-                </button>
-              </div>
-
-              {/* Render Selected Preview */}
-              {(trackerPreviewSide === 'front' || trackerPreviewSide === 'both') && (
-                <div>
-                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
-                    FRONT SIDE PREVIEW
-                  </h3>
-                  <UnitTracker
-                    tokenData={tokenData}
-                    trackerData={trackerData}
-                    side="front"
-                    width={420}
-                    onSquareClick={handleSquareClick}
-                  />
-                </div>
-              )}
-
-              {(trackerPreviewSide === 'back' || trackerPreviewSide === 'both') && (
-                <div>
-                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
-                    BACK SIDE PREVIEW
-                  </h3>
-                  <UnitTracker
-                    tokenData={tokenData}
-                    trackerData={trackerData}
-                    side="back"
-                    width={420}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* JOINT CAPABILITY CARDS SECTION */}
-      <section className="capability-card-section" id="capability-card" style={{ marginTop: '2.5rem' }}>
-        <div
-          style={{
-            background: 'var(--panel-bg)',
-            padding: '1.25rem',
-            borderRadius: '8px',
-            boxShadow: 'var(--hud-glow)',
-            border: '1px solid var(--panel-border)',
-            position: 'relative'
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: '-10px',
-              left: '15px',
-              background: 'var(--panel-bg)',
-              color: 'var(--accent-cyan)',
-              fontSize: '0.75rem',
-              padding: '0 8px',
-              letterSpacing: '1.5px',
-              border: '1px solid var(--accent-cyan)'
-            }}
-          >
-            /// CAPABILITY_CARD_GENERATOR
-          </div>
-
-          <h2
-            style={{
-              marginTop: '0',
-              marginBottom: '1rem',
-              color: 'var(--accent-cyan)',
-              fontFamily: "'Teko', sans-serif",
-              fontSize: '1.8rem',
-              letterSpacing: '1.5px',
-              borderBottom: '1px solid var(--panel-border)',
-              paddingBottom: '0.4rem',
-              textTransform: 'uppercase'
-            }}
-          >
-            Joint Capability Cards Builder (5.5cm x 9.5cm)
-          </h2>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '1.5rem',
-              alignItems: 'start'
-            }}
-            className="tracker-grid"
-          >
-            {/* Card Form Controls */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-
-              {/* 1. CARD TYPE & TOP STRIP DESIGN */}
-              <div className="tint-card tint-card-attributes">
-                <h3 className="subsection-header">🎴 Card Type & Top Strip Configuration</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label className="field-label">Card Title (Left Aligned)</label>
-                    <input
-                      type="text"
-                      value={cardData.title}
-                      onChange={(e) => setCardData({ ...cardData, title: e.target.value })}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="field-label">Card Type (Top Strip Color & Icon)</label>
-                    <select
-                      value={cardData.cardType}
-                      onChange={(e) => setCardData({ ...cardData, cardType: e.target.value })}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="fires">🔴 Red - Fires</option>
-                      <option value="maneuver">🟢 Green - Maneuver</option>
-                      <option value="interception">🟣 Purple - Interception</option>
-                      <option value="info_ops">🔵 Blue - Information Operations</option>
-                      <option value="c5isr">🟡 Yellow - C5ISR</option>
-                      <option value="custom">⚙️ Custom Type</option>
-                    </select>
-                  </div>
-                </div>
-
-                {cardData.cardType === 'custom' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div>
-                      <label className="field-label">Custom Type Name</label>
-                      <input
-                        type="text"
-                        placeholder="Special Ops"
-                        value={cardData.customTypeTitle}
-                        onChange={(e) => setCardData({ ...cardData, customTypeTitle: e.target.value })}
-                        style={{ width: '100%' }}
-                      />
-                    </div>
-                    <div>
-                      <label className="field-label">Custom Top Strip Color</label>
-                      <input
-                        type="color"
-                        value={cardData.customStripColor}
-                        onChange={(e) => setCardData({ ...cardData, customStripColor: e.target.value })}
-                        style={{ width: '100%', height: '36px', cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
-                  <div>
-                    <label className="field-label">Cost (Top Strip Number 0–5)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="5"
-                      value={cardData.cost}
-                      onChange={(e) => {
-                        const val = Math.min(5, Math.max(0, parseInt(e.target.value) || 0));
-                        setCardData({ ...cardData, cost: val });
-                      }}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="field-label">Size Number (▲ 1–50)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={cardData.sizeNumber}
-                      onChange={(e) => {
-                        const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
-                        setCardData({ ...cardData, sizeNumber: val });
-                      }}
-                      disabled={!cardData.showSizeTriangle}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.2rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                      <input
-                        type="checkbox"
-                        checked={cardData.showSizeTriangle}
-                        onChange={(e) => setCardData({ ...cardData, showSizeTriangle: e.target.checked })}
-                      />
-                      Show Size Triangle (▲)
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. MAIN BODY, IMAGE & FEATURE ICONS */}
-              <div className="tint-card tint-card-grid">
-                <h3 className="subsection-header">🖼️ Photo & Body Description</h3>
-
-                <div>
-                  <label className="field-label">Import Photo (Middle Image Container)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCardImageUpload}
-                    style={{ width: '100%', fontSize: '0.78rem' }}
-                  />
-                  {cardData.customImageUrl && (
-                    <button
-                      onClick={() => setCardData({ ...cardData, customImageUrl: null })}
-                      style={{
-                        marginTop: '0.3rem',
-                        fontSize: '0.72rem',
-                        padding: '2px 6px',
-                        background: '#dc2626',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Reset Photo
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <label className="field-label">Body Text (Description)</label>
-                  <textarea
-                    rows="3"
-                    value={cardData.bodyText}
-                    onChange={(e) => setCardData({ ...cardData, bodyText: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.4rem 0.5rem',
-                      borderRadius: '4px',
-                      fontFamily: 'inherit',
-                      fontSize: '0.85rem',
-                      resize: 'vertical'
-                    }}
-                  />
-                </div>
-
-                {/* FEATURE TAGS SECTION */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <label className="field-label" style={{ margin: 0 }}>Feature Icons (Positioned Above Description)</label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                      <input
-                        type="checkbox"
-                        checked={cardData.showFeatureIconLabels}
-                        onChange={(e) => setCardData({ ...cardData, showFeatureIconLabels: e.target.checked })}
-                      />
-                      Show Icon Labels
-                    </label>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginBottom: '0.6rem' }}>
-                    {['PERSIST', 'INTERCEPT', 'ATTACH', 'NULLIFY', 'FTR'].map((tag) => (
-                      <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
-                        <input
-                          type="checkbox"
-                          checked={!!cardData.featureTags[tag]}
-                          onChange={(e) =>
-                            setCardData({
-                              ...cardData,
-                              featureTags: {
-                                ...cardData.featureTags,
-                                [tag]: e.target.checked
-                              }
-                            })
-                          }
-                        />
-                        {tag}
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* CUSTOM FEATURE TAGS CONTROLS */}
-                  <div style={{ marginTop: '0.6rem', borderTop: '1px dashed var(--panel-border)', paddingTop: '0.6rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>Custom Feature Icons (Up to 5)</span>
-                      <button
-                        type="button"
-                        onClick={handleAddCustomFeatureTag}
-                        style={{
-                          fontSize: '0.75rem',
-                          padding: '0.2rem 0.5rem',
-                          background: 'var(--accent-cyan)',
-                          color: 'var(--bg-dark)',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        + Add Custom Icon
-                      </button>
-                    </div>
-
-                    {(cardData.customFeatureTags || []).map((cTag, index) => (
-                      <div key={cTag.id || index} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                        <input
-                          type="checkbox"
-                          checked={cTag.enabled}
-                          onChange={(e) => handleUpdateCustomFeatureTag(index, 'enabled', e.target.checked)}
-                        />
+                    {/* TRACKER SAVE PRESET BOX */}
+                    <div style={{ paddingTop: '0.6rem', borderTop: '1px dashed var(--panel-border)' }}>
+                      <form onSubmit={handleSaveTrackerPreset} style={{ display: 'flex', gap: '0.6rem' }}>
                         <input
                           type="text"
-                          value={cTag.label}
-                          placeholder="Tag Label..."
-                          onChange={(e) => handleUpdateCustomFeatureTag(index, 'label', e.target.value)}
-                          style={{ flex: 1, fontSize: '0.8rem', padding: '0.2rem 0.4rem' }}
+                          placeholder={trackerData.title || 'Preset Name...'}
+                          value={trackerSaveName}
+                          onChange={(e) => setTrackerSaveName(e.target.value)}
+                          style={{ flex: 1 }}
                         />
                         <button
-                          type="button"
-                          onClick={() => handleRemoveCustomFeatureTag(index)}
+                          type="submit"
                           style={{
-                            fontSize: '0.7rem',
-                            padding: '0.2rem 0.4rem',
+                            padding: '0.4rem 1rem',
+                            background: 'var(--accent-cyan)',
+                            color: 'var(--bg-dark)',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            fontFamily: "'Teko', sans-serif",
+                            fontSize: '1.1rem',
+                            letterSpacing: '1px'
+                          }}
+                        >
+                          SAVE TRACKER
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* SWAPPABLE UNIT TRACKER LIVE PREVIEW WITH TABS (STICKY WITHIN SECTION) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    position: 'sticky',
+                    top: '80px'
+                  }}
+                >
+                  {/* Swappable Face Tabs */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      background: 'var(--input-bg)',
+                      padding: '0.35rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--panel-border)'
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setTrackerPreviewSide('front')}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: trackerPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
+                        color: trackerPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      FRONT SIDE
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTrackerPreviewSide('back')}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: trackerPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
+                        color: trackerPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      BACK SIDE
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTrackerPreviewSide('both')}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: trackerPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
+                        color: trackerPreviewSide === 'both' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      BOTH SIDES
+                    </button>
+                  </div>
+
+                  {/* Render Selected Preview */}
+                  {(trackerPreviewSide === 'front' || trackerPreviewSide === 'both') && (
+                    <div>
+                      <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                        FRONT SIDE PREVIEW
+                      </h3>
+                      <UnitTracker
+                        tokenData={tokenData}
+                        trackerData={trackerData}
+                        side="front"
+                        width={420}
+                        onSquareClick={handleSquareClick}
+                      />
+                    </div>
+                  )}
+
+                  {(trackerPreviewSide === 'back' || trackerPreviewSide === 'both') && (
+                    <div>
+                      <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                        BACK SIDE PREVIEW
+                      </h3>
+                      <UnitTracker
+                        tokenData={tokenData}
+                        trackerData={trackerData}
+                        side="back"
+                        width={420}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* JOINT CAPABILITY CARDS SECTION */}
+          <section className="capability-card-section" id="capability-card" style={{ marginTop: '2.5rem' }}>
+            <div
+              style={{
+                background: 'var(--panel-bg)',
+                padding: '1.25rem',
+                borderRadius: '8px',
+                boxShadow: 'var(--hud-glow)',
+                border: '1px solid var(--panel-border)',
+                position: 'relative'
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  left: '15px',
+                  background: 'var(--panel-bg)',
+                  color: 'var(--accent-cyan)',
+                  fontSize: '0.75rem',
+                  padding: '0 8px',
+                  letterSpacing: '1.5px',
+                  border: '1px solid var(--accent-cyan)'
+                }}
+              >
+                /// CAPABILITY_CARD_GENERATOR
+              </div>
+
+              <h2
+                style={{
+                  marginTop: '0',
+                  marginBottom: '1rem',
+                  color: 'var(--accent-cyan)',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '1.8rem',
+                  letterSpacing: '1.5px',
+                  borderBottom: '1px solid var(--panel-border)',
+                  paddingBottom: '0.4rem',
+                  textTransform: 'uppercase'
+                }}
+              >
+                Joint Capability Cards Builder (5.5cm x 9.5cm)
+              </h2>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr',
+                  gap: '1.5rem',
+                  alignItems: 'start'
+                }}
+                className="tracker-grid"
+              >
+                {/* Card Form Controls */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+
+                  {/* 1. CARD TYPE & TOP STRIP DESIGN */}
+                  <div className="tint-card tint-card-attributes">
+                    <h3 className="subsection-header">🎴 Card Type & Top Strip Configuration</h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div>
+                        <label className="field-label">Card Title (Left Aligned)</label>
+                        <input
+                          type="text"
+                          value={cardData.title}
+                          onChange={(e) => setCardData({ ...cardData, title: e.target.value })}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="field-label">Card Type (Top Strip Color & Icon)</label>
+                        <select
+                          value={cardData.cardType}
+                          onChange={(e) => setCardData({ ...cardData, cardType: e.target.value })}
+                          style={{ width: '100%' }}
+                        >
+                          <option value="fires">🔴 Red - Fires</option>
+                          <option value="maneuver">🟢 Green - Maneuver</option>
+                          <option value="interception">🟣 Purple - Interception</option>
+                          <option value="info_ops">🔵 Blue - Information Operations</option>
+                          <option value="c5isr">🟡 Yellow - C5ISR</option>
+                          <option value="custom">⚙️ Custom Type</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {cardData.cardType === 'custom' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div>
+                          <label className="field-label">Custom Type Name</label>
+                          <input
+                            type="text"
+                            placeholder="Special Ops"
+                            value={cardData.customTypeTitle}
+                            onChange={(e) => setCardData({ ...cardData, customTypeTitle: e.target.value })}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="field-label">Custom Top Strip Color</label>
+                          <input
+                            type="color"
+                            value={cardData.customStripColor}
+                            onChange={(e) => setCardData({ ...cardData, customStripColor: e.target.value })}
+                            style={{ width: '100%', height: '36px', cursor: 'pointer' }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
+                      <div>
+                        <label className="field-label">Cost (Top Strip Number 0–5)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="5"
+                          value={cardData.cost}
+                          onChange={(e) => {
+                            const val = Math.min(5, Math.max(0, parseInt(e.target.value) || 0));
+                            setCardData({ ...cardData, cost: val });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="field-label">Size Number (▲ 1–50)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={cardData.sizeNumber}
+                          onChange={(e) => {
+                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            setCardData({ ...cardData, sizeNumber: val });
+                          }}
+                          disabled={!cardData.showSizeTriangle}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.2rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                          <input
+                            type="checkbox"
+                            checked={cardData.showSizeTriangle}
+                            onChange={(e) => setCardData({ ...cardData, showSizeTriangle: e.target.checked })}
+                          />
+                          Show Size Triangle (▲)
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. MAIN BODY, IMAGE & FEATURE ICONS */}
+                  <div className="tint-card tint-card-grid">
+                    <h3 className="subsection-header">🖼️ Photo & Body Description</h3>
+
+                    <div>
+                      <label className="field-label">Import Photo (Middle Image Container)</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCardImageUpload}
+                        style={{ width: '100%', fontSize: '0.78rem' }}
+                      />
+                      {cardData.customImageUrl && (
+                        <button
+                          onClick={() => setCardData({ ...cardData, customImageUrl: null })}
+                          style={{
+                            marginTop: '0.3rem',
+                            fontSize: '0.72rem',
+                            padding: '2px 6px',
                             background: '#dc2626',
                             color: '#fff',
                             border: 'none',
@@ -1881,470 +1845,578 @@ function App() {
                             cursor: 'pointer'
                           }}
                         >
-                          Remove
+                          Reset Photo
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="field-label">Body Text (Description)</label>
+                      <textarea
+                        rows="3"
+                        value={cardData.bodyText}
+                        onChange={(e) => setCardData({ ...cardData, bodyText: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '0.4rem 0.5rem',
+                          borderRadius: '4px',
+                          fontFamily: 'inherit',
+                          fontSize: '0.85rem',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    {/* FEATURE TAGS SECTION */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                        <label className="field-label" style={{ margin: 0 }}>Feature Icons (Positioned Above Description)</label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                          <input
+                            type="checkbox"
+                            checked={cardData.showFeatureIconLabels}
+                            onChange={(e) => setCardData({ ...cardData, showFeatureIconLabels: e.target.checked })}
+                          />
+                          Show Icon Labels
+                        </label>
+                      </div>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginBottom: '0.6rem' }}>
+                        {['PERSIST', 'INTERCEPT', 'ATTACH', 'NULLIFY', 'FTR'].map((tag) => (
+                          <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                            <input
+                              type="checkbox"
+                              checked={!!cardData.featureTags[tag]}
+                              onChange={(e) =>
+                                setCardData({
+                                  ...cardData,
+                                  featureTags: {
+                                    ...cardData.featureTags,
+                                    [tag]: e.target.checked
+                                  }
+                                })
+                              }
+                            />
+                            {tag}
+                          </label>
+                        ))}
+                      </div>
+
+                      {/* CUSTOM FEATURE TAGS CONTROLS */}
+                      <div style={{ marginTop: '0.6rem', borderTop: '1px dashed var(--panel-border)', paddingTop: '0.6rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>Custom Feature Icons (Up to 5)</span>
+                          <button
+                            type="button"
+                            onClick={handleAddCustomFeatureTag}
+                            style={{
+                              fontSize: '0.75rem',
+                              padding: '0.2rem 0.5rem',
+                              background: 'var(--accent-cyan)',
+                              color: 'var(--bg-dark)',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            + Add Custom Icon
+                          </button>
+                        </div>
+
+                        {(cardData.customFeatureTags || []).map((cTag, index) => (
+                          <div key={cTag.id || index} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                            <input
+                              type="checkbox"
+                              checked={cTag.enabled}
+                              onChange={(e) => handleUpdateCustomFeatureTag(index, 'enabled', e.target.checked)}
+                            />
+                            <input
+                              type="text"
+                              value={cTag.label}
+                              placeholder="Tag Label..."
+                              onChange={(e) => handleUpdateCustomFeatureTag(index, 'label', e.target.value)}
+                              style={{ flex: 1, fontSize: '0.8rem', padding: '0.2rem 0.4rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomFeatureTag(index)}
+                              style={{
+                                fontSize: '0.7rem',
+                                padding: '0.2rem 0.4rem',
+                                background: '#dc2626',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '3px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TYPOGRAPHY CONTROLS */}
+                  <div className="tint-card tint-card-text">
+                    <h3 className="subsection-header">🔤 Typography & Font Customization</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
+                      <div>
+                        <label className="field-label">Title Font</label>
+                        <select
+                          value={cardData.titleFont}
+                          onChange={(e) => setCardData({ ...cardData, titleFont: e.target.value })}
+                          style={{ width: '100%' }}
+                        >
+                          <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                          <option value="'Teko', sans-serif">Teko (Condensed Military)</option>
+                          <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
+                          <option value="'Courier New', monospace">Courier New</option>
+                          <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="field-label">Body Text Font</label>
+                        <select
+                          value={cardData.bodyFont}
+                          onChange={(e) => setCardData({ ...cardData, bodyFont: e.target.value })}
+                          style={{ width: '100%' }}
+                        >
+                          <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                          <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
+                          <option value="Georgia, serif">Georgia (Serif)</option>
+                          <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="field-label">Lore Text Font</label>
+                        <select
+                          value={cardData.loreFont}
+                          onChange={(e) => setCardData({ ...cardData, loreFont: e.target.value })}
+                          style={{ width: '100%' }}
+                        >
+                          <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                          <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
+                          <option value="Georgia, serif">Georgia (Serif)</option>
+                          <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. LORE & SET DESIGNATION */}
+                  <div className="tint-card tint-card-text">
+                    <h3 className="subsection-header">📜 Lore Box & Set Designation</h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                          <input
+                            type="checkbox"
+                            checked={cardData.showLore}
+                            onChange={(e) => setCardData({ ...cardData, showLore: e.target.checked })}
+                          />
+                          Enable Bottom Lore Field
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className="field-label">Set Name & Number (Lower Right)</label>
+                        <input
+                          type="text"
+                          value={cardData.setNameNumber}
+                          onChange={(e) => setCardData({ ...cardData, setNameNumber: e.target.value })}
+                          placeholder="e.g. USMC 999"
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    </div>
+
+                    {cardData.showLore && (
+                      <div>
+                        <label className="field-label">Lore Text</label>
+                        <textarea
+                          rows="2"
+                          value={cardData.loreText}
+                          onChange={(e) => setCardData({ ...cardData, loreText: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '0.4rem 0.5rem',
+                            borderRadius: '4px',
+                            fontFamily: 'inherit',
+                            fontSize: '0.82rem',
+                            resize: 'vertical'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 4. COLORS & BACKSIDE OPTIONS */}
+                  <div className="tint-card tint-card-colors">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                      <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Card Colors & Customization</h3>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setCardData((prev) => ({
+                            ...prev,
+                            borderColor: '#00f0ff',
+                            borderWidth: 2,
+                            bgColor: '#0f172a',
+                            camoColor: '#1e293b',
+                            cardTextColor: '#00f0ff',
+                            topStripTextColor: '#ffffff',
+                            loreBgColor: '#0f172a',
+                            loreTextColor: '#00f0ff',
+                            backBgColor: '#0f172a',
+                            backCamoColor: '#1e293b',
+                            featureIconColor: '#00f0ff',
+                            placeholderColor: '#00f0ff',
+                            backEmblemColor: '#00f0ff'
+                          }))}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '0.2rem 0.5rem',
+                            background: '#00f0ff',
+                            color: '#0f172a',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          ⚡ Apply Cyber Style
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCardData((prev) => ({
+                            ...prev,
+                            borderColor: DEFAULT_CARD_DATA.borderColor,
+                            borderWidth: DEFAULT_CARD_DATA.borderWidth,
+                            bgColor: DEFAULT_CARD_DATA.bgColor,
+                            camoColor: DEFAULT_CARD_DATA.camoColor,
+                            cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
+                            topStripTextColor: DEFAULT_CARD_DATA.topStripTextColor,
+                            loreBgColor: DEFAULT_CARD_DATA.loreBgColor,
+                            loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
+                            backBgColor: DEFAULT_CARD_DATA.backBgColor,
+                            backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
+                            featureIconColor: DEFAULT_CARD_DATA.featureIconColor,
+                            placeholderColor: DEFAULT_CARD_DATA.placeholderColor,
+                            backEmblemColor: DEFAULT_CARD_DATA.backEmblemColor
+                          }))}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '0.2rem 0.5rem',
+                            background: 'var(--input-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--panel-border)',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          Reset Colors
                         </button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                    </div>
 
-              {/* TYPOGRAPHY CONTROLS */}
-              <div className="tint-card tint-card-text">
-                <h3 className="subsection-header">🔤 Typography & Font Customization</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
-                  <div>
-                    <label className="field-label">Title Font</label>
-                    <select
-                      value={cardData.titleFont}
-                      onChange={(e) => setCardData({ ...cardData, titleFont: e.target.value })}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
-                      <option value="'Teko', sans-serif">Teko (Condensed Military)</option>
-                      <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
-                      <option value="'Courier New', monospace">Courier New</option>
-                      <option value="Arial, sans-serif">Arial</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="field-label">Body Text Font</label>
-                    <select
-                      value={cardData.bodyFont}
-                      onChange={(e) => setCardData({ ...cardData, bodyFont: e.target.value })}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
-                      <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
-                      <option value="Georgia, serif">Georgia (Serif)</option>
-                      <option value="Arial, sans-serif">Arial</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="field-label">Lore Text Font</label>
-                    <select
-                      value={cardData.loreFont}
-                      onChange={(e) => setCardData({ ...cardData, loreFont: e.target.value })}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
-                      <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
-                      <option value="Georgia, serif">Georgia (Serif)</option>
-                      <option value="Arial, sans-serif">Arial</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. LORE & SET DESIGNATION */}
-              <div className="tint-card tint-card-text">
-                <h3 className="subsection-header">📜 Lore Box & Set Designation</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                      <input
-                        type="checkbox"
-                        checked={cardData.showLore}
-                        onChange={(e) => setCardData({ ...cardData, showLore: e.target.checked })}
-                      />
-                      Enable Bottom Lore Field
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="field-label">Set Name & Number (Lower Right)</label>
-                    <input
-                      type="text"
-                      value={cardData.setNameNumber}
-                      onChange={(e) => setCardData({ ...cardData, setNameNumber: e.target.value })}
-                      placeholder="e.g. USMC 999"
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                </div>
-
-                {cardData.showLore && (
-                  <div>
-                    <label className="field-label">Lore Text</label>
-                    <textarea
-                      rows="2"
-                      value={cardData.loreText}
-                      onChange={(e) => setCardData({ ...cardData, loreText: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.4rem 0.5rem',
-                        borderRadius: '4px',
-                        fontFamily: 'inherit',
-                        fontSize: '0.82rem',
-                        resize: 'vertical'
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* 4. COLORS & BACKSIDE OPTIONS */}
-              <div className="tint-card tint-card-colors">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  <h3 className="subsection-header" style={{ margin: 0 }}>🎨 Card Colors & Customization</h3>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => setCardData((prev) => ({
-                        ...prev,
-                        borderColor: '#00f0ff',
-                        borderWidth: 2,
-                        bgColor: '#0f172a',
-                        camoColor: '#1e293b',
-                        cardTextColor: '#00f0ff',
-                        topStripTextColor: '#ffffff',
-                        loreBgColor: '#0f172a',
-                        loreTextColor: '#00f0ff',
-                        backBgColor: '#0f172a',
-                        backCamoColor: '#1e293b',
-                        featureIconColor: '#00f0ff',
-                        placeholderColor: '#00f0ff',
-                        backEmblemColor: '#00f0ff'
-                      }))}
-                      style={{
-                        fontSize: '0.72rem',
-                        padding: '0.2rem 0.5rem',
-                        background: '#00f0ff',
-                        color: '#0f172a',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      ⚡ Apply Cyber Style
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCardData((prev) => ({
-                        ...prev,
-                        borderColor: DEFAULT_CARD_DATA.borderColor,
-                        borderWidth: DEFAULT_CARD_DATA.borderWidth,
-                        bgColor: DEFAULT_CARD_DATA.bgColor,
-                        camoColor: DEFAULT_CARD_DATA.camoColor,
-                        cardTextColor: DEFAULT_CARD_DATA.cardTextColor,
-                        topStripTextColor: DEFAULT_CARD_DATA.topStripTextColor,
-                        loreBgColor: DEFAULT_CARD_DATA.loreBgColor,
-                        loreTextColor: DEFAULT_CARD_DATA.loreTextColor,
-                        backBgColor: DEFAULT_CARD_DATA.backBgColor,
-                        backCamoColor: DEFAULT_CARD_DATA.backCamoColor,
-                        featureIconColor: DEFAULT_CARD_DATA.featureIconColor,
-                        placeholderColor: DEFAULT_CARD_DATA.placeholderColor,
-                        backEmblemColor: DEFAULT_CARD_DATA.backEmblemColor
-                      }))}
-                      style={{
-                        fontSize: '0.72rem',
-                        padding: '0.2rem 0.5rem',
-                        background: 'var(--input-bg)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--panel-border)',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      Reset Colors
-                    </button>
-                  </div>
-                </div>
-
-                <div className="color-picker-grid-6">
-                  <div className="color-cell">
-                    <span className="cell-label">Border Color</span>
-                    <input
-                      type="color"
-                      value={cardData.borderColor}
-                      onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Card BG</span>
-                    <input
-                      type="color"
-                      value={cardData.bgColor}
-                      onChange={(e) => setCardData({ ...cardData, bgColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Front Camo</span>
-                    <input
-                      type="color"
-                      value={cardData.camoColor}
-                      onChange={(e) => setCardData({ ...cardData, camoColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Feature Icons</span>
-                    <input
-                      type="color"
-                      value={cardData.featureIconColor || '#ffffff'}
-                      onChange={(e) => setCardData({ ...cardData, featureIconColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Backside BG</span>
-                    <input
-                      type="color"
-                      value={cardData.backBgColor}
-                      onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="color-cell">
-                    <span className="cell-label">Back Camo</span>
-                    <input
-                      type="color"
-                      value={cardData.backCamoColor}
-                      onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', background: 'var(--color-cell-bg)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)', marginTop: '0.5rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={cardData.showCamo}
-                      onChange={(e) => setCardData({ ...cardData, showCamo: e.target.checked })}
-                    />
-                    Front Camo Overlay
-                  </label>
-
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={cardData.showBackCamo}
-                      onChange={(e) => setCardData({ ...cardData, showBackCamo: e.target.checked })}
-                    />
-                    Backside Camo Overlay
-                  </label>
-                </div>
-
-                <div style={{ marginTop: '0.6rem' }}>
-                  <label className="field-label">Custom Backside Image Override</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCardBackImageUpload}
-                    style={{ width: '100%', fontSize: '0.78rem' }}
-                  />
-                  {cardData.customBackImageUrl && (
-                    <button
-                      onClick={() => setCardData({ ...cardData, customBackImageUrl: null })}
-                      style={{
-                        marginTop: '0.3rem',
-                        fontSize: '0.72rem',
-                        padding: '2px 6px',
-                        background: '#dc2626',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Reset Back Image
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* 5. EXPORT & PRESET ACTIONS CARD */}
-              <div className="tint-card tint-card-attributes">
-                <h3 className="subsection-header">💾 Export & Preset Storage</h3>
-
-                <div>
-                  <label className="field-label">Capability Card Export Side</label>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    {['front', 'back', 'both'].map((f) => (
-                      <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <div className="color-picker-grid-6">
+                      <div className="color-cell">
+                        <span className="cell-label">Border Color</span>
                         <input
-                          type="radio"
-                          name="cardExportFace"
-                          value={f}
-                          checked={cardExportFace === f}
-                          onChange={(e) => setCardExportFace(e.target.value)}
+                          type="color"
+                          value={cardData.borderColor}
+                          onChange={(e) => setCardData({ ...cardData, borderColor: e.target.value })}
                         />
-                        {f.toUpperCase()}
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Card BG</span>
+                        <input
+                          type="color"
+                          value={cardData.bgColor}
+                          onChange={(e) => setCardData({ ...cardData, bgColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Front Camo</span>
+                        <input
+                          type="color"
+                          value={cardData.camoColor}
+                          onChange={(e) => setCardData({ ...cardData, camoColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Feature Icons</span>
+                        <input
+                          type="color"
+                          value={cardData.featureIconColor || '#ffffff'}
+                          onChange={(e) => setCardData({ ...cardData, featureIconColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Backside BG</span>
+                        <input
+                          type="color"
+                          value={cardData.backBgColor}
+                          onChange={(e) => setCardData({ ...cardData, backBgColor: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="color-cell">
+                        <span className="cell-label">Back Camo</span>
+                        <input
+                          type="color"
+                          value={cardData.backCamoColor}
+                          onChange={(e) => setCardData({ ...cardData, backCamoColor: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', background: 'var(--color-cell-bg)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-cell-border)', marginTop: '0.5rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={cardData.showCamo}
+                          onChange={(e) => setCardData({ ...cardData, showCamo: e.target.checked })}
+                        />
+                        Front Camo Overlay
                       </label>
-                    ))}
+
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={cardData.showBackCamo}
+                          onChange={(e) => setCardData({ ...cardData, showBackCamo: e.target.checked })}
+                        />
+                        Backside Camo Overlay
+                      </label>
+                    </div>
+
+                    <div style={{ marginTop: '0.6rem' }}>
+                      <label className="field-label">Custom Backside Image Override</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCardBackImageUpload}
+                        style={{ width: '100%', fontSize: '0.78rem' }}
+                      />
+                      {cardData.customBackImageUrl && (
+                        <button
+                          onClick={() => setCardData({ ...cardData, customBackImageUrl: null })}
+                          style={{
+                            marginTop: '0.3rem',
+                            fontSize: '0.72rem',
+                            padding: '2px 6px',
+                            background: '#dc2626',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Reset Back Image
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  onClick={handleDownloadCardPNG}
-                  style={{
-                    padding: '0.75rem',
-                    backgroundColor: 'var(--accent-cyan)',
-                    color: 'var(--bg-dark)',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    fontSize: '1.1rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    fontFamily: "'Teko', sans-serif",
-                    letterSpacing: '1px'
-                  }}
-                >
-                  <span>📥</span> EXPORT CAPABILITY CARD ({cardExportFace.toUpperCase()})
-                </button>
+                  {/* 5. EXPORT & PRESET ACTIONS CARD */}
+                  <div className="tint-card tint-card-attributes">
+                    <h3 className="subsection-header">💾 Export & Preset Storage</h3>
 
-                {/* CARD SAVE PRESET BOX */}
-                <div style={{ paddingTop: '0.6rem', borderTop: '1px dashed var(--panel-border)' }}>
-                  <form onSubmit={handleSaveCardPreset} style={{ display: 'flex', gap: '0.6rem' }}>
-                    <input
-                      type="text"
-                      placeholder={cardData.title || 'Preset Name...'}
-                      value={cardSaveName}
-                      onChange={(e) => setCardSaveName(e.target.value)}
-                      style={{ flex: 1 }}
-                    />
+                    <div>
+                      <label className="field-label">Capability Card Export Side</label>
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        {['front', 'back', 'both'].map((f) => (
+                          <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                            <input
+                              type="radio"
+                              name="cardExportFace"
+                              value={f}
+                              checked={cardExportFace === f}
+                              onChange={(e) => setCardExportFace(e.target.value)}
+                            />
+                            {f.toUpperCase()}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     <button
-                      type="submit"
+                      onClick={handleDownloadCardPNG}
                       style={{
-                        padding: '0.4rem 1rem',
-                        background: 'var(--accent-cyan)',
+                        padding: '0.75rem',
+                        backgroundColor: 'var(--accent-cyan)',
                         color: 'var(--bg-dark)',
                         border: 'none',
                         borderRadius: '4px',
                         fontWeight: 'bold',
-                        cursor: 'pointer',
-                        fontFamily: "'Teko', sans-serif",
                         fontSize: '1.1rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        fontFamily: "'Teko', sans-serif",
                         letterSpacing: '1px'
                       }}
                     >
-                      SAVE CARD
+                      <span>📥</span> EXPORT CAPABILITY CARD ({cardExportFace.toUpperCase()})
                     </button>
-                  </form>
+
+                    {/* CARD SAVE PRESET BOX */}
+                    <div style={{ paddingTop: '0.6rem', borderTop: '1px dashed var(--panel-border)' }}>
+                      <form onSubmit={handleSaveCardPreset} style={{ display: 'flex', gap: '0.6rem' }}>
+                        <input
+                          type="text"
+                          placeholder={cardData.title || 'Preset Name...'}
+                          value={cardSaveName}
+                          onChange={(e) => setCardSaveName(e.target.value)}
+                          style={{ flex: 1 }}
+                        />
+                        <button
+                          type="submit"
+                          style={{
+                            padding: '0.4rem 1rem',
+                            background: 'var(--accent-cyan)',
+                            color: 'var(--bg-dark)',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            fontFamily: "'Teko', sans-serif",
+                            fontSize: '1.1rem',
+                            letterSpacing: '1px'
+                          }}
+                        >
+                          SAVE CARD
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* SWAPPABLE CAPABILITY CARD LIVE PREVIEW WITH TABS (STICKY WITHIN SECTION) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    position: 'sticky',
+                    top: '80px'
+                  }}
+                >
+                  {/* Swappable Face Tabs */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      background: 'var(--input-bg)',
+                      padding: '0.35rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--panel-border)'
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setCardPreviewSide('front')}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: cardPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
+                        color: cardPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      FRONT SIDE
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCardPreviewSide('back')}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: cardPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
+                        color: cardPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      BACK SIDE
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCardPreviewSide('both')}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: cardPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
+                        color: cardPreviewSide === 'both' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontFamily: "'Teko', sans-serif",
+                        fontSize: '1rem',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      BOTH SIDES
+                    </button>
+                  </div>
+
+                  {/* Render Selected Preview */}
+                  {(cardPreviewSide === 'front' || cardPreviewSide === 'both') && (
+                    <div>
+                      <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                        FRONT SIDE PREVIEW
+                      </h3>
+                      <JointCapabilityCard
+                        cardData={cardData}
+                        side="front"
+                        width={330}
+                      />
+                    </div>
+                  )}
+
+                  {(cardPreviewSide === 'back' || cardPreviewSide === 'both') && (
+                    <div>
+                      <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
+                        BACK SIDE PREVIEW
+                      </h3>
+                      <JointCapabilityCard
+                        cardData={cardData}
+                        side="back"
+                        width={330}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-
             </div>
-
-            {/* SWAPPABLE CAPABILITY CARD LIVE PREVIEW WITH TABS (STICKY WITHIN SECTION) */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem',
-                position: 'sticky',
-                top: '80px'
-              }}
-            >
-              {/* Swappable Face Tabs */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  background: 'var(--input-bg)',
-                  padding: '0.35rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--panel-border)'
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setCardPreviewSide('front')}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: cardPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
-                    color: cardPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontFamily: "'Teko', sans-serif",
-                    fontSize: '1rem',
-                    letterSpacing: '1px'
-                  }}
-                >
-                  FRONT SIDE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCardPreviewSide('back')}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: cardPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
-                    color: cardPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontFamily: "'Teko', sans-serif",
-                    fontSize: '1rem',
-                    letterSpacing: '1px'
-                  }}
-                >
-                  BACK SIDE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCardPreviewSide('both')}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: cardPreviewSide === 'both' ? 'var(--accent-cyan)' : 'transparent',
-                    color: cardPreviewSide === 'both' ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontFamily: "'Teko', sans-serif",
-                    fontSize: '1rem',
-                    letterSpacing: '1px'
-                  }}
-                >
-                  BOTH SIDES
-                </button>
-              </div>
-
-              {/* Render Selected Preview */}
-              {(cardPreviewSide === 'front' || cardPreviewSide === 'both') && (
-                <div>
-                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
-                    FRONT SIDE PREVIEW
-                  </h3>
-                  <JointCapabilityCard
-                    cardData={cardData}
-                    side="front"
-                    width={330}
-                  />
-                </div>
-              )}
-
-              {(cardPreviewSide === 'back' || cardPreviewSide === 'both') && (
-                <div>
-                  <h3 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.4rem 0', textAlign: 'center', fontFamily: "'Teko', sans-serif", fontSize: '1.3rem', letterSpacing: '1px' }}>
-                    BACK SIDE PREVIEW
-                  </h3>
-                  <JointCapabilityCard
-                    cardData={cardData}
-                    side="back"
-                    width={330}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
+        </>
+      )}
     </div>
   );
 }
