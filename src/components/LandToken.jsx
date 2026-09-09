@@ -927,9 +927,11 @@ export function LandToken({
 
     const diceBg = d.color || defaultBg;
     const borderThick = d.hasThickBorder ? true : false;
-    const borderColor = d.borderColor || '#ffcc00';
+    const defaultBorder = borderThick ? '#ffcc00' : '#ffffff';
+    const borderColor = d.borderColor || defaultBorder;
     const strokeW = borderThick ? 7 : 3;
-    const strokeC = borderThick ? borderColor : '#ffffff';
+    const strokeC = borderColor;
+    const numberColor = d.numberColor || '#ffffff';
 
     const diceWidth = size * 0.36;
     const diceHeight = size * 0.36;
@@ -944,7 +946,7 @@ export function LandToken({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ffffff',
+          color: numberColor,
           fontWeight: 'bold',
           fontFamily: fontFamily
         }}
@@ -986,7 +988,8 @@ export function LandToken({
             alignItems: 'baseline',
             justifyContent: 'center',
             lineHeight: 1,
-            marginTop: '-2px'
+            marginTop: '-2px',
+            color: numberColor
           }}
         >
           <span style={{ fontSize: size * 0.16, fontWeight: 900, textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>

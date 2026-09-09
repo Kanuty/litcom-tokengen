@@ -79,34 +79,45 @@ const CARD_TYPES = {
   }
 };
 
-// Feature tags icons (smaller, clean white stroke)
+// Feature tags icons (matching real game card icons, foreground color configurable via currentColor)
 const FEATURE_TAG_ICONS = {
+  // Infinity loop symbol with inner dots
   PERSIST: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21.5 2v6h-6" />
-      <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 12C9.5 15.5 6.8 17 4.5 17C2.2 17 0.8 15 0.8 12.5C0.8 10 2.2 8 4.5 8C6.8 8 9.5 9.5 12 12C14.5 14.5 17.2 16 19.5 16C21.8 16 23.2 14 23.2 11.5C23.2 9 21.8 7 19.5 7C17.2 7 14.5 8.5 12 12Z"
+        stroke="currentColor"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="5" cy="12.5" r="1.3" fill="currentColor" />
+      <circle cx="19" cy="11.5" r="1.3" fill="currentColor" />
     </svg>
   ),
+  // SAM Launcher / Missile Truck silhouette from SAM.png
   INTERCEPT: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="11.3,4.8 12.9,8.9 9.6,10.8 9.0,14.4 14.6,14.7 15.0,12.2 15.6,11.6 21.2,11.0 23.0,13.6 23.0,15.7 22.6,16.3 21.5,16.4 21.1,18.4 19.9,19.2 18.7,19.0 17.9,18.0 16.6,19.0 15.2,19.0 14.2,18.2 14.1,16.9 9.2,17.1 8.2,18.6 7.1,19.0 5.5,17.9 4.1,18.8 2.7,18.8 1.8,17.9 1.0,15.3 2.0,12.6 1.0,9.9" />
     </svg>
   ),
+  // Paperclip icon
   ATTACH: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      <path d="M21.41 11.58l-9-9a5.5 5.5 0 0 0-7.78 7.78l9 9a3.5 3.5 0 0 0 4.95-4.95l-9-9a1.5 1.5 0 0 0-2.12 2.12l8.29 8.29" />
     </svg>
   ),
+  // Circle with diagonal line from top-right to bottom-left
   NULLIFY: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <line x1="18" y1="6" x2="6" y2="18" />
     </svg>
   ),
+  // Fighter jet silhouette from FTR.png
   FTR: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.2c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="22.8,1.0 22.1,3.4 18.1,8.3 18.3,9.8 17.2,11.1 17.0,19.1 18.1,20.0 16.0,22.2 15.0,23.0 14.6,22.6 12.6,15.2 11.4,16.3 10.9,21.9 10.3,22.8 9.4,22.3 7.7,19.6 4.5,19.3 4.9,17.8 4.5,16.1 1.2,13.5 2.5,12.7 7.7,12.4 9.0,11.2 1.5,8.8 1.5,8.3 4.5,5.3 4.9,5.3 4.7,6.6 13.1,6.6 13.9,5.8 15.7,6.0 20.4,2.1" />
     </svg>
   ),
   CUSTOM: (
@@ -154,6 +165,14 @@ export function JointCapabilityCard({
     topStripTextColor = '#ffffff',
     loreBgColor = '#ffffff', // pure white background per requirement
     loreTextColor = '#000000', // black text per requirement
+    // Individual text colors & global text color toggle
+    applySingleTextColor = false,
+    singleTextColor = '#000000',
+    titleTextColor,
+    costTextColor,
+    cardTypeTextColor,
+    bodyTextColor,
+    setNumTextColor,
     placeholderColor = '#64748b',
     backEmblemColor = '#ffffff',
     // Back side options
@@ -162,6 +181,15 @@ export function JointCapabilityCard({
     showBackCamo = true,
     customBackImageUrl = null
   } = cardData;
+
+  // Compute effective text colors with single-color override or individual fallback
+  const effTitleColor = applySingleTextColor ? singleTextColor : (titleTextColor || topStripTextColor || '#ffffff');
+  const effCostColor = applySingleTextColor ? singleTextColor : (costTextColor || topStripTextColor || '#ffffff');
+  const effTypeColor = applySingleTextColor ? singleTextColor : (cardTypeTextColor || topStripTextColor || '#ffffff');
+  const effBodyColor = applySingleTextColor ? singleTextColor : (bodyTextColor || cardTextColor || '#000000');
+  const effSetNumColor = applySingleTextColor ? singleTextColor : (setNumTextColor || cardTextColor || '#000000');
+  const effLoreColor = applySingleTextColor ? singleTextColor : (loreTextColor || '#000000');
+  const effFeatureIconColor = applySingleTextColor ? singleTextColor : (featureIconColor || '#ffffff');
 
   // Height calculated strictly for 5.5cm wide x 9.5cm height ratio
   // 9.5 / 5.5 = 1.727272...
@@ -319,141 +347,158 @@ export function JointCapabilityCard({
         </svg>
       )}
 
-      {/* 1. TOP STRIP (VERTICAL DIVIDER BETWEEN COST AND TITLE) */}
-      <div
-        style={{
-          backgroundColor: stripBgColor,
-          color: topStripTextColor,
-          height: `${Math.round(height * 0.09)}px`,
-          padding: '0 8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '3px solid #000000',
-          boxSizing: 'border-box',
-          position: 'relative',
-          zIndex: 2
-        }}
-      >
-        {/* Left Side: Cost Number with vertical divider */}
+      {/* 1. TOP STRIP WITH CUT CORNERS & DROP SHADOW + PHOTO AREA */}
+      <div style={{ position: 'relative', width: '100%', zIndex: 2 }}>
+        {/* TOP STRIP */}
         <div
           style={{
+            backgroundColor: stripBgColor,
+            color: topStripTextColor,
+            height: `${Math.round(height * 0.09)}px`,
+            margin: '6px 4px 0 4px', // inset slightly from side borders
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: `${Math.round(height * 0.065)}px`,
-            height: '100%',
-            fontSize: `${Math.round(height * 0.055)}px`,
-            fontWeight: '900',
-            fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
-            lineHeight: 1,
-            flexShrink: 0,
-            borderRight: '2px solid rgba(255, 255, 255, 0.4)'
-          }}
-          title={`Cost: ${cost}`}
-        >
-          {cost}
-        </div>
-
-        {/* Title */}
-        <div
-          style={{
-            flex: 1,
-            textAlign: 'left',
-            paddingLeft: '10px',
-            paddingRight: '6px',
-            overflow: 'hidden'
+            alignItems: 'stretch',
+            position: 'relative',
+            zIndex: 3,
+            filter: 'drop-shadow(0 4px 5px rgba(0, 0, 0, 0.75))',
+            boxSizing: 'border-box'
           }}
         >
+          {/* Left Cost Block (rectangular box) */}
           <div
             style={{
-              fontSize: `${Math.round(height * 0.033)}px`,
-              fontWeight: '900',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              lineHeight: 1.1,
-              fontFamily: titleFont
-            }}
-          >
-            {title}
-          </div>
-        </div>
-
-        {/* Right Side: Size Triangle and Type Icon */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          {showSizeTriangle && (
-            <div
-              style={{
-                position: 'relative',
-                width: `${Math.round(height * 0.088)}px`,
-                height: `${Math.round(height * 0.062)}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title={`Size: ${sizeNumber}`}
-            >
-              <svg width="100%" height="100%" viewBox="0 0 140 100" preserveAspectRatio="none">
-                <polygon points="70,5 138,95 2,95" fill="#ffffff" stroke="none" />
-                <text x="70" y="80" fill="#000000" fontSize="54" fontWeight="900" textAnchor="middle" fontFamily="'Trebuchet MS', sans-serif">
-                  {sizeNumber}
-                </text>
-              </svg>
-            </div>
-          )}
-
-          {/* Type Icon */}
-          <div
-            style={{
+              width: `${Math.round(height * 0.07)}px`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: topStripTextColor
+              fontSize: `${Math.round(height * 0.055)}px`,
+              fontWeight: '900',
+              fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
+              lineHeight: 1,
+              flexShrink: 0,
+              borderRight: '2px solid rgba(0, 0, 0, 0.4)',
+              color: effCostColor
+            }}
+            title={`Cost: ${cost}`}
+          >
+            {cost}
+          </div>
+
+          {/* Right Main Strip with Cut Corner top-right and Notch at bottom-left */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingLeft: '8px',
+              paddingRight: '10px',
+              clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%, 0 calc(100% - 8px), 8px 100%, 0 100%)',
+              position: 'relative',
+              overflow: 'hidden'
             }}
           >
-            {selectedTypeObj.icon}
+            {/* Title */}
+            <div
+              style={{
+                flex: 1,
+                textAlign: 'left',
+                overflow: 'hidden',
+                paddingRight: '6px'
+              }}
+            >
+              <div
+                style={{
+                  fontSize: `${Math.round(height * 0.033)}px`,
+                  fontWeight: '900',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.1,
+                  fontFamily: titleFont,
+                  color: effTitleColor
+                }}
+              >
+                {title}
+              </div>
+            </div>
+
+            {/* Right Side: Size Triangle and Type Icon */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              {showSizeTriangle && (
+                <div
+                  style={{
+                    position: 'relative',
+                    width: `${Math.round(height * 0.088)}px`,
+                    height: `${Math.round(height * 0.062)}px`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  title={`Size: ${sizeNumber}`}
+                >
+                  <svg width="100%" height="100%" viewBox="0 0 140 100" preserveAspectRatio="none">
+                    <polygon points="70,5 138,95 2,95" fill="#ffffff" stroke="none" />
+                    <text x="70" y="80" fill="#000000" fontSize="54" fontWeight="900" textAnchor="middle" fontFamily="'Trebuchet MS', sans-serif">
+                      {sizeNumber}
+                    </text>
+                  </svg>
+                </div>
+              )}
+
+              {/* Type Icon */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: effTypeColor
+                }}
+              >
+                {selectedTypeObj.icon}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 2. PHOTO CONTAINER (STRAIGHT RECTANGLE) */}
-      <div
-        style={{
-          width: '100%',
-          height: `${Math.round(height * 0.38)}px`,
-          backgroundColor: '#0f172a',
-          position: 'relative',
-          overflow: 'hidden',
-          borderBottom: '3px solid #000000',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1
-        }}
-      >
-        {customImageUrl ? (
-          <img
-            src={customImageUrl}
-            alt={title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-          />
-        ) : (
-          <div style={{ textAlign: 'center', color: placeholderColor, padding: '10px' }}>
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={placeholderColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 6px auto', display: 'block' }}>
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            <span style={{ fontSize: `${Math.round(width * 0.035)}px`, letterSpacing: '1px', fontWeight: 'bold' }}>PHOTO AREA</span>
-          </div>
-        )}
+        {/* 2. PHOTO CONTAINER (Narrower than top strip, covered by strip shadow) */}
+        <div
+          style={{
+            margin: '-12px 10px 0 10px', // slightly inset horizontally so top strip is wider than image
+            height: `${Math.round(height * 0.36)}px`,
+            backgroundColor: '#0f172a',
+            position: 'relative',
+            overflow: 'hidden',
+            borderBottom: '3px solid #000000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1
+          }}
+        >
+          {customImageUrl ? (
+            <img
+              src={customImageUrl}
+              alt={title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', color: placeholderColor, padding: '10px' }}>
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={placeholderColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 6px auto', display: 'block' }}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <span style={{ fontSize: `${Math.round(width * 0.035)}px`, letterSpacing: '1px', fontWeight: 'bold' }}>PHOTO AREA</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 3. MAIN BODY: FEATURE ICONS VERTICALLY ON THE LEFT SIDE (STRICTLY SQUARE DARK BLOCKS) + DESCRIPTION TEXT */}
@@ -485,7 +530,7 @@ export function JointCapabilityCard({
                 key={iconItem.key || idx}
                 style={{
                   backgroundColor: '#0f172a',
-                  color: featureIconColor,
+                  color: effFeatureIconColor,
                   borderRadius: '4px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -533,7 +578,7 @@ export function JointCapabilityCard({
           style={{
             flex: 1,
             backgroundColor: 'transparent',
-            color: cardTextColor,
+            color: effBodyColor,
             padding: '2px 0',
             fontSize: `${Math.round(height * 0.024)}px`,
             lineHeight: 1.35,
@@ -559,7 +604,7 @@ export function JointCapabilityCard({
               fontSize: `${Math.round(height * 0.022)}px`,
               fontWeight: '900',
               fontFamily: "'Share Tech Mono', 'Trebuchet MS', monospace",
-              color: cardTextColor,
+              color: effSetNumColor,
               letterSpacing: '1px',
               paddingLeft: '2px',
               userSelect: 'none'
@@ -576,7 +621,7 @@ export function JointCapabilityCard({
           style={{
             width: '100%',
             backgroundColor: loreBgColor,
-            color: loreTextColor,
+            color: effLoreColor,
             padding: '6px 10px',
             fontSize: `${Math.round(height * 0.02)}px`,
             fontStyle: 'italic',
