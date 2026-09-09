@@ -578,6 +578,27 @@ input[type="color"]::-moz-color-swatch {
   border-radius: 4px;
 }
 
+/* PULSING RED GLOW FOR OVERLAPPING TOKENS IN TOKEN PRINTER */
+@keyframes pulseRedGlow {
+  0% {
+    box-shadow: 0 0 4px #ef4444, inset 0 0 4px #ef4444;
+    border-color: #ef4444;
+  }
+  50% {
+    box-shadow: 0 0 16px #ef4444, inset 0 0 10px #ef4444;
+    border-color: #f87171;
+  }
+  100% {
+    box-shadow: 0 0 4px #ef4444, inset 0 0 4px #ef4444;
+    border-color: #ef4444;
+  }
+}
+
+.pulsing-overlap-glow {
+  animation: pulseRedGlow 1.2s infinite ease-in-out;
+  border-radius: 4px;
+}
+
 /* BROWSER PRINT STYLES */
 @media print {
   body {

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { LandToken } from './LandToken';
 
 const PAPER_PRESETS = {
@@ -18,7 +18,8 @@ export function TokenPrinter({
 }) {
   // Paper & Sheet settings
   const [paperKey, setPaperKey] = useState('A4_P');
-  const [tokenSizeMM, setTokenSizeMM] = useState(25); // default 25mm game token
+  const [sizeOption, setSizeOption] = useState('15'); // '15' | '25' | '30' | '40' | 'custom'
+  const [tokenSizeMM, setTokenSizeMM] = useState(15); // default 15mm as requested
   const [gapX, setGapX] = useState(2); // mm
   const [gapY, setGapY] = useState(2); // mm
   const [marginTop, setMarginTop] = useState(10); // mm
@@ -30,7 +31,7 @@ export function TokenPrinter({
 
   // Grid Preview & Snapping Controls
   const [showGridLines, setShowGridLines] = useState(true);
-  const [snapToGrid, setSnapToGrid] = useState(false); // default free hand as requested
+  const [snapToGrid, setSnapToGrid] = useState(false); // default free hand
 
   // Quantity selector for adding tokens
   const [addQuantity, setAddQuantity] = useState(1);
@@ -54,6 +55,15 @@ export function TokenPrinter({
   const mmToPx = canvasPixelWidth / paperWidthMM;
   const canvasPixelHeight = paperHeightMM * mmToPx;
 
+  // Handle Token Size Option changes
+  const handleSizeOptionChange = (e) => {
+    const val = e.target.value;
+    setSizeOption(val);
+    if (val !== 'custom') {
+      setTokenSizeMM(Number(val));
+    }
+  };
+
   // Update canvasPixelWidth on window resize
   useEffect(() => {
     const handleResize = () => {
@@ -70,6 +80,29 @@ export function TokenPrinter({
 
   // Saved tokens filter
   const savedTokens = savedItems.filter((i) => i.type === 'token');
+
+  // Detect overlapping tokens for pulsing red border glow
+  const overlappingTokenIds = useMemo(() => {
+    const overlapSet = new Set();
+    const len = sheetTokens.length;
+    const threshold = tokenSizeMM - 0.5; // Slight tolerance in mm for minor floating precision
+
+    for (let i = 0; i < len; i++) {
+      for (let j = i + 1; j < len; j++) {
+        const t1 = sheetTokens[i];
+        const t2 = sheetTokens[j];
+
+        const dx = Math.abs(t1.x - t2.x);
+        const dy = Math.abs(t1.y - t2.y);
+
+        if (dx < threshold && dy < threshold) {
+          overlapSet.add(t1.id);
+          overlapSet.add(t2.id);
+        }
+      }
+    }
+    return overlapSet;
+  }, [sheetTokens, tokenSizeMM]);
 
   // Snap position (X, Y in mm) to nearest grid cell based on margins and gaps
   const calculateSnapPosition = useCallback((xMM, yMM) => {
@@ -484,7 +517,7 @@ export function TokenPrinter({
               🖨️ Token Printer & Layout Studio
             </h2>
             <p style={{ margin: '0.2rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Arrange tokens onto printable pages with precise gap spacing, margins, free-hand nearest-grid snapping, and seamless drag & drop.
+              Arrange tokens onto printable pages with precise gap spacing, margins, free-hand nearest-grid snapping, overlap detection, and seamless drag & drop.
             </p>
           </div>
 
@@ -593,30 +626,27 @@ export function TokenPrinter({
               <div>
                 <label className="field-label">Token Print Size (mm)</label>
                 <select
-                  value={[25, 30, 40].includes(tokenSizeMM) ? tokenSizeMM : 'custom'}
-                  onChange={(e) => {
-                    if (e.target.value !== 'custom') {
-                      setTokenSizeMM(Number(e.target.value));
-                    }
-                  }}
+                  value={sizeOption}
+                  onChange={handleSizeOptionChange}
                   style={{ width: '100%' }}
                 >
-                  <option value={25}>25 mm (Standard 1" Game Token)</option>
-                  <option value={30}>30 mm Medium Token</option>
-                  <option value={40}>40 mm Large Token</option>
+                  <option value="15">15 mm (Small Game Token - Default)</option>
+                  <option value="25">25 mm (Standard 1" Game Token)</option>
+                  <option value="30">30 mm Medium Token</option>
+                  <option value="40">40 mm Large Token</option>
                   <option value="custom">Custom Size...</option>
                 </select>
               </div>
 
-              {![25, 30, 40].includes(tokenSizeMM) && (
+              {sizeOption === 'custom' && (
                 <div>
                   <label className="field-label">Custom Size (mm)</label>
                   <input
                     type="number"
-                    min="10"
+                    min="5"
                     max="100"
                     value={tokenSizeMM}
-                    onChange={(e) => setTokenSizeMM(Math.max(10, Math.min(100, Number(e.target.value) || 25)))}
+                    onChange={(e) => setTokenSizeMM(Math.max(5, Math.min(100, Number(e.target.value) || 15)))}
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -821,7 +851,12 @@ export function TokenPrinter({
               <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>Total Tokens:</span> {sheetTokens.length} ({uniqueTokenTypesCount} unique)
             </div>
 
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {overlappingTokenIds.size > 0 && (
+                <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.75rem' }}>
+                  ⚠️ {overlappingTokenIds.size} Overlapping
+                </span>
+              )}
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                 💡 Drag tokens from right list onto canvas
               </span>
@@ -921,6 +956,7 @@ export function TokenPrinter({
                 const leftPx = token.x * mmToPx;
                 const topPx = token.y * mmToPx;
                 const isSelected = selectedTokenId === token.id;
+                const isOverlapping = overlappingTokenIds.has(token.id);
 
                 return (
                   <div
@@ -933,7 +969,7 @@ export function TokenPrinter({
                       width: `${tokenPxSize}px`,
                       height: `${tokenPxSize}px`,
                       cursor: 'grab',
-                      zIndex: isSelected ? 10 : 1,
+                      zIndex: isSelected ? 10 : isOverlapping ? 5 : 1,
                       transition: draggingId === token.id ? 'none' : 'box-shadow 0.15s ease'
                     }}
                   >
@@ -943,6 +979,22 @@ export function TokenPrinter({
                       side={token.side || 'front'}
                       size={tokenPxSize}
                     />
+
+                    {/* Overlap Pulsing Red Border Glow (Class print-ui-overlay excluded during export) */}
+                    {isOverlapping && (
+                      <div
+                        className="print-ui-overlay pulsing-overlap-glow"
+                        style={{
+                          position: 'absolute',
+                          top: -2,
+                          left: -2,
+                          right: -2,
+                          bottom: -2,
+                          border: '2px solid #ef4444',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
 
                     {/* Selection & Hover Controls Overlay */}
                     <div
