@@ -79,34 +79,55 @@ const CARD_TYPES = {
   }
 };
 
-// Feature tags icons (smaller, clean white stroke)
+// Feature tags icons (matching real game card icons, foreground color configurable via currentColor)
 const FEATURE_TAG_ICONS = {
+  // Infinity loop symbol with inner dots
   PERSIST: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21.5 2v6h-6" />
-      <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 12C9.5 15.5 6.8 17 4.5 17C2.2 17 0.8 15 0.8 12.5C0.8 10 2.2 8 4.5 8C6.8 8 9.5 9.5 12 12C14.5 14.5 17.2 16 19.5 16C21.8 16 23.2 14 23.2 11.5C23.2 9 21.8 7 19.5 7C17.2 7 14.5 8.5 12 12Z"
+        stroke="currentColor"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="5" cy="12.5" r="1.3" fill="currentColor" />
+      <circle cx="19" cy="11.5" r="1.3" fill="currentColor" />
     </svg>
   ),
+  // SAM Launcher / Missile Truck silhouette
   INTERCEPT: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      {/* SAM Launcher tilted box pod */}
+      <polygon points="3,11 12,6.5 14.5,10.5 5.5,15" />
+      {/* Hydraulic / actuator support */}
+      <line x1="6" y1="14" x2="8" y2="17" stroke="currentColor" strokeWidth="1.8" />
+      {/* Truck bed & cab */}
+      <path d="M2.5,16.5 L20.5,16.5 C20.5,16.5 21,13.5 18,11 L14,11 L14,16.5 Z" />
+      <path d="M14,11.5 L17.5,11.5 L19.5,13.8 L14,13.8 Z" fill="#0f172a" />
+      {/* Wheels */}
+      <circle cx="5.5" cy="18" r="2.2" />
+      <circle cx="9" cy="18" r="2.2" />
+      <circle cx="17.5" cy="18" r="2.2" />
     </svg>
   ),
+  // Paperclip icon
   ATTACH: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      <path d="M21.41 11.58l-9-9a5.5 5.5 0 0 0-7.78 7.78l9 9a3.5 3.5 0 0 0 4.95-4.95l-9-9a1.5 1.5 0 0 0-2.12 2.12l8.29 8.29" />
     </svg>
   ),
+  // Circle with diagonal line from top-right to bottom-left
   NULLIFY: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <line x1="18" y1="6" x2="6" y2="18" />
     </svg>
   ),
+  // Fighter jet silhouette pointing top-right
   FTR: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.2c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M 20.5 3.5 C 20.5 3.5 19 6.5 16 9 L 12.5 7.5 L 5 4.5 L 6.5 7.5 L 11 11 L 7.5 14.5 L 4.5 13.5 L 3.5 15.5 L 6.5 17.5 L 7.5 18.5 L 9.5 15.5 L 8.5 12.5 L 12 9 L 14.5 13.5 L 17.5 15 L 14.5 7.5 C 17 4.5 20.5 3.5 20.5 3.5 Z" />
     </svg>
   ),
   CUSTOM: (
