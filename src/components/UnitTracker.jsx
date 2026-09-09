@@ -95,6 +95,8 @@ export function UnitTracker({
     showBackCamo = true,
     customBackImageUrl = null,
     showSquareBorders = true,
+    applySingleTrackerTextColor = false,
+    singleTrackerTextColor = '#000000',
     titleColor = '#000000',
     descriptionColor = '#1a202c',
     triangleNumberColor = '#000000',
@@ -103,6 +105,17 @@ export function UnitTracker({
     squareNumberColor = '#8c939d',
     squareBgColor = '#ffffff'
   } = trackerData || {};
+
+  const effTitleColor = applySingleTrackerTextColor ? singleTrackerTextColor : titleColor;
+  const effDescColor = applySingleTrackerTextColor ? singleTrackerTextColor : descriptionColor;
+  const effTriangleNumColor = applySingleTrackerTextColor ? singleTrackerTextColor : triangleNumberColor;
+  const effFooterColor = applySingleTrackerTextColor ? singleTrackerTextColor : footerNameColor;
+  const effAttachTextColor = applySingleTrackerTextColor ? singleTrackerTextColor : attachmentTextColor;
+  const effSquareNumColor = applySingleTrackerTextColor
+    ? singleTrackerTextColor
+    : squareNumberColor === 'bgColor'
+    ? bgColor
+    : squareNumberColor || '#8c939d';
 
   const isCarrier = trackerType === 'carrier';
 
@@ -169,12 +182,6 @@ export function UnitTracker({
   // 20 vertical long squares (4 rows of 5)
   const squares = Array.from({ length: 20 }, (_, i) => i + 1);
 
-  // Determine effective square number color
-  const effectiveNumColor =
-    squareNumberColor === 'bgColor'
-      ? bgColor
-      : squareNumberColor || '#8c939d';
-
   return (
     <div
       id={id}
@@ -236,11 +243,11 @@ export function UnitTracker({
           padding: '0 8px'
         }}
       >
-        <span style={{ fontSize: '0.65rem', color: attachmentTextColor }}>▲</span>
-        <span style={{ fontSize: '0.65rem', fontWeight: '900', letterSpacing: '1.5px', color: attachmentTextColor }}>
+        <span style={{ fontSize: '0.65rem', color: effAttachTextColor }}>▲</span>
+        <span style={{ fontSize: '0.65rem', fontWeight: '900', letterSpacing: '1.5px', color: effAttachTextColor }}>
           ATTACHMENT
         </span>
-        <span style={{ fontSize: '0.65rem', color: attachmentTextColor }}>▲</span>
+        <span style={{ fontSize: '0.65rem', color: effAttachTextColor }}>▲</span>
       </div>
 
       {/* Header Area */}
@@ -265,7 +272,7 @@ export function UnitTracker({
                   margin: 0,
                   fontSize: '1.25rem',
                   fontWeight: '900',
-                  color: titleColor,
+                  color: effTitleColor,
                   letterSpacing: '0.5px',
                   lineHeight: 1.1,
                   textTransform: 'uppercase'
@@ -277,7 +284,7 @@ export function UnitTracker({
                 style={{
                   margin: '4px 0 0 0',
                   fontSize: '0.68rem',
-                  color: descriptionColor,
+                  color: effDescColor,
                   lineHeight: 1.2,
                   fontWeight: '500',
                   textAlign: 'left'
@@ -320,7 +327,7 @@ export function UnitTracker({
                     top: '3px',
                     fontSize: '0.8rem',
                     fontWeight: '900',
-                    color: triangleNumberColor
+                    color: effTriangleNumColor
                   }}
                 >
                   {triangleNumber}
@@ -507,7 +514,7 @@ export function UnitTracker({
                   fontSize: '2.1rem',
                   fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
                   lineHeight: 1,
-                  color: effectiveNumColor,
+                  color: effSquareNumColor,
                   paddingBottom: '2px',
                   boxSizing: 'border-box'
                 }}
@@ -526,7 +533,7 @@ export function UnitTracker({
             fontSize: '0.72rem',
             fontWeight: '900',
             letterSpacing: '1px',
-            color: footerNameColor,
+            color: effFooterColor,
             textTransform: 'uppercase'
           }}
         >
