@@ -354,6 +354,30 @@ export function TacticalGroupTracker({
                 )}
               </div>
 
+              {/* Column / Token Name Above Token Graphic */}
+              <div
+                style={{
+                  width: '100%',
+                  fontSize: '0.68rem',
+                  fontWeight: '900',
+                  color: effColumnHeaderColor,
+                  margin: '0px',
+                  padding: '2px 2px 3px 2px',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  boxSizing: 'border-box',
+                  borderBottom: '1px solid #000000',
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  lineHeight: 1.1,
+                  textTransform: 'uppercase'
+                }}
+                title={col.columnName || tokenData?.unitName || `Unit ${colIdx + 1}`}
+              >
+                {col.columnName || tokenData?.unitName || `UNIT ${colIdx + 1}`}
+              </div>
+
               {/* 1. TOP: Full-size Token Graphic */}
               <div
                 style={{
@@ -376,26 +400,6 @@ export function TacticalGroupTracker({
                 ) : (
                   <LandToken tokenData={tokenData} side="front" size={columnWidth} />
                 )}
-              </div>
-
-              {/* Token Name Label */}
-              <div
-                style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 'bold',
-                  color: effColumnHeaderColor,
-                  margin: '0px',
-                  padding: '3px 2px',
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: `${columnWidth - 2}px`,
-                  lineHeight: 1.1
-                }}
-                title={tokenData?.unitName || 'Unit Token'}
-              >
-                {tokenData?.unitName || 'UNIT TOKEN'}
               </div>
 
               {/* 2. MIDDLE: Weight Triangles Area (White ▲ & Black Reversed ▲) */}

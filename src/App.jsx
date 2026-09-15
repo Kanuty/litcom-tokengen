@@ -248,6 +248,7 @@ function App() {
   const [selectedGroupColIdx, setSelectedGroupColIdx] = useState(0);
   const [groupClickMode, setGroupClickMode] = useState('dice'); // 'dice' | 'hp'
   const [groupSelectedDieIndex, setGroupSelectedDieIndex] = useState('supply');
+  const [importerSearchQuery, setImporterSearchQuery] = useState('');
 
   const [groupData, setGroupData] = useState({
     title: '1ST TACTICAL STRIKE GROUP',
@@ -1109,11 +1110,14 @@ function App() {
         return { ...prev, columns: cols };
       });
     } else {
+      const targetColumn = groupData.columns[colIdx];
+      const colTokenDice = targetColumn?.tokenData?.dice || tokenData.dice;
+
       let availableDie = null;
       if (groupSelectedDieIndex === 'supply') {
         availableDie = { type: 'supply', color: '#1976d2' };
       } else {
-        availableDie = tokenData.dice[groupSelectedDieIndex] || tokenData.dice[0];
+        availableDie = colTokenDice[groupSelectedDieIndex] || colTokenDice[0];
       }
 
       if (availableDie) {
@@ -1908,6 +1912,34 @@ function App() {
 
                 {groupData.columns[selectedGroupColIdx] && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.4rem' }}>
+                    <div>
+                      <label className="field-label">Column Name (Unit Title)</label>
+                      <input
+                        type="text"
+                        value={
+                          groupData.columns[selectedGroupColIdx].columnName !== undefined
+                            ? groupData.columns[selectedGroupColIdx].columnName
+                            : groupData.columns[selectedGroupColIdx].tokenData?.unitName || ''
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setGroupData((prev) => {
+                            const cols = [...prev.columns];
+                            cols[selectedGroupColIdx] = {
+                              ...cols[selectedGroupColIdx],
+                              columnName: val,
+                              tokenData: {
+                                ...cols[selectedGroupColIdx].tokenData,
+                                unitName: val
+                              }
+                            };
+                            return { ...prev, columns: cols };
+                          });
+                        }}
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                       <div>
                         <label className="field-label">White ▲ Weight (1-50)</label>
@@ -2069,7 +2101,7 @@ function App() {
                 {groupClickMode === 'dice' && (
                   <div>
                     <p className="field-help-text" style={{ margin: '0.4rem 0 0.4rem 0' }}>
-                      Select a die marker below, then click any point (1–20) on any column preview:
+                      Select a die marker from selected Column #{selectedGroupColIdx + 1}'s token below, then click points (1–20) on preview:
                     </p>
 
                     <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2092,7 +2124,7 @@ function App() {
                         <MiniDieIcon isSupply /> Supply
                       </div>
 
-                      {tokenData.dice && tokenData.dice.map((die, idx) => (
+                      {(groupData.columns[selectedGroupColIdx]?.tokenData?.dice || tokenData.dice || []).map((die, idx) => (
                         <div
                           key={idx}
                           onClick={() => setGroupSelectedDieIndex(idx)}
@@ -2110,7 +2142,7 @@ function App() {
                             gap: '0.35rem'
                           }}
                         >
-                          <MiniDieIcon die={die} /> Die #{idx + 1}
+                          <MiniDieIcon die={die} /> Die #{idx + 1} ({die.bigValue}<sup>{die.smallValue || 0}</sup>)
                         </div>
                       ))}
                     </div>
@@ -2289,8 +2321,8 @@ function App() {
               />
             </div>
 
-            {/* RIGHT SIDE: TOKEN IMPORTER PALETTE */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* RIGHT SIDE: TOKEN IMPORTER PALETTE (STICKY & SCROLLABLE) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'sticky', top: '80px', alignSelf: 'start', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
               <div className="tint-card tint-card-dice">
                 <h3 className="subsection-header">📥 Token Importer</h3>
                 <p className="field-help-text">Click "+ Import" or drag any token to a column (to replace) or drop zone (to add):</p>
@@ -2346,19 +2378,62 @@ function App() {
                   </button>
                 </div>
 
-                {/* 2. SAVED TOKENS LIBRARY LIST */}
+                {/* 2. SAVED TOKENS LIBRARY LIST WITH SEARCH FILTER */}
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                    Saved Tokens Library
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                      Saved Tokens Library
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '480px', overflowY: 'auto' }}>
-                    {getSavedItems().filter((i) => i.type === 'token').length === 0 ? (
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.8rem', background: 'var(--input-bg)', borderRadius: '4px', border: '1px dashed var(--panel-border)' }}>
-                        No saved tokens found.
-                      </div>
-                    ) : (
-                      getSavedItems().filter((i) => i.type === 'token').map((item) => (
+                  {/* Search Filter Box */}
+                  <div style={{ marginBottom: '0.6rem' }}>
+                    <input
+                      type="text"
+                      placeholder="🔍 Search tokens..."
+                      value={importerSearchQuery}
+                      onChange={(e) => setImporterSearchQuery(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.35rem 0.6rem',
+                        fontSize: '0.8rem',
+                        borderRadius: '4px',
+                        border: '1px solid var(--panel-border)',
+                        background: 'var(--input-bg)',
+                        color: 'var(--text-primary)'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '420px', overflowY: 'auto' }}>
+                    {(() => {
+                      const savedTokens = getSavedItems().filter((i) => i.type === 'token');
+                      const filteredTokens = savedTokens.filter((item) => {
+                        if (!importerSearchQuery.trim()) return true;
+                        const query = importerSearchQuery.toLowerCase();
+                        const nameMatch = (item.name || '').toLowerCase().includes(query);
+                        const categoryMatch = (item.category || '').toLowerCase().includes(query);
+                        const unitNameMatch = (item.data?.unitName || '').toLowerCase().includes(query);
+                        return nameMatch || categoryMatch || unitNameMatch;
+                      });
+
+                      if (savedTokens.length === 0) {
+                        return (
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.8rem', background: 'var(--input-bg)', borderRadius: '4px', border: '1px dashed var(--panel-border)' }}>
+                            No saved tokens found.
+                          </div>
+                        );
+                      }
+
+                      if (filteredTokens.length === 0) {
+                        return (
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.8rem', background: 'var(--input-bg)', borderRadius: '4px', border: '1px dashed var(--panel-border)' }}>
+                            No tokens match "{importerSearchQuery}".
+                          </div>
+                        );
+                      }
+
+                      return filteredTokens.map((item) => (
                         <div
                           key={item.id}
                           draggable={true}
@@ -2408,8 +2483,8 @@ function App() {
                             + Import
                           </button>
                         </div>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </div>
                 </div>
 
