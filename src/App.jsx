@@ -2017,6 +2017,19 @@ function App() {
 
       {/* TACTICAL GROUP TRACKER PAGE CONTAINER */}
       <div style={{ display: activeView === 'group' ? 'block' : 'none', padding: '1rem 0' }}>
+        {/* COLLAPSIBLE GROUP TRACKERS LIBRARY AT TOP OF PAGE */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <SavedLibrary
+            items={savedItems.filter((i) => i.type === 'group')}
+            onLoadItem={handleLoadItem}
+            onDeleteItem={handleDeleteSavedItem}
+            onUpdateItemName={handleUpdateItemName}
+            onRefreshItems={refreshSavedItems}
+            showNotification={showNotification}
+            confirmAction={confirmAction}
+          />
+        </div>
+
         <div
           style={{
             background: 'var(--panel-bg)',
@@ -2148,10 +2161,10 @@ function App() {
           </div>
 
           {/* THREE-COLUMN LAYOUT: CONTROLS ON LEFT | PREVIEW IN CENTER | TOKEN IMPORTER ON RIGHT */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 340px) 1fr minmax(280px, 320px)', gap: '1.25rem', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 400px) 1fr minmax(280px, 320px)', gap: '1.25rem', alignItems: 'start' }}>
 
             {/* GROUP TRACKER CONTROLS */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', width: '100%', boxSizing: 'border-box' }}>
 
               {/* 1. BASIC IDENTIFICATION */}
               <div className="tint-card tint-card-attributes">
@@ -2205,31 +2218,88 @@ function App() {
                         >
                           <option value="infantry">Infantry</option>
                           <option value="armor">Armor</option>
-                          <option value="artillery">Artillery</option>
-                          <option value="hq">Headquarters</option>
                           <option value="recon">Reconnaissance</option>
-                          <option value="engineer">Engineer</option>
-                          <option value="antiArmor">Anti-Armor</option>
+                          <option value="artillery">Artillery</option>
+                          <option value="rocket_artillery">Rocket Artillery</option>
+                          <option value="mechanized_artillery">Mechanized Artillery</option>
                           <option value="airDefense">Air Defense</option>
+                          <option value="antiArmor">Anti-Armor</option>
                           <option value="aviation">Aviation</option>
+                          <option value="engineer">Engineer</option>
+                          <option value="sof">SOF</option>
+                          <option value="supply">Supply</option>
                         </select>
                       </div>
 
                       <div>
-                        <label className="field-label" style={{ fontSize: '0.75rem' }}>Echelon</label>
+                        <label className="field-label" style={{ fontSize: '0.75rem' }}>Affiliation</label>
                         <select
-                          value={groupData.natoEchelon || 'III'}
-                          onChange={(e) => setGroupData({ ...groupData, natoEchelon: e.target.value })}
+                          value={groupData.natoAffiliation || 'friendly'}
+                          onChange={(e) => setGroupData({ ...groupData, natoAffiliation: e.target.value })}
                           style={{ width: '100%', fontSize: '0.8rem' }}
                         >
-                          <option value="•">Squad (•)</option>
-                          <option value="••">Section (••)</option>
-                          <option value="•••">Platoon (•••)</option>
-                          <option value="I">Company (I)</option>
-                          <option value="II">Battalion (II)</option>
-                          <option value="III">Regiment / Group (III)</option>
-                          <option value="X">Brigade (X)</option>
+                          <option value="friendly">Friendly (Blue Rectangle)</option>
+                          <option value="hostile">Hostile / Enemy (Red Diamond)</option>
+                          <option value="neutral">Neutral (Green Square)</option>
+                          <option value="unknown">Unknown (Yellow Clover)</option>
                         </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="field-label" style={{ fontSize: '0.75rem' }}>Echelon Level</label>
+                      <select
+                        value={groupData.natoEchelon || 'III'}
+                        onChange={(e) => setGroupData({ ...groupData, natoEchelon: e.target.value })}
+                        style={{ width: '100%', fontSize: '0.8rem' }}
+                      >
+                        <option value="•">Squad (•)</option>
+                        <option value="••">Section (••)</option>
+                        <option value="•••">Platoon (•••)</option>
+                        <option value="I">Company (I)</option>
+                        <option value="II">Battalion (II)</option>
+                        <option value="III">Regiment / Group (III)</option>
+                        <option value="X">Brigade (X)</option>
+                        <option value="XX">Division (XX)</option>
+                        <option value="XXX">Corps (XXX)</option>
+                        <option value="XXXX">Corps / Field Army (XXXX)</option>
+                        <option value="XXXXX">Army (XXXXX)</option>
+                        <option value="XXXXXX">Front / Army Group (XXXXXX)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="field-label" style={{ fontSize: '0.75rem' }}>NATO Modifiers</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem', fontSize: '0.75rem' }}>
+                        {[
+                          { id: 'tracked', label: 'Tracked' },
+                          { id: 'wheeled', label: 'Wheeled' },
+                          { id: 'amphibious', label: 'Amphibious' },
+                          { id: 'airborne', label: 'Airborne' },
+                          { id: 'airmobile', label: 'Airmobile' },
+                          { id: 'motorized', label: 'Motorized' },
+                          { id: 'mountain', label: 'Mountain' },
+                          { id: 'light', label: 'Light' },
+                          { id: 'ew', label: 'Electronic Warfare' }
+                        ].map((mod) => {
+                          const mods = groupData.natoModifiers || [];
+                          const isChecked = mods.includes(mod.id);
+                          return (
+                            <label key={mod.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const updated = e.target.checked
+                                    ? [...mods, mod.id]
+                                    : mods.filter((m) => m !== mod.id);
+                                  setGroupData({ ...groupData, natoModifiers: updated });
+                                }}
+                              />
+                              {mod.label}
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2987,8 +3057,8 @@ function App() {
 
             </div>
 
-            {/* LIVE PREVIEW CANVAS AREA */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+            {/* LIVE PREVIEW CANVAS AREA (STICKY & SCROLLABLE LIKE TOKEN IMPORTER) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'sticky', top: '80px', alignSelf: 'start', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', overflowX: 'auto', paddingBottom: '1rem' }}>
 
               {/* Swappable Face Tabs */}
               <div

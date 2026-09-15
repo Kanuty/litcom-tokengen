@@ -60,9 +60,17 @@ export function TacticalGroupTracker({
 
   const numColumns = Math.max(1, columns.length);
   const sidePadding = 16;
-  const minWidth = 460;
+
+  // Calculate required width for header elements so NATO symbol, emblem, and title text are always on one line without wrapping
+  const titleCharCount = (title || '').length;
+  const approxTitleWidth = titleCharCount * 18 + 40; // ~18px per uppercase letter + padding
+  const natoWidth = showNatoSymbol ? 70 : 0;
+  const emblemWidth = customEmblemUrl ? 70 : 0;
+  const headerRequiredWidth = approxTitleWidth + natoWidth + emblemWidth + sidePadding * 2 + 40;
+
+  const minWidth = 480;
   const rawWidth = numColumns * columnWidth + sidePadding * 2;
-  const calculatedWidth = Math.max(minWidth, rawWidth);
+  const calculatedWidth = Math.max(minWidth, rawWidth, headerRequiredWidth);
 
   const handleDragOver = (e) => {
     e.preventDefault();
