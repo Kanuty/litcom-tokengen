@@ -29,6 +29,12 @@ export function TacticalGroupTracker({
     backCamoColor = '#1a365d',
     showBackCamo = true,
     customBackImageUrl = null,
+    customEmblemUrl = null,
+    showNatoSymbol = false,
+    natoSymbolType = 'infantry',
+    natoAffiliation = 'friendly',
+    natoEchelon = 'III',
+    customNatoSymbolUrl = null,
     showSquareBorders = true,
     applySingleTextColor = false,
     singleTextColor = '#000000',
@@ -96,7 +102,8 @@ export function TacticalGroupTracker({
         id={id}
         style={{
           width: `${calculatedWidth}px`,
-          minHeight: '620px',
+          minHeight: '100%',
+          flex: 1,
           backgroundColor: backBgColor || '#2b6cb0',
           border: '6px solid #000000',
           borderRadius: '0px',
@@ -107,7 +114,7 @@ export function TacticalGroupTracker({
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          padding: '0px',
+          padding: '24px 16px',
           margin: '0px'
         }}
       >
@@ -166,7 +173,7 @@ export function TacticalGroupTracker({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '16px 16px 10px 16px',
+        padding: '28px 16px 10px 16px',
         margin: '0px',
         fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
         color: '#000000',
@@ -222,28 +229,92 @@ export function TacticalGroupTracker({
         <span style={{ fontSize: '0.65rem', color: effColumnHeaderColor }}>▲</span>
       </div>
 
-      {/* Main Group Header: Title */}
+      {/* Main Group Header: Title, Custom Emblem & NATO Symbol */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          gap: '12px',
           borderBottom: '3px solid #000000',
-          padding: '0px',
-          margin: '10px 0 8px 0',
+          padding: '12px 0 12px 0',
+          margin: '24px 0 12px 0',
           zIndex: 1
         }}
       >
+        {/* NATO Symbol / Custom NATO Symbol Graphic */}
+        {showNatoSymbol && (
+          <div
+            style={{
+              width: '54px',
+              height: '54px',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid #000000',
+              backgroundColor: '#ffffff',
+              overflow: 'hidden'
+            }}
+          >
+            {customNatoSymbolUrl ? (
+              <img
+                src={customNatoSymbolUrl}
+                alt="NATO Symbol"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : (
+              <LandToken
+                tokenData={{
+                  category: 'land',
+                  bgColor: '#2b6cb0',
+                  symbolType: natoSymbolType,
+                  affiliation: natoAffiliation,
+                  echelon: natoEchelon,
+                  unitName: '',
+                  dice: []
+                }}
+                side="front"
+                size={54}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Custom Warbanner / Emblem Image */}
+        {customEmblemUrl && (
+          <div
+            style={{
+              width: '54px',
+              height: '54px',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid #000000',
+              backgroundColor: '#ffffff',
+              overflow: 'hidden'
+            }}
+          >
+            <img
+              src={customEmblemUrl}
+              alt="Unit Emblem"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          </div>
+        )}
+
         <h2
           style={{
             margin: 0,
-            padding: '4px 0',
+            padding: '2px 0',
             fontSize: '1.6rem',
             fontWeight: '900',
             color: effTitleColor,
             letterSpacing: '1px',
             textTransform: 'uppercase',
-            textAlign: 'center'
+            textAlign: 'center',
+            lineHeight: 1.1
           }}
         >
           {title}
@@ -413,7 +484,7 @@ export function TacticalGroupTracker({
                   justifyContent: 'center',
                   borderBottom: '1px solid #000000',
                   borderRadius: '0px',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: tokenData?.bgColor || '#2b6cb0',
                   padding: '0px',
                   margin: '0px'
                 }}
@@ -421,7 +492,7 @@ export function TacticalGroupTracker({
                 {customImageUrl ? (
                   <img src={customImageUrl} alt="Token" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <LandToken tokenData={tokenData} side="front" size={columnWidth} />
+                  <LandToken tokenData={col.tokenData || tokenData} side="front" size={columnWidth} />
                 )}
               </div>
 

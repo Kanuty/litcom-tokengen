@@ -1217,6 +1217,28 @@ function App() {
     );
   };
 
+  const handleGroupEmblemUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setGroupData((prev) => ({ ...prev, customEmblemUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGroupNatoSymbolUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setGroupData((prev) => ({ ...prev, customNatoSymbolUrl: evt.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleDeleteSavedItem = (id) => {
     const updated = deleteItem(id);
     setSavedItems(updated);
@@ -1912,6 +1934,120 @@ function App() {
                     onChange={(e) => setGroupData({ ...groupData, footerName: e.target.value })}
                     style={{ width: '100%' }}
                   />
+                </div>
+              </div>
+
+              {/* 1B. HEADER EMBLEM & NATO SYMBOL */}
+              <div className="tint-card tint-card-aircraft">
+                <h3 className="subsection-header">🎖️ Header NATO Symbol & Emblem</h3>
+
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(groupData.showNatoSymbol)}
+                      onChange={(e) => setGroupData({ ...groupData, showNatoSymbol: e.target.checked })}
+                    />
+                    Show NATO Symbol in Header
+                  </label>
+                </div>
+
+                {groupData.showNatoSymbol && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.4rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      <div>
+                        <label className="field-label" style={{ fontSize: '0.75rem' }}>Symbol Type</label>
+                        <select
+                          value={groupData.natoSymbolType || 'infantry'}
+                          onChange={(e) => setGroupData({ ...groupData, natoSymbolType: e.target.value })}
+                          style={{ width: '100%', fontSize: '0.8rem' }}
+                        >
+                          <option value="infantry">Infantry</option>
+                          <option value="armor">Armor</option>
+                          <option value="artillery">Artillery</option>
+                          <option value="hq">Headquarters</option>
+                          <option value="recon">Reconnaissance</option>
+                          <option value="engineer">Engineer</option>
+                          <option value="antiArmor">Anti-Armor</option>
+                          <option value="airDefense">Air Defense</option>
+                          <option value="aviation">Aviation</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="field-label" style={{ fontSize: '0.75rem' }}>Echelon</label>
+                        <select
+                          value={groupData.natoEchelon || 'III'}
+                          onChange={(e) => setGroupData({ ...groupData, natoEchelon: e.target.value })}
+                          style={{ width: '100%', fontSize: '0.8rem' }}
+                        >
+                          <option value="•">Squad (•)</option>
+                          <option value="••">Section (••)</option>
+                          <option value="•••">Platoon (•••)</option>
+                          <option value="I">Company (I)</option>
+                          <option value="II">Battalion (II)</option>
+                          <option value="III">Regiment / Group (III)</option>
+                          <option value="X">Brigade (X)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="field-label" style={{ fontSize: '0.75rem' }}>Custom NATO Symbol Image</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleGroupNatoSymbolUpload}
+                        style={{ width: '100%', fontSize: '0.75rem' }}
+                      />
+                      {groupData.customNatoSymbolUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setGroupData({ ...groupData, customNatoSymbolUrl: null })}
+                          style={{
+                            marginTop: '0.3rem',
+                            fontSize: '0.72rem',
+                            padding: '2px 6px',
+                            background: '#dc2626',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Reset Custom NATO Image
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ marginTop: '0.6rem' }}>
+                  <label className="field-label" style={{ fontSize: '0.8rem' }}>Custom Unit Emblem / Warbanner Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleGroupEmblemUpload}
+                    style={{ width: '100%', fontSize: '0.78rem' }}
+                  />
+                  {groupData.customEmblemUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setGroupData({ ...groupData, customEmblemUrl: null })}
+                      style={{
+                        marginTop: '0.3rem',
+                        fontSize: '0.72rem',
+                        padding: '2px 6px',
+                        background: '#dc2626',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Reset Emblem Image
+                    </button>
+                  )}
                 </div>
               </div>
 
