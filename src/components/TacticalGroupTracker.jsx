@@ -250,6 +250,29 @@ export function TacticalGroupTracker({
         </h2>
       </div>
 
+      {/* Drop Zone to Add Column via Drag and Drop (Interactive Only - Moved to Top) */}
+      {isInteractive && (
+        <div
+          onDragOver={handleDragOver}
+          onDrop={handleDropOnAddZone}
+          style={{
+            margin: '0 0 8px 0',
+            padding: '6px',
+            border: '2px dashed var(--accent-cyan)',
+            borderRadius: '4px',
+            textAlign: 'center',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            color: 'var(--accent-cyan)',
+            background: 'rgba(0, 240, 255, 0.05)',
+            cursor: 'pointer',
+            zIndex: 1
+          }}
+        >
+          ➕ Drag token here to drop & add as new column
+        </div>
+      )}
+
       {/* Token Columns Grid - NO GAP OR MARGIN BETWEEN COLUMNS */}
       <div
         style={{
@@ -569,28 +592,6 @@ export function TacticalGroupTracker({
           );
         })}
       </div>
-
-      {/* Drop Zone to Add Column via Drag and Drop (Interactive Only) */}
-      {isInteractive && (
-        <div
-          onDragOver={handleDragOver}
-          onDrop={handleDropOnAddZone}
-          style={{
-            margin: '8px 0 0 0',
-            padding: '6px',
-            border: '2px dashed var(--accent-cyan)',
-            borderRadius: '4px',
-            textAlign: 'center',
-            fontSize: '0.75rem',
-            fontWeight: 'bold',
-            color: 'var(--accent-cyan)',
-            background: 'rgba(0, 240, 255, 0.05)',
-            cursor: 'pointer'
-          }}
-        >
-          ➕ Drag token here to drop & add as new column
-        </div>
-      )}
 
       {/* Footer Area */}
       <div

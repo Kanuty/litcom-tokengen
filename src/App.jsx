@@ -276,9 +276,21 @@ function App() {
         tokenData: {
           category: 'land',
           bgColor: '#2b6cb0',
-          unitName: '1-1 CHARLIE',
+          stripeColor: '#ffffff',
+          hexColor: '#7e8388',
+          hexBorderColor: '#ffffff',
+          natoSymbolColor: '#ffffff',
+          fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
+          echelon: '••',
+          affiliation: 'friendly',
           symbolType: 'infantry',
-          echelon: '••'
+          modifiers: [],
+          movementRange: 3,
+          unitName: '1-1 CHARLIE',
+          dice: [
+            { type: 'red', bigValue: 10, smallValue: '4' },
+            { type: 'red', bigValue: 12, smallValue: '9' }
+          ]
         },
         showWhiteTriangle: true,
         whiteTriangleNum: 2,
@@ -292,9 +304,20 @@ function App() {
         tokenData: {
           category: 'land',
           bgColor: '#1976d2',
-          unitName: '1-2 BRAVO',
+          stripeColor: '#ffffff',
+          hexColor: '#7e8388',
+          hexBorderColor: '#ffffff',
+          natoSymbolColor: '#ffffff',
+          fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
+          echelon: '••',
+          affiliation: 'friendly',
           symbolType: 'armor',
-          echelon: '••'
+          modifiers: [],
+          movementRange: 2,
+          unitName: '1-2 BRAVO',
+          dice: [
+            { type: 'green', bigValue: 8, smallValue: '3' }
+          ]
         },
         showWhiteTriangle: true,
         whiteTriangleNum: 3,
@@ -1056,10 +1079,44 @@ function App() {
           throw new Error('Invalid group tracker format');
         }
 
+        // Automatically save any missing tokens in imported columns to the user's saved library
+        let newlySavedCount = 0;
+        if (Array.isArray(loadedGroupData.columns)) {
+          const currentSaved = getSavedItems();
+
+          loadedGroupData.columns.forEach((col) => {
+            if (col && col.tokenData) {
+              const token = col.tokenData;
+              const tokenName = token.unitName || token.title || 'Imported Token';
+
+              // Check if token with identical unitName & category already exists in library
+              const exists = currentSaved.some(
+                (item) => item.type === 'token' && item.name === tokenName
+              );
+
+              if (!exists) {
+                saveItem({
+                  name: tokenName,
+                  type: 'token',
+                  category: token.category || 'land',
+                  data: token
+                });
+                newlySavedCount++;
+              }
+            }
+          });
+
+          if (newlySavedCount > 0) {
+            refreshSavedItems();
+          }
+        }
+
         setGroupData(loadedGroupData);
         showNotification({
           title: 'GROUP TRACKER IMPORTED',
-          message: `Successfully imported Tactical Group Tracker "${loadedGroupData.title || 'Group'}".`
+          message: `Successfully imported Tactical Group Tracker "${loadedGroupData.title || 'Group'}".${
+            newlySavedCount > 0 ? ` Automatically added ${newlySavedCount} missing token(s) to your Saved Tokens Library.` : ''
+          }`
         });
       } catch (err) {
         console.error(err);
