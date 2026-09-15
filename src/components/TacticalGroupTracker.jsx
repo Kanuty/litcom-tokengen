@@ -1,5 +1,5 @@
 import React from 'react';
-import { LandToken } from './LandToken';
+import { LandToken, NatoSymbol } from './LandToken';
 import { MiniDie } from './UnitTracker';
 
 /**
@@ -19,9 +19,10 @@ export function TacticalGroupTracker({
   isInteractive = true
 }) {
   const {
-    title = 'TACTICAL GROUP TRACKER',
+    title = '1ST TACTICAL STRIKE GROUP',
     footerName = 'USMC TACTICAL GROUP',
     columns = [],
+    fontFamily = "'Trebuchet MS', 'Arial Bold', sans-serif",
     bgColor = '#ffffff',
     camoColor = '#4a5568',
     showCamo = true,
@@ -34,6 +35,7 @@ export function TacticalGroupTracker({
     natoSymbolType = 'infantry',
     natoAffiliation = 'friendly',
     natoEchelon = 'III',
+    natoModifiers = [],
     customNatoSymbolUrl = null,
     showSquareBorders = true,
     applySingleTextColor = false,
@@ -58,7 +60,9 @@ export function TacticalGroupTracker({
 
   const numColumns = Math.max(1, columns.length);
   const sidePadding = 16;
-  const calculatedWidth = numColumns * columnWidth + sidePadding * 2;
+  const minWidth = 460;
+  const rawWidth = numColumns * columnWidth + sidePadding * 2;
+  const calculatedWidth = Math.max(minWidth, rawWidth);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -102,7 +106,8 @@ export function TacticalGroupTracker({
         id={id}
         style={{
           width: `${calculatedWidth}px`,
-          minHeight: '100%',
+          minHeight: '990px',
+          height: '100%',
           flex: 1,
           backgroundColor: backBgColor || '#2b6cb0',
           border: '6px solid #000000',
@@ -149,9 +154,9 @@ export function TacticalGroupTracker({
             style={{ width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
           />
         ) : (
-          <div style={{ zIndex: 1, color: '#ffffff', textAlign: 'center', fontFamily: "'Teko', sans-serif" }}>
-            <h2 style={{ fontSize: '2.5rem', margin: 0, letterSpacing: '2px' }}>{title}</h2>
-            <p style={{ fontSize: '1.2rem', margin: '8px 0 0 0', letterSpacing: '1px' }}>{footerName}</p>
+          <div style={{ zIndex: 1, color: '#ffffff', textAlign: 'center', fontFamily: fontFamily }}>
+            <h2 style={{ fontSize: '2.5rem', margin: 0, letterSpacing: '2px', textTransform: 'uppercase' }}>{title}</h2>
+            <p style={{ fontSize: '1.2rem', margin: '8px 0 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>{footerName}</p>
           </div>
         )}
       </div>
@@ -165,6 +170,7 @@ export function TacticalGroupTracker({
       id={id}
       style={{
         width: `${calculatedWidth}px`,
+        minHeight: '990px',
         backgroundColor: bgColor || '#ffffff',
         border: '6px solid #000000',
         borderRadius: '0px',
@@ -175,7 +181,7 @@ export function TacticalGroupTracker({
         justifyContent: 'space-between',
         padding: '28px 16px 10px 16px',
         margin: '0px',
-        fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
+        fontFamily: fontFamily,
         color: '#000000',
         overflow: 'hidden',
         userSelect: 'none',
@@ -219,11 +225,12 @@ export function TacticalGroupTracker({
           gap: '6px',
           zIndex: 10,
           background: bgColor || '#ffffff',
-          padding: '0 12px'
+          padding: '0 12px',
+          whiteSpace: 'nowrap'
         }}
       >
         <span style={{ fontSize: '0.65rem', color: effColumnHeaderColor }}>▲</span>
-        <span style={{ fontSize: '0.7rem', fontWeight: '900', letterSpacing: '1.5px', color: effColumnHeaderColor }}>
+        <span style={{ fontSize: '0.7rem', fontWeight: '900', letterSpacing: '1.5px', color: effColumnHeaderColor, whiteSpace: 'nowrap' }}>
           TACTICAL GROUP TRACKER
         </span>
         <span style={{ fontSize: '0.65rem', color: effColumnHeaderColor }}>▲</span>
@@ -242,46 +249,50 @@ export function TacticalGroupTracker({
           zIndex: 1
         }}
       >
-        {/* NATO Symbol / Custom NATO Symbol Graphic */}
+        {/* NATO Symbol / Custom NATO Symbol Graphic (NO FRAME OR BACKGROUND BOX) */}
         {showNatoSymbol && (
           <div
             style={{
-              width: '54px',
-              height: '54px',
               flexShrink: 0,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid #000000',
-              backgroundColor: '#ffffff',
-              overflow: 'hidden'
+              justifyContent: 'center'
             }}
           >
             {customNatoSymbolUrl ? (
               <img
                 src={customNatoSymbolUrl}
                 alt="NATO Symbol"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                style={{ width: '54px', height: '54px', objectFit: 'contain' }}
               />
             ) : (
-              <LandToken
-                tokenData={{
-                  category: 'land',
-                  bgColor: '#2b6cb0',
-                  symbolType: natoSymbolType,
-                  affiliation: natoAffiliation,
-                  echelon: natoEchelon,
-                  unitName: '',
-                  dice: []
-                }}
-                side="front"
-                size={54}
-              />
+              <>
+                <div
+                  style={{
+                    color: effTitleColor,
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    lineHeight: 1,
+                    letterSpacing: '1px',
+                    marginBottom: '2px'
+                  }}
+                >
+                  {natoEchelon}
+                </div>
+                <NatoSymbol
+                  affiliation={natoAffiliation}
+                  symbolType={natoSymbolType}
+                  modifiers={natoModifiers}
+                  size={120}
+                  symbolColor={effTitleColor}
+                />
+              </>
             )}
           </div>
         )}
 
-        {/* Custom Warbanner / Emblem Image */}
+        {/* Custom Warbanner / Emblem Image (NO FRAME OR BACKGROUND BOX) */}
         {customEmblemUrl && (
           <div
             style={{
@@ -290,10 +301,7 @@ export function TacticalGroupTracker({
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid #000000',
-              backgroundColor: '#ffffff',
-              overflow: 'hidden'
+              justifyContent: 'center'
             }}
           >
             <img
@@ -308,12 +316,13 @@ export function TacticalGroupTracker({
           style={{
             margin: 0,
             padding: '2px 0',
-            fontSize: '1.6rem',
+            fontSize: '1.5rem',
             fontWeight: '900',
             color: effTitleColor,
             letterSpacing: '1px',
             textTransform: 'uppercase',
             textAlign: 'center',
+            whiteSpace: 'nowrap',
             lineHeight: 1.1
           }}
         >
