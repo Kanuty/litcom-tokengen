@@ -6,7 +6,8 @@ import { JointCapabilityCard } from './components/JointCapabilityCard';
 import { SavedLibrary } from './components/SavedLibrary';
 import { TokenPrinter } from './components/TokenPrinter';
 import { CustomModal } from './components/CustomModal';
-import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG, generateTokenPrinterPDF } from './utils/export';
+import { TacticalGroupTracker } from './components/TacticalGroupTracker';
+import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG, downloadTacticalGroupTrackerAsPNG, generateTokenPrinterPDF } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
 
@@ -237,7 +238,71 @@ const BUILTIN_CARD_STYLES = {
 };
 
 function App() {
-  const [activeView, setActiveView] = useState('suite'); // 'suite' | 'printer'
+  const [activeView, setActiveView] = useState('suite'); // 'suite' | 'printer' | 'group'
+
+  // Tactical Group Tracker state
+  const [groupExportFace, setGroupExportFace] = useState('both');
+  const [groupPreviewSide, setGroupPreviewSide] = useState('front');
+  const [groupSaveName, setGroupSaveName] = useState('');
+  const [selectedGroupColIdx, setSelectedGroupColIdx] = useState(0);
+  const [groupClickMode, setGroupClickMode] = useState('dice'); // 'dice' | 'hp'
+  const [groupSelectedDieIndex, setGroupSelectedDieIndex] = useState('supply');
+
+  const [groupData, setGroupData] = useState({
+    title: '1ST TACTICAL STRIKE GROUP',
+    footerName: 'USMC TACTICAL GROUP',
+    bgColor: '#ffffff',
+    camoColor: '#4a5568',
+    showCamo: true,
+    backBgColor: '#2b6cb0',
+    backCamoColor: '#1a365d',
+    showBackCamo: true,
+    customBackImageUrl: null,
+    showSquareBorders: true,
+    applySingleTextColor: false,
+    singleTextColor: '#000000',
+    titleColor: '#000000',
+    footerNameColor: '#000000',
+    columnHeaderColor: '#000000',
+    squareNumberColor: '#8c939d',
+    squareBgColor: '#ffffff',
+    showWhiteTriangleGlobal: true,
+    showBlackTriangleGlobal: true,
+    columns: [
+      {
+        id: 'col_1',
+        tokenData: {
+          category: 'land',
+          bgColor: '#2b6cb0',
+          unitName: '1-1 CHARLIE',
+          symbolType: 'infantry',
+          echelon: '••'
+        },
+        showWhiteTriangle: true,
+        whiteTriangleNum: 2,
+        showBlackTriangle: true,
+        blackTriangleNum: 4,
+        initialHpSquare: 2,
+        placedDice: {}
+      },
+      {
+        id: 'col_2',
+        tokenData: {
+          category: 'land',
+          bgColor: '#1976d2',
+          unitName: '1-2 BRAVO',
+          symbolType: 'armor',
+          echelon: '••'
+        },
+        showWhiteTriangle: true,
+        whiteTriangleNum: 3,
+        showBlackTriangle: true,
+        blackTriangleNum: 5,
+        initialHpSquare: 3,
+        placedDice: {}
+      }
+    ]
+  });
 
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('lc_app_theme') || 'cyber-blue';
@@ -866,7 +931,140 @@ function App() {
         message: `Loaded Capability Card configuration "${item.name}".`,
         type: 'info'
       });
+    } else if (item.type === 'group') {
+      setGroupData(item.data);
+      setActiveView('group');
+      showNotification({
+        title: 'PRESET LOADED',
+        message: `Loaded Tactical Group Tracker configuration "${item.name}".`,
+        type: 'info'
+      });
     }
+  };
+
+  const handleSaveGroupPreset = (e) => {
+    e.preventDefault();
+    const name = groupSaveName.trim() || groupData.title || 'Unnamed Tactical Group';
+    const updated = saveItem({
+      name,
+      type: 'group',
+      category: 'tracker',
+      data: groupData
+    });
+    setSavedItems(updated);
+    setGroupSaveName('');
+    showNotification({
+      title: 'GROUP TRACKER PRESET SAVED',
+      message: `Tactical Group Tracker preset "${name}" was successfully saved to browser storage.`,
+      type: 'info'
+    });
+  };
+
+  const handleAddColumnToGroup = (tokenToUse = null) => {
+    if (groupData.columns.length >= 20) {
+      showNotification({
+        title: 'COLUMN LIMIT REACHED',
+        message: 'Maximum of 20 token columns allowed on Tactical Group Tracker.',
+        type: 'info'
+      });
+      return;
+    }
+    const token = tokenToUse || tokenData;
+    const newCol = {
+      id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
+      tokenData: { ...token },
+      showWhiteTriangle: true,
+      whiteTriangleNum: 1,
+      showBlackTriangle: true,
+      blackTriangleNum: 1,
+      initialHpSquare: 1,
+      placedDice: {}
+    };
+    setGroupData((prev) => ({
+      ...prev,
+      columns: [...prev.columns, newCol]
+    }));
+    setSelectedGroupColIdx(groupData.columns.length);
+  };
+
+  const handleRemoveColumnFromGroup = (index) => {
+    if (groupData.columns.length <= 1) {
+      showNotification({
+        title: 'MINIMUM COLUMN REQUIRED',
+        message: 'Tactical Group Tracker must have at least 1 token column.',
+        type: 'info'
+      });
+      return;
+    }
+    setGroupData((prev) => {
+      const updated = [...prev.columns];
+      updated.splice(index, 1);
+      return { ...prev, columns: updated };
+    });
+    if (selectedGroupColIdx >= index && selectedGroupColIdx > 0) {
+      setSelectedGroupColIdx(selectedGroupColIdx - 1);
+    }
+  };
+
+  const handleGroupSquareClick = (colIdx, ptNum) => {
+    if (groupClickMode === 'hp') {
+      setGroupData((prev) => {
+        const cols = [...prev.columns];
+        if (cols[colIdx]) {
+          const currentHp = cols[colIdx].initialHpSquare;
+          cols[colIdx] = {
+            ...cols[colIdx],
+            initialHpSquare: currentHp === ptNum ? null : ptNum
+          };
+        }
+        return { ...prev, columns: cols };
+      });
+    } else {
+      let availableDie = null;
+      if (groupSelectedDieIndex === 'supply') {
+        availableDie = { type: 'supply', color: '#1976d2' };
+      } else {
+        availableDie = tokenData.dice[groupSelectedDieIndex] || tokenData.dice[0];
+      }
+
+      if (availableDie) {
+        setGroupData((prev) => {
+          const cols = [...prev.columns];
+          if (cols[colIdx]) {
+            const currentPlaced = { ...(cols[colIdx].placedDice || {}) };
+            const currentList = currentPlaced[ptNum] || [];
+
+            const existsIndex = currentList.findIndex(
+              (d) => d.type === availableDie.type && d.bigValue === availableDie.bigValue && d.smallValue === availableDie.smallValue
+            );
+
+            if (existsIndex >= 0) {
+              const updated = [...currentList];
+              updated.splice(existsIndex, 1);
+              if (updated.length === 0) {
+                delete currentPlaced[ptNum];
+              } else {
+                currentPlaced[ptNum] = updated;
+              }
+            } else {
+              currentPlaced[ptNum] = [...currentList, availableDie];
+            }
+
+            cols[colIdx] = { ...cols[colIdx], placedDice: currentPlaced };
+          }
+          return { ...prev, columns: cols };
+        });
+      }
+    }
+  };
+
+  const handleDownloadGroupPNG = () => {
+    downloadTacticalGroupTrackerAsPNG(
+      'tactical-group-tracker-export-front',
+      'tactical-group-tracker-export-back',
+      groupExportFace,
+      groupData.title
+    );
   };
 
   const handleDeleteSavedItem = (id) => {
@@ -1222,6 +1420,20 @@ function App() {
           side="back"
           width={380}
         />
+        <TacticalGroupTracker
+          id="tactical-group-tracker-export-front"
+          groupData={groupData}
+          side="front"
+          columnWidth={90}
+          isInteractive={false}
+        />
+        <TacticalGroupTracker
+          id="tactical-group-tracker-export-back"
+          groupData={groupData}
+          side="back"
+          columnWidth={90}
+          isInteractive={false}
+        />
       </div>
 
       <nav className="sticky-nav">
@@ -1265,6 +1477,24 @@ function App() {
               }}
             >
               🖨️ TOKEN PRINTER
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('group')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '4px',
+                border: 'none',
+                background: activeView === 'group' ? 'var(--accent-cyan)' : 'transparent',
+                color: activeView === 'group' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.05rem',
+                letterSpacing: '1px'
+              }}
+            >
+              ⚔️ GROUP TRACKER
             </button>
           </div>
         </div>
@@ -1370,6 +1600,516 @@ function App() {
           onExportPDF={generateTokenPrinterPDF}
           onRefreshSavedItems={refreshSavedItems}
         />
+      </div>
+
+      {/* TACTICAL GROUP TRACKER PAGE CONTAINER */}
+      <div style={{ display: activeView === 'group' ? 'block' : 'none', padding: '1rem 0' }}>
+        <div
+          style={{
+            background: 'var(--panel-bg)',
+            padding: '1.25rem',
+            borderRadius: '8px',
+            boxShadow: 'var(--hud-glow)',
+            border: '1px solid var(--panel-border)',
+            position: 'relative'
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '-10px',
+              left: '15px',
+              background: 'var(--panel-bg)',
+              color: 'var(--accent-cyan)',
+              fontSize: '0.75rem',
+              padding: '0 8px',
+              letterSpacing: '1.5px',
+              border: '1px solid var(--accent-cyan)'
+            }}
+          >
+            /// TACTICAL_GROUP_TRACKER_BUILDER
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                  color: 'var(--accent-cyan)',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '2.2rem',
+                  letterSpacing: '1.5px',
+                  textTransform: 'uppercase'
+                }}
+              >
+                ⚔️ Tactical Group Tracker Studio
+              </h2>
+              <p style={{ margin: '0.2rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                Build dynamic multi-token group trackers (1 to 20 units). Supports separately toggleable white/black weight triangles, vertical 1–20 track points, and custom style options.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleAddColumnToGroup(tokenData)}
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  background: 'var(--accent-cyan)',
+                  color: 'var(--bg-dark)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '1.2rem',
+                  letterSpacing: '1px'
+                }}
+              >
+                + ADD TOKEN COLUMN ({groupData.columns.length}/20)
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadGroupPNG}
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  background: 'var(--accent-blue)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '1.2rem',
+                  letterSpacing: '1px'
+                }}
+              >
+                📥 EXPORT PNG ({groupExportFace.toUpperCase()})
+              </button>
+            </div>
+          </div>
+
+          {/* TWO-COLUMN CONTROLS AND PREVIEW */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 400px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
+
+            {/* GROUP TRACKER CONTROLS */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+
+              {/* 1. BASIC IDENTIFICATION */}
+              <div className="tint-card tint-card-attributes">
+                <h3 className="subsection-header">📋 Group Identification</h3>
+
+                <div>
+                  <label className="field-label">Group Title (Top Name)</label>
+                  <input
+                    type="text"
+                    value={groupData.title}
+                    onChange={(e) => setGroupData({ ...groupData, title: e.target.value })}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <label className="field-label">Bottom Footer Name</label>
+                  <input
+                    type="text"
+                    value={groupData.footerName}
+                    onChange={(e) => setGroupData({ ...groupData, footerName: e.target.value })}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              {/* 2. GLOBAL WEIGHT INDICATORS TOGGLES */}
+              <div className="tint-card tint-card-aircraft">
+                <h3 className="subsection-header">⚖️ Weight Triangle Options</h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={groupData.showWhiteTriangleGlobal}
+                      onChange={(e) => setGroupData({ ...groupData, showWhiteTriangleGlobal: e.target.checked })}
+                    />
+                    Show White ▲
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={groupData.showBlackTriangleGlobal}
+                      onChange={(e) => setGroupData({ ...groupData, showBlackTriangleGlobal: e.target.checked })}
+                    />
+                    Show Black ▲
+                  </label>
+                </div>
+              </div>
+
+              {/* 3. COLUMN EDITING PANEL */}
+              <div className="tint-card tint-card-grid">
+                <h3 className="subsection-header">🎯 Selected Column #{selectedGroupColIdx + 1} Configuration</h3>
+
+                <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.4rem' }}>
+                  {groupData.columns.map((col, cIdx) => (
+                    <button
+                      key={col.id || cIdx}
+                      type="button"
+                      onClick={() => setSelectedGroupColIdx(cIdx)}
+                      style={{
+                        padding: '0.3rem 0.6rem',
+                        background: selectedGroupColIdx === cIdx ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                        color: selectedGroupColIdx === cIdx ? 'var(--bg-dark)' : 'var(--text-primary)',
+                        border: '1px solid var(--panel-border)',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '0.8rem',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Col #{cIdx + 1}
+                    </button>
+                  ))}
+                </div>
+
+                {groupData.columns[selectedGroupColIdx] && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.4rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                      <div>
+                        <label className="field-label">White ▲ Weight (1-50)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={groupData.columns[selectedGroupColIdx].whiteTriangleNum || 1}
+                          onChange={(e) => {
+                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            setGroupData((prev) => {
+                              const cols = [...prev.columns];
+                              cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], whiteTriangleNum: val };
+                              return { ...prev, columns: cols };
+                            });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="field-label">Black ▲ Weight (1-50)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={groupData.columns[selectedGroupColIdx].blackTriangleNum || 1}
+                          onChange={(e) => {
+                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            setGroupData((prev) => {
+                              const cols = [...prev.columns];
+                              cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], blackTriangleNum: val };
+                              return { ...prev, columns: cols };
+                            });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={groupData.columns[selectedGroupColIdx].showWhiteTriangle !== false}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setGroupData((prev) => {
+                              const cols = [...prev.columns];
+                              cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], showWhiteTriangle: checked };
+                              return { ...prev, columns: cols };
+                            });
+                          }}
+                        />
+                        Column White ▲
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                        <input
+                          type="checkbox"
+                          checked={groupData.columns[selectedGroupColIdx].showBlackTriangle !== false}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setGroupData((prev) => {
+                              const cols = [...prev.columns];
+                              cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], showBlackTriangle: checked };
+                              return { ...prev, columns: cols };
+                            });
+                          }}
+                        />
+                        Column Black ▲
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="field-label">Initial HP Point (1-20)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={groupData.columns[selectedGroupColIdx].initialHpSquare || ''}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const val = raw === '' ? null : Math.min(20, Math.max(1, parseInt(raw) || 1));
+                          setGroupData((prev) => {
+                            const cols = [...prev.columns];
+                            cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], initialHpSquare: val };
+                            return { ...prev, columns: cols };
+                          });
+                        }}
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveColumnFromGroup(selectedGroupColIdx)}
+                      style={{
+                        marginTop: '0.4rem',
+                        padding: '0.4rem',
+                        background: '#dc2626',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      🗑️ Remove Column #{selectedGroupColIdx + 1}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. INTERACTIVE GRID PLACEMENT MODE */}
+              <div className="tint-card tint-card-grid">
+                <h3 className="subsection-header">🎯 Point Track Placement Mode</h3>
+
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setGroupClickMode('dice')}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      border: groupClickMode === 'dice' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                      background: groupClickMode === 'dice' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                  >
+                    <MiniDieIcon die={tokenData.dice?.[0]} /> Place Dice
+                  </button>
+                  <button
+                    onClick={() => setGroupClickMode('hp')}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      border: groupClickMode === 'hp' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                      background: groupClickMode === 'hp' ? 'rgba(0,240,255,0.2)' : 'var(--input-bg)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                  >
+                    <MiniDieIcon isHp /> Set HP Marker
+                  </button>
+                </div>
+
+                {groupClickMode === 'dice' && (
+                  <p className="field-help-text" style={{ margin: '0.4rem 0 0 0' }}>
+                    Click any point (1–20) on any column preview to place or remove the selected die marker!
+                  </p>
+                )}
+              </div>
+
+              {/* 5. COLORS AND CAMO */}
+              <div className="tint-card tint-card-colors">
+                <h3 className="subsection-header">🎨 Colors & Style Options</h3>
+
+                <div className="color-picker-grid-3">
+                  <div className="color-cell">
+                    <span className="cell-label">Base Card BG</span>
+                    <input
+                      type="color"
+                      value={groupData.bgColor || '#ffffff'}
+                      onChange={(e) => setGroupData({ ...groupData, bgColor: e.target.value })}
+                    />
+                  </div>
+                  <div className="color-cell">
+                    <span className="cell-label">Front Camo</span>
+                    <input
+                      type="color"
+                      value={groupData.camoColor || '#4a5568'}
+                      onChange={(e) => setGroupData({ ...groupData, camoColor: e.target.value })}
+                    />
+                  </div>
+                  <div className="color-cell">
+                    <span className="cell-label">Point BG</span>
+                    <input
+                      type="color"
+                      value={groupData.squareBgColor || '#ffffff'}
+                      onChange={(e) => setGroupData({ ...groupData, squareBgColor: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={groupData.showCamo}
+                      onChange={(e) => setGroupData({ ...groupData, showCamo: e.target.checked })}
+                    />
+                    Front Camo
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={groupData.showSquareBorders}
+                      onChange={(e) => setGroupData({ ...groupData, showSquareBorders: e.target.checked })}
+                    />
+                    Point Borders
+                  </label>
+                </div>
+              </div>
+
+              {/* 6. SAVE PRESET & EXPORT */}
+              <div className="tint-card tint-card-attributes">
+                <h3 className="subsection-header">💾 Save Preset Storage</h3>
+
+                <div>
+                  <label className="field-label">Export Side</label>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    {['front', 'back', 'both'].map((f) => (
+                      <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                        <input
+                          type="radio"
+                          name="groupExportFace"
+                          value={f}
+                          checked={groupExportFace === f}
+                          onChange={(e) => setGroupExportFace(e.target.value)}
+                        />
+                        {f.toUpperCase()}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <form onSubmit={handleSaveGroupPreset} style={{ display: 'flex', gap: '0.6rem', marginTop: '0.6rem' }}>
+                  <input
+                    type="text"
+                    placeholder={groupData.title || 'Preset Name...'}
+                    value={groupSaveName}
+                    onChange={(e) => setGroupSaveName(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '0.4rem 1rem',
+                      background: 'var(--accent-cyan)',
+                      color: 'var(--bg-dark)',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      fontFamily: "'Teko', sans-serif",
+                      fontSize: '1.1rem',
+                      letterSpacing: '1px'
+                    }}
+                  >
+                    SAVE GROUP
+                  </button>
+                </form>
+              </div>
+
+            </div>
+
+            {/* LIVE PREVIEW CANVAS AREA */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+
+              {/* Swappable Face Tabs */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  background: 'var(--input-bg)',
+                  padding: '0.35rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--panel-border)'
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setGroupPreviewSide('front')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: groupPreviewSide === 'front' ? 'var(--accent-cyan)' : 'transparent',
+                    color: groupPreviewSide === 'front' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  FRONT SIDE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGroupPreviewSide('back')}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: groupPreviewSide === 'back' ? 'var(--accent-cyan)' : 'transparent',
+                    color: groupPreviewSide === 'back' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: "'Teko', sans-serif",
+                    fontSize: '1rem',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  BACK SIDE
+                </button>
+              </div>
+
+              {/* RENDER LIVE GROUP TRACKER */}
+              <TacticalGroupTracker
+                groupData={groupData}
+                side={groupPreviewSide}
+                columnWidth={85}
+                selectedColumnIndex={selectedGroupColIdx}
+                onColumnClick={(idx) => setSelectedGroupColIdx(idx)}
+                onSquareClick={handleGroupSquareClick}
+                isInteractive={true}
+              />
+            </div>
+
+          </div>
+        </div>
       </div>
 
       {/* EDITOR SUITE CONTAINER */}
