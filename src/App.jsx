@@ -2161,7 +2161,7 @@ function App() {
           </div>
 
           {/* THREE-COLUMN LAYOUT: CONTROLS ON LEFT | PREVIEW IN CENTER | TOKEN IMPORTER ON RIGHT */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 400px) 1fr minmax(280px, 320px)', gap: '1.25rem', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(420px, 460px) 1fr minmax(280px, 320px)', gap: '1.25rem', alignItems: 'start' }}>
 
             {/* GROUP TRACKER CONTROLS */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', width: '100%', boxSizing: 'border-box' }}>
@@ -3057,8 +3057,8 @@ function App() {
 
             </div>
 
-            {/* LIVE PREVIEW CANVAS AREA (STICKY & SCROLLABLE LIKE TOKEN IMPORTER) */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'sticky', top: '80px', alignSelf: 'start', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', overflowX: 'auto', paddingBottom: '1rem' }}>
+            {/* LIVE PREVIEW CANVAS AREA (STICKY WITHOUT INTERNAL OVERFLOW-Y TRAPPING SO PAGE SCROLLS SMOOTHLY) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'sticky', top: '80px', alignSelf: 'start', overflowX: 'auto', paddingBottom: '1rem' }}>
 
               {/* Swappable Face Tabs */}
               <div
