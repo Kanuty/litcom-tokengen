@@ -4,20 +4,17 @@ import { MiniDie } from './UnitTracker';
 
 /**
  * TacticalGroupTracker component renders a dynamic unit tracker for group/tactical formations.
- *
- * Requirements:
- * 1. Columns & internal fields must NOT have padding and margins (render flush).
- * 2. White and black weight triangles controlled by created/imported token data (whiteTriangleNum, blackTriangleNum or token size/triangle numbers).
- * 3. Markers in columns auto-populated according to stats of that token (e.g., dice on vertical points 1-20 corresponding to big values of token dice).
- * 4. Dynamic width: Card grows wider as tokens/columns are added (1 to 20).
  */
 export function TacticalGroupTracker({
   id = 'tactical-group-tracker-preview',
   groupData,
   side = 'front', // 'front' | 'back'
-  columnWidth = 80, // px per token column
+  columnWidth = 110, // px per token column
   onSquareClick,
   onColumnClick,
+  onDeleteColumn,
+  onReplaceColumnToken,
+  onAddColumnWithToken,
   selectedColumnIndex = null,
   isInteractive = true
 }) {
@@ -54,9 +51,43 @@ export function TacticalGroupTracker({
     : squareNumberColor || '#8c939d';
 
   const numColumns = Math.max(1, columns.length);
-  // Calculate total canvas width dynamically based on column count with zero gap
-  const sidePadding = 16; // outer card border padding
+  const sidePadding = 16;
   const calculatedWidth = numColumns * columnWidth + sidePadding * 2;
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDropOnColumn = (e, colIdx) => {
+    e.preventDefault();
+    try {
+      const rawData = e.dataTransfer.getData('application/json');
+      if (rawData) {
+        const token = JSON.parse(rawData);
+        if (onReplaceColumnToken) {
+          onReplaceColumnToken(colIdx, token);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to parse dropped token:', err);
+    }
+  };
+
+  const handleDropOnAddZone = (e) => {
+    e.preventDefault();
+    try {
+      const rawData = e.dataTransfer.getData('application/json');
+      if (rawData) {
+        const token = JSON.parse(rawData);
+        if (onAddColumnWithToken) {
+          onAddColumnWithToken(token);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to parse dropped token:', err);
+    }
+  };
 
   // Backside rendering
   if (side === 'back') {
@@ -80,7 +111,6 @@ export function TacticalGroupTracker({
           margin: '0px'
         }}
       >
-        {/* Backside Camo Overlay */}
         {showBackCamo && (
           <svg
             style={{
@@ -220,7 +250,7 @@ export function TacticalGroupTracker({
         </h2>
       </div>
 
-      {/* Token Columns Grid - NO GAP or MARGIN BETWEEN COLUMNS */}
+      {/* Token Columns Grid - NO GAP OR MARGIN BETWEEN COLUMNS */}
       <div
         style={{
           display: 'grid',
@@ -249,7 +279,6 @@ export function TacticalGroupTracker({
           const showWhite = showWhiteTriangleGlobal && showWhiteTriangle;
           const showBlack = showBlackTriangleGlobal && showBlackTriangle;
 
-          // Effective weight triangle numbers (derived from token data or explicit override)
           const effWhiteWeight = whiteTriangleNum ?? tokenData.sizeNumber ?? 1;
           const effBlackWeight = blackTriangleNum ?? tokenData.reverseTriangleNumber ?? 1;
 
@@ -257,6 +286,8 @@ export function TacticalGroupTracker({
             <div
               key={col.id || colIdx}
               onClick={() => onColumnClick && onColumnClick(colIdx)}
+              onDragOver={isInteractive ? handleDragOver : undefined}
+              onDrop={isInteractive ? (e) => handleDropOnColumn(e, colIdx) : undefined}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -270,22 +301,60 @@ export function TacticalGroupTracker({
                 boxSizing: 'border-box'
               }}
             >
-              {/* Column Index Tag */}
+              {/* Header Bar with Column Index and Red Minus Deletion Button */}
               <div
                 style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 'bold',
-                  color: effColumnHeaderColor,
-                  margin: '0px',
-                  padding: '2px 0',
-                  textTransform: 'uppercase',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '2px 4px',
+                  boxSizing: 'border-box',
                   lineHeight: 1
                 }}
               >
-                #{colIdx + 1}
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    fontWeight: 'bold',
+                    color: effColumnHeaderColor,
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  #{colIdx + 1}
+                </div>
+
+                {isInteractive && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onDeleteColumn) onDeleteColumn(colIdx);
+                    }}
+                    title="Remove column"
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      backgroundColor: '#dc2626',
+                      color: '#ffffff',
+                      border: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      lineHeight: 1,
+                      padding: 0
+                    }}
+                  >
+                    −
+                  </button>
+                )}
               </div>
 
-              {/* 1. TOP: Token Graphic */}
+              {/* 1. TOP: Full-size Token Graphic */}
               <div
                 style={{
                   width: `${columnWidth}px`,
@@ -305,27 +374,18 @@ export function TacticalGroupTracker({
                 {customImageUrl ? (
                   <img src={customImageUrl} alt="Token" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div
-                    style={{
-                      transform: `scale(${columnWidth / 240})`,
-                      transformOrigin: 'top left',
-                      width: 240,
-                      height: 240
-                    }}
-                  >
-                    <LandToken tokenData={tokenData} side="front" size={240} />
-                  </div>
+                  <LandToken tokenData={tokenData} side="front" size={columnWidth} />
                 )}
               </div>
 
               {/* Token Name Label */}
               <div
                 style={{
-                  fontSize: '0.62rem',
+                  fontSize: '0.65rem',
                   fontWeight: 'bold',
                   color: effColumnHeaderColor,
                   margin: '0px',
-                  padding: '2px 0',
+                  padding: '3px 2px',
                   textAlign: 'center',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -344,7 +404,7 @@ export function TacticalGroupTracker({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '2px',
+                  gap: '4px',
                   minHeight: '28px',
                   margin: '0px',
                   padding: '2px 0',
@@ -460,7 +520,7 @@ export function TacticalGroupTracker({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '1px',
+                          gap: '2px',
                           padding: '0px',
                           margin: '0px',
                           overflow: 'hidden'
@@ -479,15 +539,15 @@ export function TacticalGroupTracker({
                         )}
 
                         {diceOnSquare.map((dieObj, dIdx) => (
-                          <MiniDie key={dIdx} die={dieObj} size={14} />
+                          <MiniDie key={dIdx} die={dieObj} size={15} />
                         ))}
                       </div>
 
-                      {/* Bottom section: Military point number (1-20) */}
+                      {/* Bottom section: Point track number (1-20) */}
                       <div
                         style={{
                           fontWeight: '900',
-                          fontSize: '1.2rem',
+                          fontSize: '1.25rem',
                           fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
                           lineHeight: 1,
                           color: effSquareNumColor,
@@ -505,6 +565,28 @@ export function TacticalGroupTracker({
           );
         })}
       </div>
+
+      {/* Drop Zone to Add Column via Drag and Drop (Interactive Only) */}
+      {isInteractive && (
+        <div
+          onDragOver={handleDragOver}
+          onDrop={handleDropOnAddZone}
+          style={{
+            margin: '8px 0 0 0',
+            padding: '6px',
+            border: '2px dashed var(--accent-cyan)',
+            borderRadius: '4px',
+            textAlign: 'center',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            color: 'var(--accent-cyan)',
+            background: 'rgba(0, 240, 255, 0.05)',
+            cursor: 'pointer'
+          }}
+        >
+          ➕ Drag token here to drop & add as new column
+        </div>
+      )}
 
       {/* Footer Area */}
       <div

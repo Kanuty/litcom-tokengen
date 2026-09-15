@@ -972,27 +972,15 @@ function App() {
     }
     const token = tokenToUse || tokenData;
 
-    // Extract dice from token and auto-place them on corresponding point numbers 1-20
-    const autoPlacedDice = {};
-    if (Array.isArray(token.dice)) {
-      token.dice.forEach((d) => {
-        const bigVal = Number(d.bigValue);
-        if (bigVal >= 1 && bigVal <= 20) {
-          if (!autoPlacedDice[bigVal]) autoPlacedDice[bigVal] = [];
-          autoPlacedDice[bigVal].push(d);
-        }
-      });
-    }
-
     const newCol = {
       id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
-      tokenData: { ...token },
+      tokenData: JSON.parse(JSON.stringify(token)),
       showWhiteTriangle: true,
       whiteTriangleNum: token.sizeNumber || token.triangleNumber || 1,
       showBlackTriangle: true,
       blackTriangleNum: token.reverseTriangleNumber || 1,
       initialHpSquare: 1,
-      placedDice: autoPlacedDice
+      placedDice: {}
     };
 
     setGroupData((prev) => ({
@@ -1000,6 +988,29 @@ function App() {
       columns: [...prev.columns, newCol]
     }));
     setSelectedGroupColIdx(groupData.columns.length);
+  };
+
+  const handleReplaceColumnToken = (colIdx, newToken) => {
+    setGroupData((prev) => {
+      const cols = [...prev.columns];
+      if (cols[colIdx]) {
+        cols[colIdx] = {
+          ...cols[colIdx],
+          tokenData: JSON.parse(JSON.stringify(newToken)),
+          whiteTriangleNum: newToken.sizeNumber || newToken.triangleNumber || 1,
+          blackTriangleNum: newToken.reverseTriangleNumber || 1,
+          initialHpSquare: 1,
+          placedDice: {}
+        };
+      }
+      return { ...prev, columns: cols };
+    });
+    setSelectedGroupColIdx(colIdx);
+    showNotification({
+      title: 'TOKEN REPLACED',
+      message: `Replaced column #${colIdx + 1} with "${newToken.unitName || 'Token'}".`,
+      type: 'info'
+    });
   };
 
   const handleExportGroupJSON = () => {
@@ -2267,10 +2278,13 @@ function App() {
               <TacticalGroupTracker
                 groupData={groupData}
                 side={groupPreviewSide}
-                columnWidth={85}
+                columnWidth={110}
                 selectedColumnIndex={selectedGroupColIdx}
                 onColumnClick={(idx) => setSelectedGroupColIdx(idx)}
                 onSquareClick={handleGroupSquareClick}
+                onDeleteColumn={handleRemoveColumnFromGroup}
+                onReplaceColumnToken={handleReplaceColumnToken}
+                onAddColumnWithToken={handleAddColumnToGroup}
                 isInteractive={true}
               />
             </div>
@@ -2279,10 +2293,15 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="tint-card tint-card-dice">
                 <h3 className="subsection-header">📥 Token Importer</h3>
-                <p className="field-help-text">Click to import any active or saved token as a column on the Group Tracker!</p>
+                <p className="field-help-text">Click "+ Import" or drag any token to a column (to replace) or drop zone (to add):</p>
 
                 {/* 1. ACTIVE WORKSPACE TOKEN */}
                 <div
+                  draggable={true}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('application/json', JSON.stringify(tokenData));
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
                   style={{
                     background: 'var(--input-bg)',
                     border: '1px solid var(--accent-cyan)',
@@ -2292,7 +2311,8 @@ function App() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '0.8rem',
-                    marginBottom: '1rem'
+                    marginBottom: '1rem',
+                    cursor: 'grab'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: 0 }}>
@@ -2303,7 +2323,7 @@ function App() {
                       <div style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {tokenData.unitName || 'WORKSPACE TOKEN'}
                       </div>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Active Editor Token</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Active Editor Token (Drag me!)</span>
                     </div>
                   </div>
 
@@ -2341,6 +2361,11 @@ function App() {
                       getSavedItems().filter((i) => i.type === 'token').map((item) => (
                         <div
                           key={item.id}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('application/json', JSON.stringify(item.data));
+                            e.dataTransfer.effectAllowed = 'copy';
+                          }}
                           style={{
                             background: 'var(--input-bg)',
                             border: '1px solid var(--panel-border)',
@@ -2349,7 +2374,8 @@ function App() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: '0.6rem'
+                            gap: '0.6rem',
+                            cursor: 'grab'
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: 0 }}>
