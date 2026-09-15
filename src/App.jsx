@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TokenForm } from './components/TokenForm';
 import { TokenPreview } from './components/TokenPreview';
+import { LandToken } from './components/LandToken';
 import { UnitTracker } from './components/UnitTracker';
 import { JointCapabilityCard } from './components/JointCapabilityCard';
 import { SavedLibrary } from './components/SavedLibrary';
@@ -970,21 +971,98 @@ function App() {
       return;
     }
     const token = tokenToUse || tokenData;
+
+    // Extract dice from token and auto-place them on corresponding point numbers 1-20
+    const autoPlacedDice = {};
+    if (Array.isArray(token.dice)) {
+      token.dice.forEach((d) => {
+        const bigVal = Number(d.bigValue);
+        if (bigVal >= 1 && bigVal <= 20) {
+          if (!autoPlacedDice[bigVal]) autoPlacedDice[bigVal] = [];
+          autoPlacedDice[bigVal].push(d);
+        }
+      });
+    }
+
     const newCol = {
       id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
       tokenData: { ...token },
       showWhiteTriangle: true,
-      whiteTriangleNum: 1,
+      whiteTriangleNum: token.sizeNumber || token.triangleNumber || 1,
       showBlackTriangle: true,
-      blackTriangleNum: 1,
+      blackTriangleNum: token.reverseTriangleNumber || 1,
       initialHpSquare: 1,
-      placedDice: {}
+      placedDice: autoPlacedDice
     };
+
     setGroupData((prev) => ({
       ...prev,
       columns: [...prev.columns, newCol]
     }));
     setSelectedGroupColIdx(groupData.columns.length);
+  };
+
+  const handleExportGroupJSON = () => {
+    const defaultName = (groupData.title || 'group_tracker').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.json';
+    const exportPayload = {
+      app: 'Littoral Commander Suite',
+      version: 1,
+      type: 'tactical_group_tracker',
+      exportDate: new Date().toISOString(),
+      groupData
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = defaultName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportGroupJSON = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const parsed = JSON.parse(content);
+
+        let loadedGroupData = null;
+        if (parsed && parsed.groupData) {
+          loadedGroupData = parsed.groupData;
+        } else if (parsed && parsed.title && Array.isArray(parsed.columns)) {
+          loadedGroupData = parsed;
+        }
+
+        if (!loadedGroupData) {
+          throw new Error('Invalid group tracker format');
+        }
+
+        setGroupData(loadedGroupData);
+        showNotification({
+          title: 'GROUP TRACKER IMPORTED',
+          message: `Successfully imported Tactical Group Tracker "${loadedGroupData.title || 'Group'}".`
+        });
+      } catch (err) {
+        console.error(err);
+        setCustomModalConfig({
+          isOpen: true,
+          type: 'alert',
+          title: 'FILE IMPORT ERROR',
+          message: 'Error: The uploaded file is not a valid Tactical Group Tracker JSON file or is corrupted.',
+          onConfirm: closeCustomModal
+        });
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleRemoveColumnFromGroup = (index) => {
@@ -1674,8 +1752,8 @@ function App() {
                 onClick={handleDownloadGroupPNG}
                 style={{
                   padding: '0.6rem 1.2rem',
-                  background: 'var(--accent-blue)',
-                  color: '#ffffff',
+                  background: 'var(--accent-cyan)',
+                  color: 'var(--bg-dark)',
                   border: 'none',
                   borderRadius: '4px',
                   fontWeight: 'bold',
@@ -1687,11 +1765,55 @@ function App() {
               >
                 📥 EXPORT PNG ({groupExportFace.toUpperCase()})
               </button>
+
+              <button
+                type="button"
+                onClick={handleExportGroupJSON}
+                style={{
+                  padding: '0.6rem 1rem',
+                  background: 'var(--accent-blue)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '1.2rem',
+                  letterSpacing: '1px'
+                }}
+              >
+                📤 EXPORT JSON
+              </button>
+
+              <label
+                style={{
+                  padding: '0.6rem 1rem',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--accent-cyan)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontFamily: "'Teko', sans-serif",
+                  fontSize: '1.2rem',
+                  letterSpacing: '1px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                📥 IMPORT JSON
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportGroupJSON}
+                  style={{ display: 'none' }}
+                />
+              </label>
             </div>
           </div>
 
-          {/* TWO-COLUMN CONTROLS AND PREVIEW */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 400px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
+          {/* THREE-COLUMN LAYOUT: CONTROLS ON LEFT | PREVIEW IN CENTER | TOKEN IMPORTER ON RIGHT */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 340px) 1fr minmax(280px, 320px)', gap: '1.25rem', alignItems: 'start' }}>
 
             {/* GROUP TRACKER CONTROLS */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -1934,9 +2056,54 @@ function App() {
                 </div>
 
                 {groupClickMode === 'dice' && (
-                  <p className="field-help-text" style={{ margin: '0.4rem 0 0 0' }}>
-                    Click any point (1–20) on any column preview to place or remove the selected die marker!
-                  </p>
+                  <div>
+                    <p className="field-help-text" style={{ margin: '0.4rem 0 0.4rem 0' }}>
+                      Select a die marker below, then click any point (1–20) on any column preview:
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div
+                        onClick={() => setGroupSelectedDieIndex('supply')}
+                        style={{
+                          padding: '0.35rem 0.65rem',
+                          borderRadius: '4px',
+                          border: groupSelectedDieIndex === 'supply' ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                          background: groupSelectedDieIndex === 'supply' ? 'rgba(0,240,255,0.25)' : 'var(--input-bg)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '0.8rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        <MiniDieIcon isSupply /> Supply
+                      </div>
+
+                      {tokenData.dice && tokenData.dice.map((die, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setGroupSelectedDieIndex(idx)}
+                          style={{
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: '4px',
+                            border: groupSelectedDieIndex === idx ? '2px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                            background: groupSelectedDieIndex === idx ? 'rgba(0,240,255,0.15)' : 'var(--input-bg)',
+                            color: 'var(--text-primary)',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '0.8rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.35rem'
+                          }}
+                        >
+                          <MiniDieIcon die={die} /> Die #{idx + 1}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -2106,6 +2273,121 @@ function App() {
                 onSquareClick={handleGroupSquareClick}
                 isInteractive={true}
               />
+            </div>
+
+            {/* RIGHT SIDE: TOKEN IMPORTER PALETTE */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="tint-card tint-card-dice">
+                <h3 className="subsection-header">📥 Token Importer</h3>
+                <p className="field-help-text">Click to import any active or saved token as a column on the Group Tracker!</p>
+
+                {/* 1. ACTIVE WORKSPACE TOKEN */}
+                <div
+                  style={{
+                    background: 'var(--input-bg)',
+                    border: '1px solid var(--accent-cyan)',
+                    borderRadius: '6px',
+                    padding: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.8rem',
+                    marginBottom: '1rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: 0 }}>
+                    <div style={{ width: '44px', height: '44px', flexShrink: 0 }}>
+                      <LandToken tokenData={tokenData} side="front" size={44} />
+                    </div>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {tokenData.unitName || 'WORKSPACE TOKEN'}
+                      </div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Active Editor Token</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddColumnToGroup(tokenData)}
+                    style={{
+                      padding: '0.4rem 0.7rem',
+                      background: 'var(--accent-cyan)',
+                      color: 'var(--bg-dark)',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    + Import Token
+                  </button>
+                </div>
+
+                {/* 2. SAVED TOKENS LIBRARY LIST */}
+                <div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                    Saved Tokens Library
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '480px', overflowY: 'auto' }}>
+                    {getSavedItems().filter((i) => i.type === 'token').length === 0 ? (
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.8rem', background: 'var(--input-bg)', borderRadius: '4px', border: '1px dashed var(--panel-border)' }}>
+                        No saved tokens found.
+                      </div>
+                    ) : (
+                      getSavedItems().filter((i) => i.type === 'token').map((item) => (
+                        <div
+                          key={item.id}
+                          style={{
+                            background: 'var(--input-bg)',
+                            border: '1px solid var(--panel-border)',
+                            borderRadius: '6px',
+                            padding: '0.5rem 0.65rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '0.6rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: 0 }}>
+                            <div style={{ width: '38px', height: '38px', flexShrink: 0 }}>
+                              <LandToken tokenData={item.data} side="front" size={38} />
+                            </div>
+                            <div style={{ overflow: 'hidden' }}>
+                              <div style={{ fontWeight: 'bold', fontSize: '0.82rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {item.name}
+                              </div>
+                              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{item.data?.category || 'land'}</span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleAddColumnToGroup(item.data)}
+                            style={{
+                              padding: '0.35rem 0.6rem',
+                              background: 'var(--accent-cyan)',
+                              color: 'var(--bg-dark)',
+                              border: 'none',
+                              borderRadius: '4px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            + Import
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
             </div>
 
           </div>

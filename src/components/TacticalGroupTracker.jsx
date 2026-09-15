@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { LandToken } from './LandToken';
 import { MiniDie } from './UnitTracker';
 
 /**
  * TacticalGroupTracker component renders a dynamic unit tracker for group/tactical formations.
  *
- * Layout Structure:
- * - Header: Title (Group Name) at top
- * - Horizontal Columns (1 to 20 tokens):
- *   - Column Top: Token Graphic / Image
- *   - Middle: Weight Indicators (White ▲ and Black Reversed ▲, separately toggleable)
- *   - Bottom: Vertical column (points 1 to 20) for tracking stats (HP, dice, logistics) linked to that token.
- * - Dynamic Width: Card grows wider as tokens are added.
+ * Requirements:
+ * 1. Columns & internal fields must NOT have padding and margins (render flush).
+ * 2. White and black weight triangles controlled by created/imported token data (whiteTriangleNum, blackTriangleNum or token size/triangle numbers).
+ * 3. Markers in columns auto-populated according to stats of that token (e.g., dice on vertical points 1-20 corresponding to big values of token dice).
+ * 4. Dynamic width: Card grows wider as tokens/columns are added (1 to 20).
  */
 export function TacticalGroupTracker({
   id = 'tactical-group-tracker-preview',
@@ -56,10 +54,9 @@ export function TacticalGroupTracker({
     : squareNumberColor || '#8c939d';
 
   const numColumns = Math.max(1, columns.length);
-  // Calculate total canvas width dynamically based on column count
-  const sidePadding = 24; // left/right padding
-  const columnGap = 10;
-  const calculatedWidth = numColumns * columnWidth + (numColumns - 1) * columnGap + sidePadding * 2;
+  // Calculate total canvas width dynamically based on column count with zero gap
+  const sidePadding = 16; // outer card border padding
+  const calculatedWidth = numColumns * columnWidth + sidePadding * 2;
 
   // Backside rendering
   if (side === 'back') {
@@ -71,7 +68,7 @@ export function TacticalGroupTracker({
           minHeight: '620px',
           backgroundColor: backBgColor || '#2b6cb0',
           border: '6px solid #000000',
-          borderRadius: '2px',
+          borderRadius: '0px',
           boxSizing: 'border-box',
           position: 'relative',
           display: 'flex',
@@ -79,7 +76,8 @@ export function TacticalGroupTracker({
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          padding: '20px'
+          padding: '0px',
+          margin: '0px'
         }}
       >
         {/* Backside Camo Overlay */}
@@ -132,13 +130,14 @@ export function TacticalGroupTracker({
         width: `${calculatedWidth}px`,
         backgroundColor: bgColor || '#ffffff',
         border: '6px solid #000000',
-        borderRadius: '2px',
+        borderRadius: '0px',
         boxSizing: 'border-box',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '20px 24px 14px 24px',
+        padding: '16px 16px 10px 16px',
+        margin: '0px',
         fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
         color: '#000000',
         overflow: 'hidden',
@@ -200,15 +199,15 @@ export function TacticalGroupTracker({
           alignItems: 'center',
           justifyContent: 'center',
           borderBottom: '3px solid #000000',
-          paddingBottom: '8px',
-          marginBottom: '12px',
-          marginTop: '12px',
+          padding: '0px',
+          margin: '10px 0 8px 0',
           zIndex: 1
         }}
       >
         <h2
           style={{
             margin: 0,
+            padding: '4px 0',
             fontSize: '1.6rem',
             fontWeight: '900',
             color: effTitleColor,
@@ -221,12 +220,14 @@ export function TacticalGroupTracker({
         </h2>
       </div>
 
-      {/* Token Columns Grid */}
+      {/* Token Columns Grid - NO GAP or MARGIN BETWEEN COLUMNS */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${numColumns}, ${columnWidth}px)`,
-          gap: `${columnGap}px`,
+          gap: '0px',
+          padding: '0px',
+          margin: '0px',
           justifyContent: 'center',
           zIndex: 1,
           flex: 1
@@ -237,9 +238,9 @@ export function TacticalGroupTracker({
             tokenData = {},
             customImageUrl = null,
             showWhiteTriangle = true,
-            whiteTriangleNum = 1,
+            whiteTriangleNum = tokenData.sizeNumber || tokenData.triangleNumber || 1,
             showBlackTriangle = true,
-            blackTriangleNum = 1,
+            blackTriangleNum = tokenData.reverseTriangleNumber || 1,
             placedDice = {},
             initialHpSquare = null
           } = col;
@@ -247,6 +248,10 @@ export function TacticalGroupTracker({
           const isSelected = selectedColumnIndex === colIdx;
           const showWhite = showWhiteTriangleGlobal && showWhiteTriangle;
           const showBlack = showBlackTriangleGlobal && showBlackTriangle;
+
+          // Effective weight triangle numbers (derived from token data or explicit override)
+          const effWhiteWeight = whiteTriangleNum ?? tokenData.sizeNumber ?? 1;
+          const effBlackWeight = blackTriangleNum ?? tokenData.reverseTriangleNumber ?? 1;
 
           return (
             <div
@@ -257,9 +262,10 @@ export function TacticalGroupTracker({
                 flexDirection: 'column',
                 alignItems: 'center',
                 border: isSelected ? '2px solid #00f0ff' : '1px solid #000000',
-                borderRadius: '3px',
-                padding: '6px 4px',
-                backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.08)' : 'rgba(255, 255, 255, 0.7)',
+                borderRadius: '0px',
+                padding: '0px',
+                margin: '0px',
+                backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.08)' : 'rgba(255, 255, 255, 0.85)',
                 position: 'relative',
                 boxSizing: 'border-box'
               }}
@@ -270,8 +276,10 @@ export function TacticalGroupTracker({
                   fontSize: '0.65rem',
                   fontWeight: 'bold',
                   color: effColumnHeaderColor,
-                  marginBottom: '4px',
-                  textTransform: 'uppercase'
+                  margin: '0px',
+                  padding: '2px 0',
+                  textTransform: 'uppercase',
+                  lineHeight: 1
                 }}
               >
                 #{colIdx + 1}
@@ -280,16 +288,18 @@ export function TacticalGroupTracker({
               {/* 1. TOP: Token Graphic */}
               <div
                 style={{
-                  width: `${columnWidth - 12}px`,
-                  height: `${columnWidth - 12}px`,
+                  width: `${columnWidth}px`,
+                  height: `${columnWidth}px`,
                   position: 'relative',
                   overflow: 'hidden',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid #000000',
-                  borderRadius: '2px',
-                  backgroundColor: '#ffffff'
+                  borderBottom: '1px solid #000000',
+                  borderRadius: '0px',
+                  backgroundColor: '#ffffff',
+                  padding: '0px',
+                  margin: '0px'
                 }}
               >
                 {customImageUrl ? (
@@ -297,7 +307,7 @@ export function TacticalGroupTracker({
                 ) : (
                   <div
                     style={{
-                      transform: `scale(${(columnWidth - 12) / 240})`,
+                      transform: `scale(${columnWidth / 240})`,
                       transformOrigin: 'top left',
                       width: 240,
                       height: 240
@@ -311,15 +321,17 @@ export function TacticalGroupTracker({
               {/* Token Name Label */}
               <div
                 style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.62rem',
                   fontWeight: 'bold',
                   color: effColumnHeaderColor,
-                  margin: '4px 0',
+                  margin: '0px',
+                  padding: '2px 0',
                   textAlign: 'center',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: `${columnWidth - 8}px`
+                  maxWidth: `${columnWidth - 2}px`,
+                  lineHeight: 1.1
                 }}
                 title={tokenData?.unitName || 'Unit Token'}
               >
@@ -332,9 +344,12 @@ export function TacticalGroupTracker({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '4px',
-                  minHeight: '32px',
-                  margin: '4px 0 8px 0'
+                  gap: '2px',
+                  minHeight: '28px',
+                  margin: '0px',
+                  padding: '2px 0',
+                  width: '100%',
+                  borderBottom: '1px solid #000000'
                 }}
               >
                 {/* White Upright Triangle ▲ */}
@@ -343,14 +358,14 @@ export function TacticalGroupTracker({
                     title="White Weight Triangle"
                     style={{
                       position: 'relative',
-                      width: '28px',
-                      height: '28px',
+                      width: '26px',
+                      height: '26px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}
                   >
-                    <svg width="28" height="28" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <svg width="26" height="26" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
                       <polygon points="20,2 38,36 2,36" fill="#ffffff" stroke="#000000" strokeWidth="2" strokeLinejoin="round" />
                     </svg>
                     <span
@@ -362,7 +377,7 @@ export function TacticalGroupTracker({
                         color: effColumnHeaderColor
                       }}
                     >
-                      {whiteTriangleNum}
+                      {effWhiteWeight}
                     </span>
                   </div>
                 )}
@@ -373,14 +388,14 @@ export function TacticalGroupTracker({
                     title="Black Weight Triangle"
                     style={{
                       position: 'relative',
-                      width: '28px',
-                      height: '28px',
+                      width: '26px',
+                      height: '26px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}
                   >
-                    <svg width="28" height="28" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <svg width="26" height="26" viewBox="0 0 40 40" style={{ position: 'absolute', top: 0, left: 0 }}>
                       <polygon points="2,4 38,4 20,38" fill="#000000" stroke="#000000" strokeWidth="2" strokeLinejoin="round" />
                     </svg>
                     <span
@@ -392,18 +407,20 @@ export function TacticalGroupTracker({
                         color: '#ffffff'
                       }}
                     >
-                      {blackTriangleNum}
+                      {effBlackWeight}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* 3. BOTTOM: Vertical Column of Points (1 to 20) */}
+              {/* 3. BOTTOM: Vertical Column of Points (1 to 20) - FLUSH / NO GAPS */}
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '4px',
+                  gap: '0px',
+                  padding: '0px',
+                  margin: '0px',
                   width: '100%'
                 }}
               >
@@ -421,15 +438,16 @@ export function TacticalGroupTracker({
                         }
                       }}
                       style={{
-                        border: showSquareBorders ? '1.5px solid #000000' : 'none',
-                        borderRadius: '2px',
+                        border: showSquareBorders ? '1px solid #000000' : 'none',
+                        borderRadius: '0px',
                         backgroundColor: squareBgColor || '#ffffff',
-                        height: '38px',
+                        height: '36px',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        padding: '2px',
+                        padding: '1px 0',
+                        margin: '0px',
                         cursor: isInteractive ? 'pointer' : 'default',
                         boxSizing: 'border-box'
                       }}
@@ -442,7 +460,9 @@ export function TacticalGroupTracker({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '2px',
+                          gap: '1px',
+                          padding: '0px',
+                          margin: '0px',
                           overflow: 'hidden'
                         }}
                       >
@@ -453,7 +473,7 @@ export function TacticalGroupTracker({
                               width: '12px',
                               height: '12px',
                               backgroundColor: '#000000',
-                              borderRadius: '1px'
+                              borderRadius: '0px'
                             }}
                           />
                         )}
@@ -467,10 +487,12 @@ export function TacticalGroupTracker({
                       <div
                         style={{
                           fontWeight: '900',
-                          fontSize: '1.25rem',
+                          fontSize: '1.2rem',
                           fontFamily: "'Teko', 'Trebuchet MS', sans-serif",
                           lineHeight: 1,
-                          color: effSquareNumColor
+                          color: effSquareNumColor,
+                          padding: '0px',
+                          margin: '0px'
                         }}
                       >
                         {ptNum}
@@ -490,8 +512,8 @@ export function TacticalGroupTracker({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginTop: '12px',
-          paddingTop: '6px',
+          marginTop: '8px',
+          paddingTop: '4px',
           borderTop: '2px solid #000000',
           zIndex: 1
         }}
