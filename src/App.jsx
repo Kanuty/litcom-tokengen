@@ -249,6 +249,8 @@ const BUILTIN_GROUP_STYLES = {
     columnHeaderColor: '#000000',
     columnHeaderBgColor: '#f3f4f6',
     weightTriangleBgColor: '#f3f4f6',
+    whiteTriangleTextColor: '#000000',
+    blackTriangleTextColor: '#ffffff',
     squareNumberColor: '#8c939d',
     squareBgColor: '#ffffff',
     backBgColor: '#2b6cb0',
@@ -266,6 +268,8 @@ const BUILTIN_GROUP_STYLES = {
     columnHeaderColor: '#00f0ff',
     columnHeaderBgColor: '#1e293b',
     weightTriangleBgColor: '#1e293b',
+    whiteTriangleTextColor: '#0f172a',
+    blackTriangleTextColor: '#00f0ff',
     squareNumberColor: '#00f0ff',
     squareBgColor: '#0f172a',
     backBgColor: '#0f172a',
@@ -283,6 +287,8 @@ const BUILTIN_GROUP_STYLES = {
     columnHeaderColor: '#01cdfe',
     columnHeaderBgColor: '#200b41',
     weightTriangleBgColor: '#200b41',
+    whiteTriangleTextColor: '#120429',
+    blackTriangleTextColor: '#ff71ce',
     squareNumberColor: '#b967ff',
     squareBgColor: '#200b41',
     backBgColor: '#200b41',
@@ -334,6 +340,8 @@ function App() {
     columnHeaderColor: '#000000',
     columnHeaderBgColor: '#f3f4f6',
     weightTriangleBgColor: '#f3f4f6',
+    whiteTriangleTextColor: '#000000',
+    blackTriangleTextColor: '#ffffff',
     squareNumberColor: '#8c939d',
     squareBgColor: '#ffffff',
     showWhiteTriangleGlobal: true,
@@ -620,6 +628,8 @@ function App() {
       columnHeaderColor: styleObj.columnHeaderColor ?? prev.columnHeaderColor,
       columnHeaderBgColor: styleObj.columnHeaderBgColor ?? prev.columnHeaderBgColor,
       weightTriangleBgColor: styleObj.weightTriangleBgColor ?? prev.weightTriangleBgColor,
+      whiteTriangleTextColor: styleObj.whiteTriangleTextColor ?? prev.whiteTriangleTextColor,
+      blackTriangleTextColor: styleObj.blackTriangleTextColor ?? prev.blackTriangleTextColor,
       squareNumberColor: styleObj.squareNumberColor ?? prev.squareNumberColor,
       squareBgColor: styleObj.squareBgColor ?? prev.squareBgColor,
       backBgColor: styleObj.backBgColor ?? prev.backBgColor,
@@ -665,6 +675,8 @@ function App() {
           columnHeaderColor: groupData.columnHeaderColor,
           columnHeaderBgColor: groupData.columnHeaderBgColor,
           weightTriangleBgColor: groupData.weightTriangleBgColor,
+          whiteTriangleTextColor: groupData.whiteTriangleTextColor,
+          blackTriangleTextColor: groupData.blackTriangleTextColor,
           squareNumberColor: groupData.squareNumberColor,
           squareBgColor: groupData.squareBgColor,
           backBgColor: groupData.backBgColor,
@@ -701,6 +713,8 @@ function App() {
         columnHeaderColor: groupData.columnHeaderColor,
         columnHeaderBgColor: groupData.columnHeaderBgColor,
         weightTriangleBgColor: groupData.weightTriangleBgColor,
+        whiteTriangleTextColor: groupData.whiteTriangleTextColor,
+        blackTriangleTextColor: groupData.blackTriangleTextColor,
         squareNumberColor: groupData.squareNumberColor,
         squareBgColor: groupData.squareBgColor,
         backBgColor: groupData.backBgColor,
@@ -757,6 +771,8 @@ function App() {
           columnHeaderColor: st.columnHeaderColor || '#000000',
           columnHeaderBgColor: st.columnHeaderBgColor || '#f3f4f6',
           weightTriangleBgColor: st.weightTriangleBgColor || '#f3f4f6',
+          whiteTriangleTextColor: st.whiteTriangleTextColor || '#000000',
+          blackTriangleTextColor: st.blackTriangleTextColor || '#ffffff',
           squareNumberColor: st.squareNumberColor || '#8c939d',
           squareBgColor: st.squareBgColor || '#ffffff',
           backBgColor: st.backBgColor || '#2b6cb0',
@@ -2422,58 +2438,39 @@ function App() {
               <div className="tint-card tint-card-aircraft">
                 <h3 className="subsection-header">⚖️ Weight Triangle Options</h3>
                 <p className="field-help-text" style={{ margin: '0 0 0.5rem 0' }}>
-                  Weight triangles can be toggled on or off for each separate column in Selected Column Configuration below.
+                  Toggle weight triangles on or off across all columns, or fine-tune individually per column below.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGroupData((prev) => ({
-                        ...prev,
-                        columns: prev.columns.map((c) => ({ ...c, showWhiteTriangle: true }))
-                      }));
-                    }}
-                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Enable All White ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGroupData((prev) => ({
-                        ...prev,
-                        columns: prev.columns.map((c) => ({ ...c, showWhiteTriangle: false }))
-                      }));
-                    }}
-                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Disable All White ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGroupData((prev) => ({
-                        ...prev,
-                        columns: prev.columns.map((c) => ({ ...c, showBlackTriangle: true }))
-                      }));
-                    }}
-                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Enable All Black ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGroupData((prev) => ({
-                        ...prev,
-                        columns: prev.columns.map((c) => ({ ...c, showBlackTriangle: false }))
-                      }));
-                    }}
-                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Disable All Black ▲
-                  </button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={groupData.columns.length > 0 && groupData.columns.every((c) => c.showWhiteTriangle !== false)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setGroupData((prev) => ({
+                          ...prev,
+                          columns: prev.columns.map((c) => ({ ...c, showWhiteTriangle: checked }))
+                        }));
+                      }}
+                    />
+                    Enable White ▲ (All Cols)
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    <input
+                      type="checkbox"
+                      checked={groupData.columns.length > 0 && groupData.columns.every((c) => c.showBlackTriangle !== false)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setGroupData((prev) => ({
+                          ...prev,
+                          columns: prev.columns.map((c) => ({ ...c, showBlackTriangle: checked }))
+                        }));
+                      }}
+                    />
+                    Enable Black ▲ (All Cols)
+                  </label>
                 </div>
               </div>
 
@@ -2555,14 +2552,15 @@ function App() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                       <div>
-                        <label className="field-label">White ▲ Weight (1-50)</label>
+                        <label className="field-label">White ▲ Weight (0-50)</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
                           max="50"
-                          value={groupData.columns[selectedGroupColIdx].whiteTriangleNum || 1}
+                          value={groupData.columns[selectedGroupColIdx].whiteTriangleNum ?? 0}
                           onChange={(e) => {
-                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            const raw = e.target.value;
+                            const val = raw === '' ? 0 : Math.min(50, Math.max(0, parseInt(raw) || 0));
                             setGroupData((prev) => {
                               const cols = [...prev.columns];
                               cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], whiteTriangleNum: val };
@@ -2574,14 +2572,15 @@ function App() {
                       </div>
 
                       <div>
-                        <label className="field-label">Black ▲ Weight (1-50)</label>
+                        <label className="field-label">Black ▲ Weight (0-50)</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
                           max="50"
-                          value={groupData.columns[selectedGroupColIdx].blackTriangleNum || 1}
+                          value={groupData.columns[selectedGroupColIdx].blackTriangleNum ?? 0}
                           onChange={(e) => {
-                            const val = Math.min(50, Math.max(1, parseInt(e.target.value) || 1));
+                            const raw = e.target.value;
+                            const val = raw === '' ? 0 : Math.min(50, Math.max(0, parseInt(raw) || 0));
                             setGroupData((prev) => {
                               const cols = [...prev.columns];
                               cols[selectedGroupColIdx] = { ...cols[selectedGroupColIdx], blackTriangleNum: val };
@@ -2859,6 +2858,8 @@ function App() {
                                   titleColor: color,
                                   footerNameColor: color,
                                   columnHeaderColor: color,
+                                  whiteTriangleTextColor: color,
+                                  blackTriangleTextColor: color,
                                   squareNumberColor: color
                                 }
                               : {})
@@ -2882,6 +2883,8 @@ function App() {
                               titleColor: val,
                               footerNameColor: val,
                               columnHeaderColor: val,
+                              whiteTriangleTextColor: val,
+                              blackTriangleTextColor: val,
                               squareNumberColor: val
                             }));
                           }}
@@ -2910,7 +2913,7 @@ function App() {
                 {/* Individual Text Colors with Dual Picker (Wheel + HEX input) */}
                 <div style={{ marginBottom: '0.75rem' }}>
                   <span className="cell-label" style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
-                    ✒️ Text Colors (Title, Footer, Column Header, Points)
+                    ✒️ Text Colors (Title, Footer, Headers, Triangles, Points)
                   </span>
                   <div className="color-picker-grid-3">
                     <div className="color-cell">
@@ -2964,6 +2967,44 @@ function App() {
                           type="text"
                           value={groupData.columnHeaderColor || '#000000'}
                           onChange={(e) => setGroupData({ ...groupData, columnHeaderColor: e.target.value })}
+                          disabled={groupData.applySingleTextColor}
+                          style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-cell">
+                      <span className="cell-label">White ▲ Value Color</span>
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                        <input
+                          type="color"
+                          value={groupData.whiteTriangleTextColor || groupData.columnHeaderColor || '#000000'}
+                          onChange={(e) => setGroupData({ ...groupData, whiteTriangleTextColor: e.target.value })}
+                          disabled={groupData.applySingleTextColor}
+                        />
+                        <input
+                          type="text"
+                          value={groupData.whiteTriangleTextColor || groupData.columnHeaderColor || '#000000'}
+                          onChange={(e) => setGroupData({ ...groupData, whiteTriangleTextColor: e.target.value })}
+                          disabled={groupData.applySingleTextColor}
+                          style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-cell">
+                      <span className="cell-label">Black ▲ Value Color</span>
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                        <input
+                          type="color"
+                          value={groupData.blackTriangleTextColor || '#ffffff'}
+                          onChange={(e) => setGroupData({ ...groupData, blackTriangleTextColor: e.target.value })}
+                          disabled={groupData.applySingleTextColor}
+                        />
+                        <input
+                          type="text"
+                          value={groupData.blackTriangleTextColor || '#ffffff'}
+                          onChange={(e) => setGroupData({ ...groupData, blackTriangleTextColor: e.target.value })}
                           disabled={groupData.applySingleTextColor}
                           style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
                         />
