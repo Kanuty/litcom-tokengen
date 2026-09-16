@@ -3,14 +3,16 @@ import { AlertTriangle, HelpCircle, X, Check } from 'lucide-react';
 
 export function CustomModal({
   isOpen,
-  type = 'alert', // 'alert' or 'prompt'
+  type = 'alert', // 'alert', 'prompt', or 'choice'
   title = '',
   message = '',
   defaultValue = '',
   placeholder = '',
   confirmText = 'OK',
+  secondaryText = '',
   cancelText = 'Cancel',
   onConfirm,
+  onSecondary,
   onCancel
 }) {
   const [inputValue, setInputValue] = useState(defaultValue);
@@ -170,8 +172,8 @@ export function CustomModal({
           )}
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.25rem' }}>
-            {type === 'prompt' && onCancel && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.25rem', flexWrap: 'wrap' }}>
+            {(type === 'prompt' || type === 'choice') && onCancel && (
               <button
                 type="button"
                 onClick={onCancel}
@@ -191,8 +193,29 @@ export function CustomModal({
                 {cancelText}
               </button>
             )}
+            {type === 'choice' && onSecondary && (
+              <button
+                type="button"
+                onClick={onSecondary}
+                style={{
+                  padding: '0.45rem 1rem',
+                  border: '1px solid var(--accent-cyan, #00f0ff)',
+                  backgroundColor: 'var(--input-bg, rgba(31, 41, 55, 0.6))',
+                  color: 'var(--accent-cyan, #00f0ff)',
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  fontFamily: "'Teko', sans-serif",
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer'
+                }}
+              >
+                {secondaryText}
+              </button>
+            )}
             <button
-              type="submit"
+              type={type === 'choice' ? 'button' : 'submit'}
+              onClick={type === 'choice' && onConfirm ? onConfirm : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
