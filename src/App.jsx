@@ -247,6 +247,8 @@ const BUILTIN_GROUP_STYLES = {
     titleColor: '#000000',
     footerNameColor: '#000000',
     columnHeaderColor: '#000000',
+    columnHeaderBgColor: '#f3f4f6',
+    weightTriangleBgColor: '#f3f4f6',
     squareNumberColor: '#8c939d',
     squareBgColor: '#ffffff',
     backBgColor: '#2b6cb0',
@@ -262,6 +264,8 @@ const BUILTIN_GROUP_STYLES = {
     titleColor: '#00f0ff',
     footerNameColor: '#00f0ff',
     columnHeaderColor: '#00f0ff',
+    columnHeaderBgColor: '#1e293b',
+    weightTriangleBgColor: '#1e293b',
     squareNumberColor: '#00f0ff',
     squareBgColor: '#0f172a',
     backBgColor: '#0f172a',
@@ -277,6 +281,8 @@ const BUILTIN_GROUP_STYLES = {
     titleColor: '#ff71ce',
     footerNameColor: '#ff71ce',
     columnHeaderColor: '#01cdfe',
+    columnHeaderBgColor: '#200b41',
+    weightTriangleBgColor: '#200b41',
     squareNumberColor: '#b967ff',
     squareBgColor: '#200b41',
     backBgColor: '#200b41',
@@ -326,6 +332,8 @@ function App() {
     titleColor: '#000000',
     footerNameColor: '#000000',
     columnHeaderColor: '#000000',
+    columnHeaderBgColor: '#f3f4f6',
+    weightTriangleBgColor: '#f3f4f6',
     squareNumberColor: '#8c939d',
     squareBgColor: '#ffffff',
     showWhiteTriangleGlobal: true,
@@ -610,6 +618,8 @@ function App() {
       titleColor: styleObj.titleColor ?? prev.titleColor,
       footerNameColor: styleObj.footerNameColor ?? prev.footerNameColor,
       columnHeaderColor: styleObj.columnHeaderColor ?? prev.columnHeaderColor,
+      columnHeaderBgColor: styleObj.columnHeaderBgColor ?? prev.columnHeaderBgColor,
+      weightTriangleBgColor: styleObj.weightTriangleBgColor ?? prev.weightTriangleBgColor,
       squareNumberColor: styleObj.squareNumberColor ?? prev.squareNumberColor,
       squareBgColor: styleObj.squareBgColor ?? prev.squareBgColor,
       backBgColor: styleObj.backBgColor ?? prev.backBgColor,
@@ -653,6 +663,8 @@ function App() {
           titleColor: groupData.titleColor,
           footerNameColor: groupData.footerNameColor,
           columnHeaderColor: groupData.columnHeaderColor,
+          columnHeaderBgColor: groupData.columnHeaderBgColor,
+          weightTriangleBgColor: groupData.weightTriangleBgColor,
           squareNumberColor: groupData.squareNumberColor,
           squareBgColor: groupData.squareBgColor,
           backBgColor: groupData.backBgColor,
@@ -687,6 +699,8 @@ function App() {
         titleColor: groupData.titleColor,
         footerNameColor: groupData.footerNameColor,
         columnHeaderColor: groupData.columnHeaderColor,
+        columnHeaderBgColor: groupData.columnHeaderBgColor,
+        weightTriangleBgColor: groupData.weightTriangleBgColor,
         squareNumberColor: groupData.squareNumberColor,
         squareBgColor: groupData.squareBgColor,
         backBgColor: groupData.backBgColor,
@@ -741,6 +755,8 @@ function App() {
           titleColor: st.titleColor || '#000000',
           footerNameColor: st.footerNameColor || '#000000',
           columnHeaderColor: st.columnHeaderColor || '#000000',
+          columnHeaderBgColor: st.columnHeaderBgColor || '#f3f4f6',
+          weightTriangleBgColor: st.weightTriangleBgColor || '#f3f4f6',
           squareNumberColor: st.squareNumberColor || '#8c939d',
           squareBgColor: st.squareBgColor || '#ffffff',
           backBgColor: st.backBgColor || '#2b6cb0',
@@ -1106,57 +1122,101 @@ function App() {
     setSavedItems(getSavedItems());
   };
 
+  const performSaveWithDuplicateCheck = ({ nameInput, defaultName, type, category, data, typeLabel, onSaved }) => {
+    const finalName = (nameInput || '').trim() || defaultName;
+    const existingItems = getSavedItems();
+    const existingItem = existingItems.find(
+      (item) => item.type === type && item.name.trim().toLowerCase() === finalName.toLowerCase()
+    );
+
+    const executeSave = (idToOverwrite = null) => {
+      const itemToSave = {
+        ...(idToOverwrite ? { id: idToOverwrite } : {}),
+        name: finalName,
+        type,
+        category: category || (data && data.category) || 'land',
+        data
+      };
+      const updated = saveItem(itemToSave);
+      setSavedItems(updated);
+      if (onSaved) onSaved();
+    };
+
+    if (existingItem) {
+      setCustomModalConfig({
+        isOpen: true,
+        type: 'choice',
+        title: 'DUPLICATE PRESET DETECTED',
+        message: `A ${typeLabel} named "${finalName}" already exists in your saved library.\n\nDo you want to overwrite (edit) the existing version or save as a new copy?`,
+        confirmText: 'OVERWRITE (EDIT)',
+        secondaryText: 'SAVE NEW COPY',
+        cancelText: 'CANCEL',
+        onConfirm: () => {
+          closeCustomModal();
+          executeSave(existingItem.id);
+          showNotification({
+            title: `${typeLabel.toUpperCase()} OVERWRITTEN`,
+            message: `Successfully overwrote existing ${typeLabel} preset "${finalName}".`,
+            type: 'info'
+          });
+        },
+        onSecondary: () => {
+          closeCustomModal();
+          executeSave(null);
+          showNotification({
+            title: 'NEW COPY SAVED',
+            message: `Successfully saved a new copy of ${typeLabel} preset "${finalName}".`,
+            type: 'info'
+          });
+        },
+        onCancel: closeCustomModal
+      });
+    } else {
+      executeSave(null);
+      showNotification({
+        title: `${typeLabel.toUpperCase()} PRESET SAVED`,
+        message: `${typeLabel} preset "${finalName}" was successfully saved to browser storage.`,
+        type: 'info'
+      });
+    }
+  };
+
   const handleSaveTokenPreset = (e) => {
     e.preventDefault();
-    const name = tokenSaveName.trim() || tokenData.unitName || 'Unnamed Token';
-    const updated = saveItem({
-      name,
+    performSaveWithDuplicateCheck({
+      nameInput: tokenSaveName,
+      defaultName: tokenData.unitName || 'Unnamed Token',
       type: 'token',
       category: tokenData.category || 'land',
-      data: tokenData
-    });
-    setSavedItems(updated);
-    setTokenSaveName('');
-    showNotification({
-      title: 'TOKEN PRESET SAVED',
-      message: `Token preset "${name}" was successfully saved to browser storage.`,
-      type: 'info'
+      data: tokenData,
+      typeLabel: 'Token',
+      onSaved: () => setTokenSaveName('')
     });
   };
 
   const handleSaveTrackerPreset = (e) => {
     e.preventDefault();
-    const name = trackerSaveName.trim() || trackerData.title || 'Unnamed Tracker';
-    const updated = saveItem({
-      name,
+    performSaveWithDuplicateCheck({
+      nameInput: trackerSaveName,
+      defaultName: trackerData.title || 'Unnamed Tracker',
       type: 'tracker',
       category: 'tracker',
-      data: trackerData
-    });
-    setSavedItems(updated);
-    setTrackerSaveName('');
-    showNotification({
-      title: 'UNIT TRACKER PRESET SAVED',
-      message: `Unit Tracker preset "${name}" was successfully saved to browser storage.`,
-      type: 'info'
+      data: trackerData,
+      typeLabel: 'Unit Tracker',
+      onSaved: () => setTrackerSaveName('')
     });
   };
 
   const handleSaveCardPreset = (e) => {
     e.preventDefault();
-    const name = cardSaveName.trim() || cardData.title || 'Unnamed Capability Card';
-    const updated = saveItem({
-      name,
+    performSaveWithDuplicateCheck({
+      nameInput: cardSaveName,
+      defaultName: cardData.title || 'Unnamed Capability Card',
       type: 'card',
       category: 'card',
-      data: cardData
-    });
-    setSavedItems(updated);
-    setCardSaveName('');
-    showNotification({
-      title: 'CAPABILITY CARD PRESET SAVED',
-      message: `Capability Card preset "${name}" was successfully saved to browser storage.`,
-      type: 'info'
+      data: cardData,
+      typeLabel: 'Capability Card',
+      onSaved: () => setCardSaveName('')
     });
   };
 
@@ -1210,19 +1270,14 @@ function App() {
 
   const handleSaveGroupPreset = (e) => {
     e.preventDefault();
-    const name = groupSaveName.trim() || groupData.title || 'Unnamed Tactical Group';
-    const updated = saveItem({
-      name,
+    performSaveWithDuplicateCheck({
+      nameInput: groupSaveName,
+      defaultName: groupData.title || 'Unnamed Tactical Group',
       type: 'group',
       category: 'tracker',
-      data: groupData
-    });
-    setSavedItems(updated);
-    setGroupSaveName('');
-    showNotification({
-      title: 'GROUP TRACKER PRESET SAVED',
-      message: `Tactical Group Tracker preset "${name}" was successfully saved to browser storage.`,
-      type: 'info'
+      data: groupData,
+      typeLabel: 'Tactical Group Tracker',
+      onSaved: () => setGroupSaveName('')
     });
   };
 
@@ -1239,6 +1294,7 @@ function App() {
 
     const newCol = {
       id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
+      columnName: token.unitName || `UNIT ${groupData.columns.length + 1}`,
       tokenData: JSON.parse(JSON.stringify(token)),
       showWhiteTriangle: true,
       whiteTriangleNum: token.sizeNumber || token.triangleNumber || 1,
@@ -2362,28 +2418,62 @@ function App() {
                 </div>
               </div>
 
-              {/* 2. GLOBAL WEIGHT INDICATORS TOGGLES */}
+              {/* 2. WEIGHT TRIANGLE OPTIONS */}
               <div className="tint-card tint-card-aircraft">
                 <h3 className="subsection-header">⚖️ Weight Triangle Options</h3>
+                <p className="field-help-text" style={{ margin: '0 0 0.5rem 0' }}>
+                  Weight triangles can be toggled on or off for each separate column in Selected Column Configuration below.
+                </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={groupData.showWhiteTriangleGlobal}
-                      onChange={(e) => setGroupData({ ...groupData, showWhiteTriangleGlobal: e.target.checked })}
-                    />
-                    Show White ▲
-                  </label>
-
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                    <input
-                      type="checkbox"
-                      checked={groupData.showBlackTriangleGlobal}
-                      onChange={(e) => setGroupData({ ...groupData, showBlackTriangleGlobal: e.target.checked })}
-                    />
-                    Show Black ▲
-                  </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGroupData((prev) => ({
+                        ...prev,
+                        columns: prev.columns.map((c) => ({ ...c, showWhiteTriangle: true }))
+                      }));
+                    }}
+                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Enable All White ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGroupData((prev) => ({
+                        ...prev,
+                        columns: prev.columns.map((c) => ({ ...c, showWhiteTriangle: false }))
+                      }));
+                    }}
+                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Disable All White ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGroupData((prev) => ({
+                        ...prev,
+                        columns: prev.columns.map((c) => ({ ...c, showBlackTriangle: true }))
+                      }));
+                    }}
+                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Enable All Black ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGroupData((prev) => ({
+                        ...prev,
+                        columns: prev.columns.map((c) => ({ ...c, showBlackTriangle: false }))
+                      }));
+                    }}
+                    style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Disable All Black ▲
+                  </button>
                 </div>
               </div>
 
@@ -2417,7 +2507,7 @@ function App() {
                 {groupData.columns[selectedGroupColIdx] && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.4rem' }}>
                     <div>
-                      <label className="field-label">Column Name (Unit Title)</label>
+                      <label className="field-label">Column Name (Unit Title Above Token)</label>
                       <input
                         type="text"
                         value={
@@ -2431,7 +2521,26 @@ function App() {
                             const cols = [...prev.columns];
                             cols[selectedGroupColIdx] = {
                               ...cols[selectedGroupColIdx],
-                              columnName: val,
+                              columnName: val
+                            };
+                            return { ...prev, columns: cols };
+                          });
+                        }}
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="field-label">Token Name (On Token Graphic)</label>
+                      <input
+                        type="text"
+                        value={groupData.columns[selectedGroupColIdx].tokenData?.unitName || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setGroupData((prev) => {
+                            const cols = [...prev.columns];
+                            cols[selectedGroupColIdx] = {
+                              ...cols[selectedGroupColIdx],
                               tokenData: {
                                 ...cols[selectedGroupColIdx].tokenData,
                                 unitName: val
@@ -2917,6 +3026,40 @@ function App() {
                           type="text"
                           value={groupData.camoColor || '#4a5568'}
                           onChange={(e) => setGroupData({ ...groupData, camoColor: e.target.value })}
+                          style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-cell">
+                      <span className="cell-label">Header BG (Above Token)</span>
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                        <input
+                          type="color"
+                          value={groupData.columnHeaderBgColor || '#f3f4f6'}
+                          onChange={(e) => setGroupData({ ...groupData, columnHeaderBgColor: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          value={groupData.columnHeaderBgColor || '#f3f4f6'}
+                          onChange={(e) => setGroupData({ ...groupData, columnHeaderBgColor: e.target.value })}
+                          style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-cell">
+                      <span className="cell-label">Triangle Area BG (Below Token)</span>
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                        <input
+                          type="color"
+                          value={groupData.weightTriangleBgColor || '#f3f4f6'}
+                          onChange={(e) => setGroupData({ ...groupData, weightTriangleBgColor: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          value={groupData.weightTriangleBgColor || '#f3f4f6'}
+                          onChange={(e) => setGroupData({ ...groupData, weightTriangleBgColor: e.target.value })}
                           style={{ width: '70px', fontSize: '0.78rem', padding: '2px 4px', textTransform: 'uppercase' }}
                         />
                       </div>
@@ -5461,7 +5604,11 @@ function App() {
         title={customModalConfig.title}
         message={customModalConfig.message}
         defaultValue={customModalConfig.defaultValue}
+        confirmText={customModalConfig.confirmText}
+        secondaryText={customModalConfig.secondaryText}
+        cancelText={customModalConfig.cancelText}
         onConfirm={customModalConfig.onConfirm}
+        onSecondary={customModalConfig.onSecondary}
         onCancel={customModalConfig.onCancel}
       />
     </div>
