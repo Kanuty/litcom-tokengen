@@ -43,6 +43,10 @@ export function TacticalGroupTracker({
     titleColor = '#000000',
     footerNameColor = '#000000',
     columnHeaderColor = '#000000',
+    columnHeaderBgColor = 'rgba(0, 0, 0, 0.04)',
+    weightTriangleBgColor = 'rgba(0, 0, 0, 0.04)',
+    whiteTriangleTextColor,
+    blackTriangleTextColor,
     squareNumberColor = '#8c939d',
     squareBgColor = '#ffffff',
     showWhiteTriangleGlobal = true,
@@ -52,6 +56,8 @@ export function TacticalGroupTracker({
   const effTitleColor = applySingleTextColor ? singleTextColor : titleColor;
   const effFooterColor = applySingleTextColor ? singleTextColor : footerNameColor;
   const effColumnHeaderColor = applySingleTextColor ? singleTextColor : columnHeaderColor;
+  const effWhiteTriangleTextColor = applySingleTextColor ? singleTextColor : (whiteTriangleTextColor || effColumnHeaderColor || '#000000');
+  const effBlackTriangleTextColor = applySingleTextColor ? singleTextColor : (blackTriangleTextColor || '#ffffff');
   const effSquareNumColor = applySingleTextColor
     ? singleTextColor
     : squareNumberColor === 'bgColor'
@@ -379,19 +385,19 @@ export function TacticalGroupTracker({
             tokenData = {},
             customImageUrl = null,
             showWhiteTriangle = true,
-            whiteTriangleNum = tokenData.sizeNumber || tokenData.triangleNumber || 1,
+            whiteTriangleNum,
             showBlackTriangle = true,
-            blackTriangleNum = tokenData.reverseTriangleNumber || 1,
+            blackTriangleNum,
             placedDice = {},
             initialHpSquare = null
           } = col;
 
           const isSelected = selectedColumnIndex === colIdx;
-          const showWhite = showWhiteTriangleGlobal && showWhiteTriangle;
-          const showBlack = showBlackTriangleGlobal && showBlackTriangle;
+          const showWhite = showWhiteTriangle !== false;
+          const showBlack = showBlackTriangle !== false;
 
-          const effWhiteWeight = whiteTriangleNum ?? tokenData.sizeNumber ?? 1;
-          const effBlackWeight = blackTriangleNum ?? tokenData.reverseTriangleNumber ?? 1;
+          const effWhiteWeight = whiteTriangleNum ?? tokenData.sizeNumber ?? tokenData.triangleNumber ?? 0;
+          const effBlackWeight = blackTriangleNum ?? tokenData.reverseTriangleNumber ?? 0;
 
           return (
             <div
@@ -421,7 +427,8 @@ export function TacticalGroupTracker({
                   justifyContent: 'space-between',
                   padding: '2px 4px',
                   boxSizing: 'border-box',
-                  lineHeight: 1
+                  lineHeight: 1,
+                  backgroundColor: columnHeaderBgColor || 'rgba(0, 0, 0, 0.04)'
                 }}
               >
                 <div
@@ -480,7 +487,7 @@ export function TacticalGroupTracker({
                   textOverflow: 'ellipsis',
                   boxSizing: 'border-box',
                   borderBottom: '1px solid #000000',
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  backgroundColor: columnHeaderBgColor || 'rgba(0, 0, 0, 0.04)',
                   lineHeight: 1.1,
                   textTransform: 'uppercase'
                 }}
@@ -524,7 +531,8 @@ export function TacticalGroupTracker({
                   margin: '0px',
                   padding: '2px 0',
                   width: '100%',
-                  borderBottom: '1px solid #000000'
+                  borderBottom: '1px solid #000000',
+                  backgroundColor: weightTriangleBgColor || 'rgba(0, 0, 0, 0.04)'
                 }}
               >
                 {/* White Upright Triangle ▲ */}
@@ -549,7 +557,7 @@ export function TacticalGroupTracker({
                         top: '2px',
                         fontSize: '0.72rem',
                         fontWeight: '900',
-                        color: effColumnHeaderColor
+                        color: effWhiteTriangleTextColor
                       }}
                     >
                       {effWhiteWeight}
@@ -579,7 +587,7 @@ export function TacticalGroupTracker({
                         top: '-2px',
                         fontSize: '0.72rem',
                         fontWeight: '900',
-                        color: '#ffffff'
+                        color: effBlackTriangleTextColor
                       }}
                     >
                       {effBlackWeight}
