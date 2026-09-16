@@ -2,8 +2,8 @@ import React from 'react';
 
 // Render NATO Symbol according to frame affiliation, symbol type, and stackable modifiers
 export function NatoSymbol({
-  affiliation = 'friendly', // 'friendly' | 'hostile' | 'neutral'
-  symbolType = 'infantry',  // 'infantry' | 'armor' | 'recon' | 'artillery' | 'rocket_artillery' | 'mechanized_artillery' | 'air_defense' | 'anti_tank' | 'sof' | 'engineer' | 'supply' | 'custom' | 'none'
+  affiliation = 'friendly', // 'friendly' | 'hostile' | 'neutral' | 'unknown'
+  symbolType = 'infantry',  // 'infantry' | 'armor' | 'recon' | 'artillery' | 'rocket_artillery' | 'mechanized_artillery' | 'air_defense' | 'airDefense' | 'anti_tank' | 'antiArmor' | 'anti_armor' | 'aviation' | 'sof' | 'engineer' | 'supply' | 'custom' | 'none'
   modifiers = [],           // ['mountain', 'airborne', 'airmobile', 'tracked', 'wheeled', 'amphibious', 'motorized', 'ew', 'light']
   size = 240,
   customNatoImage = '',
@@ -28,6 +28,20 @@ export function NatoSymbol({
   } else if (affiliation === 'neutral') {
     frame = <rect x="20" y="10" width="60" height="60" rx="3" fill="none" stroke={symbolColor} strokeWidth="5" />;
     clipPathShape = <rect x="20" y="10" width="60" height="60" rx="3" />;
+  } else if (affiliation === 'unknown') {
+    // Unknown: Dashed/Lobed Clover shape
+    frame = (
+      <path
+        d="M 50 10 Q 70 10 75 25 Q 90 25 90 40 Q 90 55 75 55 Q 70 70 50 70 Q 30 70 25 55 Q 10 55 10 40 Q 10 25 25 25 Q 30 10 50 10 Z"
+        fill="none"
+        stroke={symbolColor}
+        strokeWidth="5"
+        strokeDasharray="6,4"
+      />
+    );
+    clipPathShape = (
+      <path d="M 50 10 Q 70 10 75 25 Q 90 25 90 40 Q 90 55 75 55 Q 70 70 50 70 Q 30 70 25 55 Q 10 55 10 40 Q 10 25 25 25 Q 30 10 50 10 Z" />
+    );
   }
 
   let symbolContent = [];
@@ -92,7 +106,7 @@ export function NatoSymbol({
         <circle cx="50" cy="40" r="8" fill={symbolColor} />
       </g>
     );
-  } else if (symbolType === 'air_defense') {
+  } else if (symbolType === 'air_defense' || symbolType === 'airDefense') {
     if (affiliation === 'friendly') {
       symbolContent.push(
         <path key="air_def" d="M 5 70 Q 50 40 95 70" fill="none" stroke={symbolColor} strokeWidth="4.5" />
@@ -106,9 +120,13 @@ export function NatoSymbol({
         <path key="air_def" d="M 20 70 Q 50 40 80 70" fill="none" stroke={symbolColor} strokeWidth="4.5" />
       );
     }
-  } else if (symbolType === 'anti_tank') {
+  } else if (symbolType === 'anti_tank' || symbolType === 'antiArmor' || symbolType === 'anti_armor') {
     symbolContent.push(
       <path key="anti_tank" d="M 25 55 L 50 25 L 75 55" fill="none" stroke={symbolColor} strokeWidth="4.5" />
+    );
+  } else if (symbolType === 'aviation') {
+    symbolContent.push(
+      <path key="aviation" d="M 15 50 C 30 20, 70 20, 85 50 C 70 30, 30 30, 15 50 Z" fill={symbolColor} stroke={symbolColor} strokeWidth="2" />
     );
   } else if (symbolType === 'sof') {
     symbolContent.push(

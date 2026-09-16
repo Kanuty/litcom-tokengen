@@ -193,6 +193,54 @@ export async function generatePrintablePDF(frontElementId, backElementId, unitNa
 }
 
 /**
+ * Downloads Tactical Group Tracker as PNG image.
+ * @param {string} frontElementId
+ * @param {string} backElementId
+ * @param {string} exportFace - 'front' | 'back' | 'both'
+ * @param {string} titleSlug
+ */
+export async function downloadTacticalGroupTrackerAsPNG(
+  frontElementId = 'tactical-group-tracker-export-front',
+  backElementId = 'tactical-group-tracker-export-back',
+  exportFace = 'both',
+  titleSlug = 'tactical-group-tracker'
+) {
+  const downloadSingle = async (elementId, side) => {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      console.error(`Tactical Group Tracker element with id ${elementId} not found`);
+      return;
+    }
+    const cleanTitle = (titleSlug || 'group-tracker').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const filename = `${cleanTitle}-${side}.png`;
+
+    try {
+      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error(`Error generating tactical group tracker image (${filename}):`, err);
+    }
+  };
+
+  if (exportFace === 'front' || exportFace === 'both') {
+    await downloadSingle(frontElementId, 'front');
+  }
+
+  if (exportFace === 'back' || exportFace === 'both') {
+    if (exportFace === 'both') {
+      setTimeout(async () => {
+        await downloadSingle(backElementId, 'back');
+      }, 300);
+    } else {
+      await downloadSingle(backElementId, 'back');
+    }
+  }
+}
+
+/**
  * Generates and downloads a true-scale printable PDF from the Token Printer paper sheet.
  * Excludes interactive UI elements (buttons, selection rings, grid overlays) from the exported PDF.
  * @param {Object} options - { paperKey, paperWidthMM, paperHeightMM, elementId }
