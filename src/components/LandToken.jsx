@@ -672,6 +672,356 @@ function RenderFlag({ flagKey, customUrl }) {
     );
   }
 
+  if (flagKey === 'canada') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        <g transform="translate(0, 5) scale(0.1)">
+          <rect x="0" y="0" width="250" height="500" fill="#ff0000" />
+          <rect x="750" y="0" width="250" height="500" fill="#ff0000" />
+          <path
+            fill="#ff0000"
+            d="M 500,47 L 534,110 Q 539,119 549,114 L 577,100 L 558,200 Q 555,217 568,212 L 616,160 L 623,184 Q 625,192 635,190 L 687,179 L 670,238 Q 667,247 676,251 L 695,259 L 602,335 Q 594,341 598,352 L 606,375 L 515,362 Q 505,360 505,372 L 507,469 L 491,469 L 496,372 Q 496,360 485,362 L 394,375 L 402,352 Q 406,341 398,335 L 305,259 L 324,251 Q 333,247 330,238 L 313,179 L 365,190 Q 375,192 377,184 L 384,160 L 432,212 Q 445,217 442,200 L 423,100 L 451,114 Q 461,119 466,110 Z"
+          />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'mexico') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="33.33" height="60" fill="#006847" />
+        <rect x="33.33" width="33.34" height="60" fill="#ffffff" />
+        <rect x="66.67" width="33.33" height="60" fill="#ce1126" />
+        <g transform="translate(50, 30)">
+          <path d="M -10 8 Q 0 14 10 8 Q 8 16 0 16 Q -8 16 -10 8 Z" fill="#006847" />
+          <path d="M -4 6 L -2 -2 L 2 -2 L 4 6 Z" fill="#795548" />
+          <path d="M -7 -2 Q 0 -12 7 -2 C 4 0 -4 0 -7 -2 Z" fill="#a0a0a0" />
+          <circle cx="0" cy="-6" r="4" fill="#c8963e" />
+          <path d="M -1 -9 L 2 -6 L 6 -10 L 3 -4 L 0 -8 Z" fill="#1b5e20" stroke="#000" strokeWidth="0.5" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'venezuela') {
+    const stars = [];
+    const cx = 50;
+    const cy = 42;
+    const r = 16;
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 0.2) + (i * (Math.PI * 0.6 / 7));
+      const x = cx - r * Math.cos(angle);
+      const y = cy - r * Math.sin(angle);
+      stars.push(<circle key={i} cx={x} cy={y} r="1.3" fill="#ffffff" />);
+    }
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#ffcc00" />
+        <rect y="20" width="100" height="20" fill="#00247d" />
+        <rect y="40" width="100" height="20" fill="#cf142b" />
+        <g>{stars}</g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'brazil') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#009b3a" />
+        <polygon points="50,6 90,30 50,54 10,30" fill="#fedf00" />
+        <circle cx="50" cy="30" r="14" fill="#002776" />
+        <path d="M 36.5 28 Q 50 23 63.5 32 Q 50 20 36.5 28 Z" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'colombia') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="30" fill="#fcd116" />
+        <rect y="30" width="100" height="15" fill="#003893" />
+        <rect y="45" width="100" height="15" fill="#ce1126" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'argentina') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#74acdf" />
+        <rect y="20" width="100" height="20" fill="#ffffff" />
+        <rect y="40" width="100" height="20" fill="#74acdf" />
+        <circle cx="50" cy="30" r="6" fill="#f6b40e" />
+        {[...Array(16)].map((_, i) => {
+          const a = (i * Math.PI) / 8;
+          return (
+            <line
+              key={i}
+              x1={50 + 6 * Math.cos(a)}
+              y1={30 + 6 * Math.sin(a)}
+              x2={50 + 8.5 * Math.cos(a)}
+              y2={30 + 8.5 * Math.sin(a)}
+              stroke="#f6b40e"
+              strokeWidth="1.2"
+            />
+          );
+        })}
+      </svg>
+    );
+  }
+
+  if (flagKey === 'serbia') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#c6363c" />
+        <rect y="20" width="100" height="20" fill="#0c4076" />
+        <rect y="40" width="100" height="20" fill="#ffffff" />
+        <g transform="translate(35, 28)">
+          <path d="M -10 -12 L 10 -12 L 8 10 L 0 15 L -8 10 Z" fill="#c6363c" stroke="#e0aa3e" strokeWidth="1" />
+          <path d="M -6 -8 L 6 -8 L 5 6 L 0 10 L -5 6 Z" fill="#ffffff" />
+          <path d="M -3 -6 L 3 -6 L 2.5 4 L 0 7 L -2.5 4 Z" fill="#c6363c" />
+          <path d="M 0 -16 L -4 -12 L 4 -12 Z" fill="#e0aa3e" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'switzerland') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ff0000" />
+        <rect x="44" y="12" width="12" height="36" fill="#ffffff" />
+        <rect x="32" y="24" width="36" height="12" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'moldova' || flagKey === 'moldobian') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="33.33" height="60" fill="#0046ae" />
+        <rect x="33.33" width="33.34" height="60" fill="#ffd200" />
+        <rect x="66.67" width="33.33" height="60" fill="#cc092f" />
+        <g transform="translate(50, 30)">
+          <path d="M -7 -10 L 7 -10 L 5 8 L 0 12 L -5 8 Z" fill="#c6363c" stroke="#a06000" strokeWidth="0.8" />
+          <path d="M -7 -10 L 0 -10 L 0 12 L -5 8 Z" fill="#0046ae" />
+          <circle cx="0" cy="-2" r="3" fill="#ffd200" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'transnistria' || flagKey === 'nadniestrian') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="22.5" fill="#cc0000" />
+        <rect y="22.5" width="100" height="15" fill="#009900" />
+        <rect y="37.5" width="100" height="22.5" fill="#cc0000" />
+        <g transform="translate(15, 12)">
+          <path d="M -5 5 L 3 -3 M -3 3 L 5 -5" stroke="#ffde00" strokeWidth="1.5" strokeLinecap="round" />
+          <polygon points="0,-7 2,-3 6,-3 3,-1 4,3 0,1 -4,3 -3,-1 -6,-3 -2,-3" fill="#ffde00" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'donetsk' || flagKey === 'donetsk_peoples_republic') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#000000" />
+        <rect y="20" width="100" height="20" fill="#0033a0" />
+        <rect y="40" width="100" height="20" fill="#d62612" />
+        <g transform="translate(50, 30)">
+          <path d="M -12 -10 C -8 -16 0 -14 0 -8 C 0 -14 8 -16 12 -10 C 15 0 8 10 0 12 C -8 10 -15 0 -12 -10 Z" fill="#ffffff" />
+          <path d="M -5 -4 L 5 -4 L 4 6 L 0 9 L -4 6 Z" fill="#d62612" stroke="#0033a0" strokeWidth="0.8" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'georgia') {
+    const smallCross = (cx, cy) => (
+      <g key={`${cx}-${cy}`} fill="#ff0000">
+        <rect x={cx - 1.2} y={cy - 4} width="2.4" height="8" rx="0.5" />
+        <rect x={cx - 4} y={cy - 1.2} width="8" height="2.4" rx="0.5" />
+      </g>
+    );
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        <rect x="43" width="14" height="60" fill="#ff0000" />
+        <rect y="23" width="100" height="14" fill="#ff0000" />
+        {smallCross(21.5, 11.5)}
+        {smallCross(78.5, 11.5)}
+        {smallCross(21.5, 48.5)}
+        {smallCross(78.5, 48.5)}
+      </svg>
+    );
+  }
+
+  if (flagKey === 'armenia') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#d90012" />
+        <rect y="20" width="100" height="20" fill="#0033a0" />
+        <rect y="40" width="100" height="20" fill="#f2a800" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'azerbaijan') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#00b5e2" />
+        <rect y="20" width="100" height="20" fill="#ef3340" />
+        <rect y="40" width="100" height="20" fill="#509e2e" />
+        <circle cx="47" cy="30" r="6" fill="#ffffff" />
+        <circle cx="49" cy="30" r="5" fill="#ef3340" />
+        <polygon
+          points="56,30 54.2,28.2 55.2,25.8 52.8,26.8 51,25 51,27.5 48.5,27.5 50.3,29.3 49.3,31.7 51.7,30.7 53.5,32.5 53.5,30"
+          fill="#ffffff"
+        />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'south_ossetia' || flagKey === 'osetii') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#ffffff" />
+        <rect y="20" width="100" height="20" fill="#e30301" />
+        <rect y="40" width="100" height="20" fill="#fcd116" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'abkhazia') {
+    const stars = [];
+    const cx = 20;
+    const cy = 18;
+    const r = 11;
+    for (let i = 0; i < 7; i++) {
+      const a = (Math.PI * 0.8) + (i * (Math.PI * 0.8 / 6));
+      const x = cx - r * Math.cos(a);
+      const y = cy - r * Math.sin(a);
+      stars.push(<circle key={i} cx={x} cy={y} r="1" fill="#ffffff" />);
+    }
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        {[0, 2, 4, 6].map((i) => (
+          <rect key={i} y={i * (60 / 7)} width="100" height={60 / 7} fill="#007a3d" />
+        ))}
+        <rect width="40" height={3 * (60 / 7) + 0.1} fill="#d62612" />
+        <path d="M 20 22 C 17 22 16 18 16 15 C 16 14 18 14 18 15 C 18 17 19 19 20 19 C 21 19 22 17 22 15 C 22 14 24 14 24 15 C 24 18 23 22 20 22 Z M 20 22 L 20 26" fill="#ffffff" />
+        <g>{stars}</g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'pakistan') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#01411c" />
+        <rect width="25" height="60" fill="#ffffff" />
+        <circle cx="62.5" cy="30" r="15" fill="#ffffff" />
+        <circle cx="66" cy="27" r="13.5" fill="#01411c" />
+        <polygon points="70,20 71.5,23.5 75,23.5 72,25.5 73,29 70,27 67,29 68,25.5 65,23.5 68.5,23.5" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (flagKey === 'india') {
+    const spokes = [];
+    for (let i = 0; i < 24; i++) {
+      const a = (i * Math.PI) / 12;
+      spokes.push(
+        <line
+          key={i}
+          x1="50"
+          y1="30"
+          x2={50 + 7 * Math.cos(a)}
+          y2={30 + 7 * Math.sin(a)}
+          stroke="#000080"
+          strokeWidth="0.6"
+        />
+      );
+    }
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="20" fill="#ff9933" />
+        <rect y="20" width="100" height="20" fill="#ffffff" />
+        <rect y="40" width="100" height="20" fill="#138808" />
+        <circle cx="50" cy="30" r="7.5" fill="none" stroke="#000080" strokeWidth="1.2" />
+        <circle cx="50" cy="30" r="1.5" fill="#000080" />
+        <g>{spokes}</g>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'taliban') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#ffffff" />
+        <text
+          x="50"
+          y="35"
+          fill="#000000"
+          fontSize="14"
+          fontWeight="bold"
+          textAnchor="middle"
+          fontFamily="'Traditional Arabic', 'Amiri', 'Segoe UI', sans-serif"
+        >
+          لا إله إلا الله محمد رسول الله
+        </text>
+      </svg>
+    );
+  }
+
+  if (flagKey === 'isis') {
+    return (
+      <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
+        <rect width="100" height="60" fill="#000000" />
+        <text
+          x="50"
+          y="22"
+          fill="#ffffff"
+          fontSize="10"
+          fontWeight="bold"
+          textAnchor="middle"
+          fontFamily="'Traditional Arabic', 'Amiri', 'Segoe UI', sans-serif"
+        >
+          لا إله إلا الله
+        </text>
+        <circle cx="50" cy="40" r="12" fill="#ffffff" />
+        <text
+          x="50"
+          y="38"
+          fill="#000000"
+          fontSize="6"
+          fontWeight="bold"
+          textAnchor="middle"
+          fontFamily="'Traditional Arabic', 'Amiri', 'Segoe UI', sans-serif"
+        >
+          محمد
+        </text>
+        <text
+          x="50"
+          y="44"
+          fill="#000000"
+          fontSize="6"
+          fontWeight="bold"
+          textAnchor="middle"
+          fontFamily="'Traditional Arabic', 'Amiri', 'Segoe UI', sans-serif"
+        >
+          رسول الله
+        </text>
+      </svg>
+    );
+  }
+
   return null;
 }
 
