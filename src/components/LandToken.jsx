@@ -675,13 +675,14 @@ function RenderFlag({ flagKey, customUrl }) {
   if (flagKey === 'canada') {
     return (
       <svg viewBox="0 0 100 60" style={{ width: '85%', height: '85%' }}>
-        <rect width="100" height="60" fill="#ffffff" />
-        <rect width="25" height="60" fill="#ff0000" />
-        <rect x="75" width="25" height="60" fill="#ff0000" />
-        <path
-          d="M 50 12 L 52.5 22 L 56 20 L 53.5 25 L 61 24 L 59 28.5 L 64 30 L 58 35.5 L 59.5 38 L 52 36.5 L 51.5 45 L 48.5 45 L 48 36.5 L 40.5 38 L 42 35.5 L 36 30 L 41 28.5 L 39 24 L 46.5 25 L 44 20 L 47.5 22 Z"
-          fill="#ff0000"
-        />
+        <rect width="100" height="60" fill="#ff0000" />
+        <g transform="translate(0, 5) scale(0.10416666666666667)">
+          <rect x="240" width="480" height="480" fill="#ffffff" />
+          <path
+            d="M 480,50 L 500,165 L 575,135 L 520,200 L 660,205 L 630,245 L 680,275 L 590,345 L 605,375 L 495,350 L 490,430 L 470,430 L 465,350 L 355,375 L 370,345 L 280,275 L 330,245 L 300,205 L 440,200 L 385,135 L 460,165 Z"
+            fill="#ff0000"
+          />
+        </g>
       </svg>
     );
   }

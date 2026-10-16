@@ -1,6 +1,63 @@
 import React from 'react';
 
+const FLAG_OPTIONS = [
+  { value: 'none', label: 'None (Solid Background)' },
+  { value: 'abkhazia', label: 'Abkhazia Flag' },
+  { value: 'argentina', label: 'Argentina Flag' },
+  { value: 'armenia', label: 'Armenia Flag' },
+  { value: 'australia', label: 'Australia Flag' },
+  { value: 'azerbaijan', label: 'Azerbaijan Flag' },
+  { value: 'belarus', label: 'Belarus Flag' },
+  { value: 'belgium', label: 'Belgium Flag' },
+  { value: 'brazil', label: 'Brazil Flag' },
+  { value: 'canada', label: 'Canada Flag' },
+  { value: 'china', label: 'China Flag' },
+  { value: 'colombia', label: 'Colombia Flag' },
+  { value: 'belarus_democratic', label: 'Democratic Belarus Flag' },
+  { value: 'denmark', label: 'Denmark Flag' },
+  { value: 'donetsk_peoples_republic', label: "Donetsk People's Republic Flag" },
+  { value: 'estonia', label: 'Estonia Flag' },
+  { value: 'ue', label: 'EU / UE Flag' },
+  { value: 'finland', label: 'Finland Flag' },
+  { value: 'france', label: 'France Flag' },
+  { value: 'georgia', label: 'Georgia Flag' },
+  { value: 'germany', label: 'Germany Flag' },
+  { value: 'great_britain', label: 'Great Britain Flag' },
+  { value: 'greece', label: 'Greece Flag' },
+  { value: 'india', label: 'India Flag' },
+  { value: 'isis', label: 'ISIS Flag' },
+  { value: 'italy', label: 'Italy Flag' },
+  { value: 'japan', label: 'Japan Flag' },
+  { value: 'latvia', label: 'Latvia Flag' },
+  { value: 'lithuania', label: 'Lithuania Flag' },
+  { value: 'mexico', label: 'Mexico Flag' },
+  { value: 'moldova', label: 'Moldova Flag' },
+  { value: 'nato', label: 'NATO Flag' },
+  { value: 'netherlands', label: 'Netherlands Flag' },
+  { value: 'north_korea', label: 'North Korea Flag' },
+  { value: 'norway', label: 'Norway Flag' },
+  { value: 'pakistan', label: 'Pakistan Flag' },
+  { value: 'poland', label: 'Poland Flag' },
+  { value: 'russia', label: 'Russia Flag' },
+  { value: 'serbia', label: 'Serbia Flag' },
+  { value: 'south_korea', label: 'South Korea Flag' },
+  { value: 'south_ossetia', label: 'South Ossetia Flag' },
+  { value: 'sweden', label: 'Sweden Flag' },
+  { value: 'switzerland', label: 'Switzerland Flag' },
+  { value: 'taiwan', label: 'Taiwan Flag' },
+  { value: 'taliban', label: 'Taliban Flag' },
+  { value: 'transnistria', label: 'Transnistria Flag' },
+  { value: 'turkey', label: 'Turkey Flag' },
+  { value: 'ukraine', label: 'Ukraine Flag' },
+  { value: 'usa', label: 'USA Flag' },
+  { value: 'venezuela', label: 'Venezuela Flag' },
+  { value: 'vietnam', label: 'Vietnam Flag' },
+  { value: 'custom', label: 'Custom Uploaded Image' }
+];
+
 export function TokenForm({ tokenData, onChange }) {
+  const [flagSearchQuery, setFlagSearchQuery] = React.useState('');
+
   const handleChange = (field, value) => {
     onChange({
       ...tokenData,
@@ -320,64 +377,32 @@ export function TokenForm({ tokenData, onChange }) {
           </div>
 
           <div>
-            <label className="field-label">Backside Flag / Picture</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+              <label className="field-label" style={{ marginBottom: 0 }}>Backside Flag / Picture</label>
+            </div>
+            <input
+              type="text"
+              placeholder="🔍 Search flags (e.g. Ca...)"
+              value={flagSearchQuery}
+              onChange={(e) => setFlagSearchQuery(e.target.value)}
+              style={{ width: '100%', marginBottom: '0.35rem', fontSize: '0.8rem' }}
+            />
             <select
               value={tokenData.backFlag || 'none'}
               onChange={(e) => handleChange('backFlag', e.target.value)}
               style={{ width: '100%' }}
             >
-              <option value="none">None (Solid Background)</option>
-              <option value="abkhazia">Abkhazia Flag</option>
-              <option value="argentina">Argentina Flag</option>
-              <option value="armenia">Armenia Flag</option>
-              <option value="australia">Australia Flag</option>
-              <option value="azerbaijan">Azerbaijan Flag</option>
-              <option value="belarus">Belarus Flag</option>
-              <option value="belgium">Belgium Flag</option>
-              <option value="brazil">Brazil Flag</option>
-              <option value="canada">Canada Flag</option>
-              <option value="china">China Flag</option>
-              <option value="colombia">Colombia Flag</option>
-              <option value="belarus_democratic">Democratic Belarus Flag</option>
-              <option value="denmark">Denmark Flag</option>
-              <option value="donetsk_peoples_republic">Donetsk People's Republic Flag</option>
-              <option value="estonia">Estonia Flag</option>
-              <option value="ue">EU / UE Flag</option>
-              <option value="finland">Finland Flag</option>
-              <option value="france">France Flag</option>
-              <option value="georgia">Georgia Flag</option>
-              <option value="germany">Germany Flag</option>
-              <option value="great_britain">Great Britain Flag</option>
-              <option value="greece">Greece Flag</option>
-              <option value="india">India Flag</option>
-              <option value="isis">ISIS Flag</option>
-              <option value="italy">Italy Flag</option>
-              <option value="japan">Japan Flag</option>
-              <option value="latvia">Latvia Flag</option>
-              <option value="lithuania">Lithuania Flag</option>
-              <option value="mexico">Mexico Flag</option>
-              <option value="moldova">Moldova Flag</option>
-              <option value="nato">NATO Flag</option>
-              <option value="netherlands">Netherlands Flag</option>
-              <option value="north_korea">North Korea Flag</option>
-              <option value="norway">Norway Flag</option>
-              <option value="pakistan">Pakistan Flag</option>
-              <option value="poland">Poland Flag</option>
-              <option value="russia">Russia Flag</option>
-              <option value="serbia">Serbia Flag</option>
-              <option value="south_korea">South Korea Flag</option>
-              <option value="south_ossetia">South Ossetia Flag</option>
-              <option value="sweden">Sweden Flag</option>
-              <option value="switzerland">Switzerland Flag</option>
-              <option value="taiwan">Taiwan Flag</option>
-              <option value="taliban">Taliban Flag</option>
-              <option value="transnistria">Transnistria Flag</option>
-              <option value="turkey">Turkey Flag</option>
-              <option value="ukraine">Ukraine Flag</option>
-              <option value="usa">USA Flag</option>
-              <option value="venezuela">Venezuela Flag</option>
-              <option value="vietnam">Vietnam Flag</option>
-              <option value="custom">Custom Uploaded Image</option>
+              {FLAG_OPTIONS.filter((opt) => {
+                if (!flagSearchQuery.trim()) return true;
+                const q = flagSearchQuery.toLowerCase().trim();
+                const matches = opt.label.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q);
+                const isSelected = (tokenData.backFlag || 'none') === opt.value;
+                return matches || isSelected;
+              }).map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
