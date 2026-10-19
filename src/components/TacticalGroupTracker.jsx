@@ -125,7 +125,7 @@ export function TacticalGroupTracker({
           flex: 1,
           backgroundColor: backBgColor || '#2b6cb0',
           border: '6px solid #000000',
-          borderRadius: '0px',
+          borderRadius: '6px',
           boxSizing: 'border-box',
           position: 'relative',
           display: 'flex',
@@ -187,7 +187,7 @@ export function TacticalGroupTracker({
         minHeight: '990px',
         backgroundColor: bgColor || '#ffffff',
         border: '6px solid #000000',
-        borderRadius: '0px',
+        borderRadius: '6px',
         boxSizing: 'border-box',
         position: 'relative',
         display: 'flex',
@@ -198,8 +198,7 @@ export function TacticalGroupTracker({
         fontFamily: fontFamily,
         color: '#000000',
         overflow: 'hidden',
-        userSelect: 'none',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
+        userSelect: 'none'
       }}
     >
       {/* Camouflage Background Overlay */}
