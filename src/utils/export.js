@@ -2,7 +2,7 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 /**
- * Downloads an HTML element as PNG image with a transparent background.
+ * Downloads an HTML element as PNG image with a transparent background outside rounded borders.
  * @param {string} elementId - DOM ID of element to export
  * @param {string} filename - Output PNG filename
  */
@@ -17,8 +17,7 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
     const dataUrl = await toPng(element, {
       pixelRatio: 3,
       cacheBust: true,
-      backgroundColor: 'transparent',
-      style: { backgroundColor: 'transparent' }
+      backgroundColor: 'rgba(0,0,0,0)'
     });
     const link = document.createElement('a');
     link.download = filename;
@@ -58,8 +57,7 @@ export async function downloadUnitTrackerAsPNG(
       const dataUrl = await toPng(element, {
         pixelRatio: 4,
         cacheBust: true,
-        backgroundColor: 'transparent',
-        style: { backgroundColor: 'transparent' }
+        backgroundColor: 'rgba(0,0,0,0)'
       });
       const link = document.createElement('a');
       link.download = filename;
@@ -114,8 +112,7 @@ export async function downloadCapabilityCardAsPNG(
       const dataUrl = await toPng(element, {
         pixelRatio: 4,
         cacheBust: true,
-        backgroundColor: 'transparent',
-        style: { backgroundColor: 'transparent' }
+        backgroundColor: 'rgba(0,0,0,0)'
       });
       const link = document.createElement('a');
       link.download = filename;
@@ -160,14 +157,12 @@ export async function generatePrintablePDF(frontElementId, backElementId, unitNa
     const frontDataUrl = await toPng(frontEl, {
       pixelRatio: 3,
       cacheBust: true,
-      backgroundColor: 'transparent',
-      style: { backgroundColor: 'transparent' }
+      backgroundColor: 'rgba(0,0,0,0)'
     });
     const backDataUrl = await toPng(backEl, {
       pixelRatio: 3,
       cacheBust: true,
-      backgroundColor: 'transparent',
-      style: { backgroundColor: 'transparent' }
+      backgroundColor: 'rgba(0,0,0,0)'
     });
 
     // A4 dimensions in mm: 210 x 297
@@ -243,8 +238,7 @@ export async function downloadTacticalGroupTrackerAsPNG(
       const dataUrl = await toPng(element, {
         pixelRatio: 4,
         cacheBust: true,
-        backgroundColor: 'transparent',
-        style: { backgroundColor: 'transparent' }
+        backgroundColor: 'rgba(0,0,0,0)'
       });
       const link = document.createElement('a');
       link.download = filename;
@@ -291,8 +285,7 @@ export async function generateTokenPrinterPDF({
     const dataUrl = await toPng(paperEl, {
       pixelRatio: 4,
       cacheBust: true,
-      backgroundColor: 'transparent',
-      style: { backgroundColor: 'transparent' },
+      backgroundColor: 'rgba(0,0,0,0)',
       filter: (node) => {
         if (node.classList && node.classList.contains('print-ui-overlay')) {
           return false;
