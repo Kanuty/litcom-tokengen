@@ -16,8 +16,7 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
   try {
     const dataUrl = await toPng(element, {
       pixelRatio: 3,
-      cacheBust: true,
-      backgroundColor: 'rgba(0,0,0,0)'
+      cacheBust: true
     });
     const link = document.createElement('a');
     link.download = filename;
@@ -56,8 +55,7 @@ export async function downloadUnitTrackerAsPNG(
     try {
       const dataUrl = await toPng(element, {
         pixelRatio: 4,
-        cacheBust: true,
-        backgroundColor: 'rgba(0,0,0,0)'
+        cacheBust: true
       });
       const link = document.createElement('a');
       link.download = filename;
@@ -111,8 +109,7 @@ export async function downloadCapabilityCardAsPNG(
     try {
       const dataUrl = await toPng(element, {
         pixelRatio: 4,
-        cacheBust: true,
-        backgroundColor: 'rgba(0,0,0,0)'
+        cacheBust: true
       });
       const link = document.createElement('a');
       link.download = filename;
@@ -156,13 +153,11 @@ export async function generatePrintablePDF(frontElementId, backElementId, unitNa
   try {
     const frontDataUrl = await toPng(frontEl, {
       pixelRatio: 3,
-      cacheBust: true,
-      backgroundColor: 'rgba(0,0,0,0)'
+      cacheBust: true
     });
     const backDataUrl = await toPng(backEl, {
       pixelRatio: 3,
-      cacheBust: true,
-      backgroundColor: 'rgba(0,0,0,0)'
+      cacheBust: true
     });
 
     // A4 dimensions in mm: 210 x 297
@@ -237,8 +232,7 @@ export async function downloadTacticalGroupTrackerAsPNG(
     try {
       const dataUrl = await toPng(element, {
         pixelRatio: 4,
-        cacheBust: true,
-        backgroundColor: 'rgba(0,0,0,0)'
+        cacheBust: true
       });
       const link = document.createElement('a');
       link.download = filename;
@@ -285,7 +279,6 @@ export async function generateTokenPrinterPDF({
     const dataUrl = await toPng(paperEl, {
       pixelRatio: 4,
       cacheBust: true,
-      backgroundColor: 'rgba(0,0,0,0)',
       filter: (node) => {
         if (node.classList && node.classList.contains('print-ui-overlay')) {
           return false;
