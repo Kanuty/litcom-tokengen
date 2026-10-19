@@ -208,7 +208,7 @@ export function JointCapabilityCard({
           height: `${height}px`,
           backgroundColor: backBgColor,
           border: `${borderWidth}px solid ${borderColor}`,
-          borderRadius: '2px',
+          borderRadius: '6px',
           boxSizing: 'border-box',
           position: 'relative',
           overflow: 'hidden',
@@ -311,13 +311,12 @@ export function JointCapabilityCard({
         height: `${height}px`,
         backgroundColor: bgColor,
         border: `${borderWidth}px solid ${borderColor}`,
-        borderRadius: '2px',
+        borderRadius: '6px',
         boxSizing: 'border-box',
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
         fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
         color: cardTextColor
       }}
