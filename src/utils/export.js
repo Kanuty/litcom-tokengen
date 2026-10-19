@@ -2,7 +2,7 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 /**
- * Downloads an HTML element as PNG image.
+ * Downloads an HTML element as PNG image with a transparent background.
  * @param {string} elementId - DOM ID of element to export
  * @param {string} filename - Output PNG filename
  */
@@ -14,7 +14,12 @@ export async function downloadTokenAsPNG(elementId, filename = 'littoral-token.p
   }
 
   try {
-    const dataUrl = await toPng(element, { pixelRatio: 3, cacheBust: true });
+    const dataUrl = await toPng(element, {
+      pixelRatio: 3,
+      cacheBust: true,
+      backgroundColor: 'transparent',
+      style: { backgroundColor: 'transparent' }
+    });
     const link = document.createElement('a');
     link.download = filename;
     link.href = dataUrl;
@@ -50,7 +55,12 @@ export async function downloadUnitTrackerAsPNG(
     const filename = `${cleanTitle}-${side}-${cleanFooter}.png`;
 
     try {
-      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const dataUrl = await toPng(element, {
+        pixelRatio: 4,
+        cacheBust: true,
+        backgroundColor: 'transparent',
+        style: { backgroundColor: 'transparent' }
+      });
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
@@ -101,7 +111,12 @@ export async function downloadCapabilityCardAsPNG(
     const filename = `${cleanTitle}-${side}-${cleanSet}.png`;
 
     try {
-      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const dataUrl = await toPng(element, {
+        pixelRatio: 4,
+        cacheBust: true,
+        backgroundColor: 'transparent',
+        style: { backgroundColor: 'transparent' }
+      });
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
@@ -142,8 +157,18 @@ export async function generatePrintablePDF(frontElementId, backElementId, unitNa
   }
 
   try {
-    const frontDataUrl = await toPng(frontEl, { pixelRatio: 3, cacheBust: true });
-    const backDataUrl = await toPng(backEl, { pixelRatio: 3, cacheBust: true });
+    const frontDataUrl = await toPng(frontEl, {
+      pixelRatio: 3,
+      cacheBust: true,
+      backgroundColor: 'transparent',
+      style: { backgroundColor: 'transparent' }
+    });
+    const backDataUrl = await toPng(backEl, {
+      pixelRatio: 3,
+      cacheBust: true,
+      backgroundColor: 'transparent',
+      style: { backgroundColor: 'transparent' }
+    });
 
     // A4 dimensions in mm: 210 x 297
     const pdf = new jsPDF({
@@ -215,7 +240,12 @@ export async function downloadTacticalGroupTrackerAsPNG(
     const filename = `${cleanTitle}-${side}.png`;
 
     try {
-      const dataUrl = await toPng(element, { pixelRatio: 4, cacheBust: true });
+      const dataUrl = await toPng(element, {
+        pixelRatio: 4,
+        cacheBust: true,
+        backgroundColor: 'transparent',
+        style: { backgroundColor: 'transparent' }
+      });
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
@@ -261,6 +291,8 @@ export async function generateTokenPrinterPDF({
     const dataUrl = await toPng(paperEl, {
       pixelRatio: 4,
       cacheBust: true,
+      backgroundColor: 'transparent',
+      style: { backgroundColor: 'transparent' },
       filter: (node) => {
         if (node.classList && node.classList.contains('print-ui-overlay')) {
           return false;
