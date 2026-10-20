@@ -2833,6 +2833,10 @@ function App() {
                     style={{ width: '100%' }}
                   >
                     <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                    <option value="'Chakra Petch', sans-serif">Chakra Petch</option>
+                    <option value="'Manrope', sans-serif">Manrope</option>
+                    <option value="'Special Elite', cursive">Special Elite</option>
+                    <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
                     <option value="'Teko', sans-serif">Teko (Condensed Military)</option>
                     <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
                     <option value="'Courier New', monospace">Courier New</option>
@@ -4875,6 +4879,10 @@ function App() {
                           style={{ width: '100%' }}
                         >
                           <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                          <option value="'Chakra Petch', sans-serif">Chakra Petch</option>
+                          <option value="'Manrope', sans-serif">Manrope</option>
+                          <option value="'Special Elite', cursive">Special Elite</option>
+                          <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
                           <option value="'Teko', sans-serif">Teko (Condensed Military)</option>
                           <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
                           <option value="'Courier New', monospace">Courier New</option>
@@ -4890,6 +4898,10 @@ function App() {
                           style={{ width: '100%' }}
                         >
                           <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                          <option value="'Chakra Petch', sans-serif">Chakra Petch</option>
+                          <option value="'Manrope', sans-serif">Manrope</option>
+                          <option value="'Special Elite', cursive">Special Elite</option>
+                          <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
                           <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
                           <option value="Georgia, serif">Georgia (Serif)</option>
                           <option value="Arial, sans-serif">Arial</option>
@@ -4904,6 +4916,10 @@ function App() {
                           style={{ width: '100%' }}
                         >
                           <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet MS (Default)</option>
+                          <option value="'Chakra Petch', sans-serif">Chakra Petch</option>
+                          <option value="'Manrope', sans-serif">Manrope</option>
+                          <option value="'Special Elite', cursive">Special Elite</option>
+                          <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
                           <option value="'Share Tech Mono', monospace">Share Tech Mono (Cyber)</option>
                           <option value="Georgia, serif">Georgia (Serif)</option>
                           <option value="Arial, sans-serif">Arial</option>

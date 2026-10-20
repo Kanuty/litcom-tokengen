@@ -369,6 +369,10 @@ export function TokenForm({ tokenData, onChange }) {
               style={{ width: '100%' }}
             >
               <option value="'Trebuchet MS', 'Arial Bold', sans-serif">Trebuchet / Bold Sans</option>
+              <option value="'Chakra Petch', sans-serif">Chakra Petch</option>
+              <option value="'Manrope', sans-serif">Manrope</option>
+              <option value="'Special Elite', cursive">Special Elite</option>
+              <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
               <option value="'Oswald', 'Arial Narrow', sans-serif">Oswald / Condensed</option>
               <option value="system-ui, -apple-system, sans-serif">Inter / System Sans</option>
               <option value="'Courier New', monospace">Monospace</option>
