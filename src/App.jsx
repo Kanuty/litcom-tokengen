@@ -8,7 +8,8 @@ import { SavedLibrary } from './components/SavedLibrary';
 import { TokenPrinter } from './components/TokenPrinter';
 import { CustomModal } from './components/CustomModal';
 import { TacticalGroupTracker } from './components/TacticalGroupTracker';
-import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG, downloadTacticalGroupTrackerAsPNG, generateTokenPrinterPDF } from './utils/export';
+import { MapGenerator } from './components/MapGenerator';
+import { downloadTokenAsPNG, downloadUnitTrackerAsPNG, downloadCapabilityCardAsPNG, downloadTacticalGroupTrackerAsPNG, downloadMapAsPNG, generateTokenPrinterPDF } from './utils/export';
 import { getSavedItems, saveItem, deleteItem, updateItemName } from './utils/storage';
 import './App.css';
 
@@ -298,8 +299,28 @@ const BUILTIN_GROUP_STYLES = {
   }
 };
 
+const DEFAULT_MAP_DATA = {
+  title: 'INDO-PACIFIC TAIWAN STRAIT',
+  imageUrl: null,
+  hexSize: 40,
+  orientation: 'pointy',
+  offsetX: 0,
+  offsetY: 0,
+  strokeColor: '#22c55e',
+  strokeWidth: 2,
+  strokeOpacity: 0.8,
+  fillColor: '#ffffff',
+  fillOpacity: 0,
+  showCoordinates: true,
+  coordColor: '#15803d',
+  coordFontSize: 10,
+  coordPosition: 'top',
+  coordFormat: '0101'
+};
+
 function App() {
-  const [activeView, setActiveView] = useState('suite'); // 'suite' | 'printer' | 'group'
+  const [activeView, setActiveView] = useState('suite'); // 'suite' | 'printer' | 'group' | 'map'
+  const [mapData, setMapData] = useState(DEFAULT_MAP_DATA);
 
   // Tactical Group Tracker state
   const [groupExportFace, setGroupExportFace] = useState('both');
@@ -1281,6 +1302,14 @@ function App() {
         message: `Loaded Tactical Group Tracker configuration "${item.name}".`,
         type: 'info'
       });
+    } else if (item.type === 'map') {
+      setMapData({ ...DEFAULT_MAP_DATA, ...item.data });
+      setActiveView('map');
+      showNotification({
+        title: 'PRESET LOADED',
+        message: `Loaded Tactical Map configuration "${item.name}".`,
+        type: 'info'
+      });
     }
   };
 
@@ -1528,6 +1557,84 @@ function App() {
       groupExportFace,
       groupData.title
     );
+  };
+
+  const handleSaveMapPreset = (saveNameInput) => {
+    performSaveWithDuplicateCheck({
+      nameInput: saveNameInput,
+      defaultName: mapData.title || 'Unnamed Map',
+      type: 'map',
+      category: 'map',
+      data: mapData,
+      typeLabel: 'Tactical Map'
+    });
+  };
+
+  const handleDownloadMapPNG = () => {
+    downloadMapAsPNG('tactical-map-export-container', mapData.title);
+  };
+
+  const handleExportMapJSON = () => {
+    const defaultName = (mapData.title || 'tactical_map').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.json';
+    const exportPayload = {
+      app: 'Littoral Commander Suite',
+      version: 1,
+      type: 'tactical_map',
+      exportDate: new Date().toISOString(),
+      mapData
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = defaultName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportMapJSON = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const parsed = JSON.parse(content);
+
+        let loadedMapData = null;
+        if (parsed && parsed.mapData) {
+          loadedMapData = parsed.mapData;
+        } else if (parsed && parsed.imageUrl) {
+          loadedMapData = parsed;
+        }
+
+        if (!loadedMapData) {
+          throw new Error('Invalid map configuration format');
+        }
+
+        setMapData({ ...DEFAULT_MAP_DATA, ...loadedMapData });
+        showNotification({
+          title: 'MAP PRESET IMPORTED',
+          message: `Successfully imported Tactical Map "${loadedMapData.title || 'Map'}".`
+        });
+      } catch (err) {
+        console.error(err);
+        setCustomModalConfig({
+          isOpen: true,
+          type: 'alert',
+          title: 'FILE IMPORT ERROR',
+          message: 'Error: The uploaded file is not a valid Tactical Map JSON file or is corrupted.',
+          onConfirm: closeCustomModal
+        });
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleGroupEmblemUpload = (e) => {
@@ -1981,6 +2088,24 @@ function App() {
             >
               ⚔️ GROUP TRACKER
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('map')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '4px',
+                border: 'none',
+                background: activeView === 'map' ? 'var(--accent-cyan)' : 'transparent',
+                color: activeView === 'map' ? 'var(--bg-dark)' : 'var(--text-secondary)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontFamily: "'Teko', sans-serif",
+                fontSize: '1.05rem',
+                letterSpacing: '1px'
+              }}
+            >
+              🗺️ MAP GENERATOR
+            </button>
           </div>
         </div>
 
@@ -2084,6 +2209,34 @@ function App() {
           confirmAction={confirmAction}
           onExportPDF={generateTokenPrinterPDF}
           onRefreshSavedItems={refreshSavedItems}
+        />
+      </div>
+
+      {/* MAP GENERATOR PAGE CONTAINER */}
+      <div style={{ display: activeView === 'map' ? 'block' : 'none', padding: '1rem 0' }}>
+        {/* COLLAPSIBLE MAP PRESETS LIBRARY AT TOP OF PAGE */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <SavedLibrary
+            items={savedItems.filter((i) => i.type === 'map')}
+            onLoadItem={handleLoadItem}
+            onDeleteItem={handleDeleteSavedItem}
+            onUpdateItemName={handleUpdateItemName}
+            onRefreshItems={refreshSavedItems}
+            showNotification={showNotification}
+            confirmAction={confirmAction}
+          />
+        </div>
+
+        <MapGenerator
+          mapData={mapData}
+          onChangeMapData={setMapData}
+          onSavePreset={handleSaveMapPreset}
+          onExportPNG={handleDownloadMapPNG}
+          onExportJSON={handleExportMapJSON}
+          onImportJSON={handleImportMapJSON}
+          showNotification={showNotification}
+          savedMaps={savedItems.filter((i) => i.type === 'map')}
+          onLoadMapPreset={handleLoadItem}
         />
       </div>
 

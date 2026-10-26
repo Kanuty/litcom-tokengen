@@ -44,6 +44,8 @@ export function saveItem(item) {
         ? 'Unnamed Token'
         : item.type === 'card'
         ? 'Unnamed Capability Card'
+        : item.type === 'map'
+        ? 'Unnamed Map'
         : 'Unnamed Tracker';
 
     const newItem = {

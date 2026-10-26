@@ -259,6 +259,37 @@ export async function downloadTacticalGroupTrackerAsPNG(
 }
 
 /**
+ * Downloads Map Generator container as PNG image.
+ * @param {string} containerId - DOM ID of map container
+ * @param {string} title - Map title
+ */
+export async function downloadMapAsPNG(
+  containerId = 'tactical-map-export-container',
+  title = 'tactical-map'
+) {
+  const element = document.getElementById(containerId);
+  if (!element) {
+    console.error(`Map container with id ${containerId} not found`);
+    return;
+  }
+  const cleanTitle = (title || 'tactical-map').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const filename = `${cleanTitle}-map.png`;
+
+  try {
+    const dataUrl = await toPng(element, {
+      pixelRatio: 3,
+      cacheBust: true
+    });
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    link.click();
+  } catch (err) {
+    console.error(`Error generating map image (${filename}):`, err);
+  }
+}
+
+/**
  * Generates and downloads a true-scale printable PDF from the Token Printer paper sheet.
  * Excludes interactive UI elements (buttons, selection rings, grid overlays) from the exported PDF.
  * @param {Object} options - { paperKey, paperWidthMM, paperHeightMM, elementId }
