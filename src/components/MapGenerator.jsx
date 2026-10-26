@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 /**
  * Converts a 0-indexed column integer to letter representation (0 -> 'A', 25 -> 'Z', 26 -> 'AA', 27 -> 'AB', etc.)
@@ -30,11 +30,6 @@ function lettersToColIndex(str) {
 
 /**
  * Helper function to compute SVG polygon points for a single hexagon.
- * @param {number} cx - Center X
- * @param {number} cy - Center Y
- * @param {number} r - Radius
- * @param {string} orientation - 'pointy' | 'flat'
- * @returns {string} Points string for SVG polygon "x1,y1 x2,y2 ..."
  */
 function getHexPoints(cx, cy, r, orientation = 'pointy') {
   const points = [];
@@ -70,25 +65,44 @@ export function MapGenerator({
   const [saveName, setSaveName] = useState('');
   const [selectedHexIds, setSelectedHexIds] = useState([]);
 
+  // Interactive Brush Tool State
+  const [interactionMode, setInteractionMode] = useState('select'); // 'select' | 'brush'
+  const [brushAction, setBrushAction] = useState('group'); // 'group' | 'solid_mask' | 'inaccessible' | 'custom' | 'clear'
+  const [brushSize, setBrushSize] = useState(1); // 1 (Small), 7 (Medium), 19 (Large)
+  const [activeBrushGroup, setActiveBrushGroup] = useState('naval');
+  const [brushMaskColor, setBrushMaskColor] = useState('#ffffff');
+  const [isMouseDown, setIsMouseDown] = useState(false);
+
   // New Group Form State
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupStrokeColor, setNewGroupStrokeColor] = useState('#3b82f6');
   const [newGroupStrokeWidth, setNewGroupStrokeWidth] = useState(3);
+  const [newGroupStrokeOpacity, setNewGroupStrokeOpacity] = useState(0.8);
   const [newGroupFillColor, setNewGroupFillColor] = useState('#3b82f6');
+  const [newGroupFillOpacity, setNewGroupFillOpacity] = useState(0.15);
 
   // Selected Hex Direct Styling State
   const [selectedHexStrokeColor, setSelectedHexStrokeColor] = useState('#ef4444');
   const [selectedHexStrokeWidth, setSelectedHexStrokeWidth] = useState(3);
+  const [selectedHexStrokeOpacity, setSelectedHexStrokeOpacity] = useState(1.0);
   const [selectedHexFillColor, setSelectedHexFillColor] = useState('#ef4444');
-  const [selectedHexFillOpacity, setSelectedHexFillOpacity] = useState(0.2);
+  const [selectedHexFillOpacity, setSelectedHexFillOpacity] = useState(0.25);
+  const [selectedMaskColor, setSelectedMaskColor] = useState('#ffffff');
 
-  // Default color groups fallback
+  // Global mouseup listener for smooth drag brush painting
+  useEffect(() => {
+    const handleGlobalMouseUp = () => setIsMouseDown(false);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
+  // Default color groups setup (Naval Configuration)
   const colorGroups = mapData.colorGroups || [
-    { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 1, fillColor: '#0284c7', fillOpacity: 0.1 },
-    { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, fillColor: '#22c55e', fillOpacity: 0.1 },
-    { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, fillColor: '#eab308', fillOpacity: 0.1 },
-    { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, fillColor: '#f97316', fillOpacity: 0.15 },
-    { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, fillColor: '#dc2626', fillOpacity: 0.2 }
+    { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 2, strokeOpacity: 0.8, fillColor: '#0284c7', fillOpacity: 0.15 },
+    { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#22c55e', fillOpacity: 0.15 },
+    { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#eab308', fillOpacity: 0.15 },
+    { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, strokeOpacity: 0.9, fillColor: '#f97316', fillOpacity: 0.2 },
+    { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25 }
   ];
 
   const hexOverrides = mapData.hexOverrides || {};
@@ -217,16 +231,71 @@ export function MapGenerator({
     }
   }
 
-  // Hex selection handler
-  const handleHexClick = (hexId, e) => {
+  // Brush Painting Handler
+  const applyBrushToHexes = (targetHex) => {
+    if (!targetHex) return;
+
+    // Find all hexes within brush radius
+    let thresholdDist = radius * 0.8; // Small (1 hex)
+    if (brushSize === 7) thresholdDist = radius * 2.2; // Medium (7 hexes)
+    if (brushSize === 19) thresholdDist = radius * 4.0; // Large (19 hexes)
+
+    const affectedHexes = hexes.filter((h) => {
+      const dx = h.cx - targetHex.cx;
+      const dy = h.cy - targetHex.cy;
+      return Math.sqrt(dx * dx + dy * dy) <= thresholdDist;
+    });
+
+    if (affectedHexes.length === 0) return;
+
+    const updated = { ...hexOverrides };
+    affectedHexes.forEach((h) => {
+      if (brushAction === 'clear') {
+        delete updated[h.id];
+      } else if (brushAction === 'solid_mask') {
+        updated[h.id] = {
+          isSolidMask: true,
+          solidMaskColor: brushMaskColor
+        };
+      } else if (brushAction === 'inaccessible') {
+        updated[h.id] = {
+          isInaccessible: true,
+          isSolidMask: false
+        };
+      } else if (brushAction === 'group') {
+        updated[h.id] = {
+          groupId: activeBrushGroup,
+          isInaccessible: false,
+          isSolidMask: false
+        };
+      } else if (brushAction === 'custom') {
+        updated[h.id] = {
+          strokeColor: selectedHexStrokeColor,
+          strokeWidth: selectedHexStrokeWidth,
+          strokeOpacity: selectedHexStrokeOpacity,
+          fillColor: selectedHexFillColor,
+          fillOpacity: selectedHexFillOpacity,
+          groupId: null,
+          isSolidMask: false,
+          isInaccessible: false
+        };
+      }
+    });
+
+    onChangeMapData({ ...mapData, hexOverrides: updated });
+  };
+
+  // Hex click handler for select mode
+  const handleHexClick = (hex, e) => {
+    if (interactionMode === 'brush') return;
     e.stopPropagation();
     if (e.shiftKey) {
       setSelectedHexIds((prev) =>
-        prev.includes(hexId) ? prev.filter((id) => id !== hexId) : [...prev, hexId]
+        prev.includes(hex.id) ? prev.filter((id) => id !== hex.id) : [...prev, hex.id]
       );
     } else {
       setSelectedHexIds((prev) =>
-        prev.length === 1 && prev[0] === hexId ? [] : [hexId]
+        prev.length === 1 && prev[0] === hex.id ? [] : [hex.id]
       );
     }
   };
@@ -248,8 +317,9 @@ export function MapGenerator({
       name: newGroupName.trim(),
       strokeColor: newGroupStrokeColor,
       strokeWidth: Number(newGroupStrokeWidth) || 2,
+      strokeOpacity: Number(newGroupStrokeOpacity),
       fillColor: newGroupFillColor,
-      fillOpacity: 0.15
+      fillOpacity: Number(newGroupFillOpacity)
     };
 
     const updatedGroups = [...colorGroups, newGroup];
@@ -270,7 +340,6 @@ export function MapGenerator({
 
   const handleDeleteGroup = (groupId) => {
     const updated = colorGroups.filter((g) => g.id !== groupId);
-    // Clear overrides that used this group
     const newOverrides = { ...hexOverrides };
     Object.keys(newOverrides).forEach((hId) => {
       if (newOverrides[hId]?.groupId === groupId) {
@@ -288,7 +357,8 @@ export function MapGenerator({
       updated[hId] = {
         ...(updated[hId] || {}),
         groupId,
-        isInaccessible: false
+        isInaccessible: false,
+        isSolidMask: false
       };
     });
     onChangeMapData({ ...mapData, hexOverrides: updated });
@@ -302,7 +372,8 @@ export function MapGenerator({
     selectedHexIds.forEach((hId) => {
       updated[hId] = {
         ...(updated[hId] || {}),
-        isInaccessible
+        isInaccessible,
+        isSolidMask: false
       };
     });
     onChangeMapData({ ...mapData, hexOverrides: updated });
@@ -310,6 +381,20 @@ export function MapGenerator({
       title: isInaccessible ? 'MARKED INACCESSIBLE' : 'UNMARKED INACCESSIBLE',
       message: `${selectedHexIds.length} hex(es) marked as ${isInaccessible ? 'inaccessible' : 'accessible'}.`
     });
+  };
+
+  // Apply Solid Mask to Selected Hexes
+  const handleApplySolidMaskSelected = () => {
+    if (selectedHexIds.length === 0) return;
+    const updated = { ...hexOverrides };
+    selectedHexIds.forEach((hId) => {
+      updated[hId] = {
+        isSolidMask: true,
+        solidMaskColor: selectedMaskColor
+      };
+    });
+    onChangeMapData({ ...mapData, hexOverrides: updated });
+    showNotification({ title: 'SOLID COVER APPLIED', message: `Applied solid mask cover to ${selectedHexIds.length} hex(es).` });
   };
 
   // Apply Custom Individual Style to Selected Hexes
@@ -321,9 +406,11 @@ export function MapGenerator({
         ...(updated[hId] || {}),
         strokeColor: selectedHexStrokeColor,
         strokeWidth: Number(selectedHexStrokeWidth) || 3,
+        strokeOpacity: Number(selectedHexStrokeOpacity),
         fillColor: selectedHexFillColor,
         fillOpacity: Number(selectedHexFillOpacity),
-        groupId: null
+        groupId: null,
+        isSolidMask: false
       };
     });
     onChangeMapData({ ...mapData, hexOverrides: updated });
@@ -385,7 +472,7 @@ export function MapGenerator({
               🗺️ Tactical Map & Hex Grid Generator
             </h2>
             <p style={{ margin: '0.2rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Upload any map image, configure hex density, initial coordinates (e.g. J22, AA0), custom terrain color groups, and inaccessible hexes.
+              Upload any map image, paint terrain with the interactive brush tool, configure separate line/fill opacities, and cover hexes with solid masks.
             </p>
           </div>
 
@@ -477,8 +564,8 @@ export function MapGenerator({
           </div>
         </div>
 
-        {/* TWO COLUMN STUDIO LAYOUT: CONTROLS PANEL ON LEFT | MAP PREVIEW CANVAS ON RIGHT */}
-        <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '1.25rem', alignItems: 'start' }}>
+        {/* TWO COLUMN STUDIO LAYOUT: CONTROLS PANEL ON LEFT | STICKY MAP PREVIEW CANVAS ON RIGHT */}
+        <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '1.25rem', alignItems: 'start' }}>
 
           {/* CONTROLS PANEL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -510,7 +597,146 @@ export function MapGenerator({
               </div>
             </div>
 
-            {/* 2. GRID DENSITY & HEX SIZE */}
+            {/* 2. INTERACTIVE BRUSH TOOL PANEL */}
+            <div className="tint-card tint-card-grid">
+              <h3 className="subsection-header">🖌️ Interactive Brush Tool</h3>
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setInteractionMode('select')}
+                  style={{
+                    flex: 1,
+                    padding: '0.4rem',
+                    background: interactionMode === 'select' ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                    color: interactionMode === 'select' ? 'var(--bg-dark)' : 'var(--text-primary)',
+                    border: '1px solid var(--panel-border)',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  👆 Select Tool
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setInteractionMode('brush')}
+                  style={{
+                    flex: 1,
+                    padding: '0.4rem',
+                    background: interactionMode === 'brush' ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                    color: interactionMode === 'brush' ? 'var(--bg-dark)' : 'var(--text-primary)',
+                    border: '1px solid var(--panel-border)',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  🖌️ Brush Paint Tool
+                </button>
+              </div>
+
+              {interactionMode === 'brush' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
+                  <div>
+                    <label className="field-label">Brush Size</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem' }}>
+                      {[
+                        { size: 1, label: 'Small (1 Hex)' },
+                        { size: 7, label: 'Med (7 Hexes)' },
+                        { size: 19, label: 'Large (19 Hexes)' }
+                      ].map((b) => (
+                        <button
+                          key={b.size}
+                          type="button"
+                          onClick={() => setBrushSize(b.size)}
+                          style={{
+                            padding: '0.3rem',
+                            background: brushSize === b.size ? 'var(--accent-cyan)' : 'var(--panel-bg)',
+                            color: brushSize === b.size ? 'var(--bg-dark)' : 'var(--text-primary)',
+                            border: '1px solid var(--panel-border)',
+                            borderRadius: '3px',
+                            fontWeight: 'bold',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {b.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="field-label">Brush Paint Action</label>
+                    <select
+                      value={brushAction}
+                      onChange={(e) => setBrushAction(e.target.value)}
+                      style={{ width: '100%', fontSize: '0.82rem' }}
+                    >
+                      <option value="group">🏰 Paint Color Group</option>
+                      <option value="solid_mask">⬛ Paint Solid Cover / Mask</option>
+                      <option value="inaccessible">🚫 Paint Inaccessible Pattern</option>
+                      <option value="custom">🎨 Paint Custom Style</option>
+                      <option value="clear">🧹 Clear / Eraser</option>
+                    </select>
+                  </div>
+
+                  {brushAction === 'group' && (
+                    <div>
+                      <label className="field-label">Select Color Group to Paint</label>
+                      <select
+                        value={activeBrushGroup}
+                        onChange={(e) => setActiveBrushGroup(e.target.value)}
+                        style={{ width: '100%', fontSize: '0.82rem' }}
+                      >
+                        {colorGroups.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {brushAction === 'solid_mask' && (
+                    <div>
+                      <label className="field-label">Solid Mask Cover Color</label>
+                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <input
+                          type="color"
+                          value={brushMaskColor}
+                          onChange={(e) => setBrushMaskColor(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setBrushMaskColor('#ffffff')}
+                          style={{ fontSize: '0.72rem', padding: '2px 6px', background: '#ffffff', color: '#000', border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          White
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBrushMaskColor('#000000')}
+                          style={{ fontSize: '0.72rem', padding: '2px 6px', background: '#000000', color: '#fff', border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          Black
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="field-help-text" style={{ margin: '0.2rem 0 0 0' }}>
+                    Click and drag mouse across the map preview to paint hexes in real time!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 3. GRID DENSITY & HEX SIZE */}
             <div className="tint-card tint-card-grid">
               <h3 className="subsection-header">📐 Hex Grid Dimensions & Offsets</h3>
 
@@ -645,9 +871,9 @@ export function MapGenerator({
               </div>
             </div>
 
-            {/* 3. DEFAULT GRID LINE STYLING */}
+            {/* 4. DEFAULT NAVAL GRID STYLING & SEPARATE OPACITIES */}
             <div className="tint-card tint-card-colors">
-              <h3 className="subsection-header">🎨 Default Grid Line Styling</h3>
+              <h3 className="subsection-header">🎨 Default Grid Line & Fill Opacity Setup</h3>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
@@ -655,14 +881,42 @@ export function MapGenerator({
                   <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
                     <input
                       type="color"
-                      value={mapData.strokeColor || '#22c55e'}
+                      value={mapData.strokeColor || '#0284c7'}
                       onChange={(e) => onChangeMapData({ ...mapData, strokeColor: e.target.value })}
                     />
                     <input
                       type="text"
-                      value={mapData.strokeColor || '#22c55e'}
+                      value={mapData.strokeColor || '#0284c7'}
                       onChange={(e) => onChangeMapData({ ...mapData, strokeColor: e.target.value })}
                       style={{ width: '80px', fontSize: '0.8rem', textTransform: 'uppercase' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Border Opacity</span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1.0"
+                      step="0.05"
+                      value={newGroupStrokeOpacity}
+                      onChange={(e) => setNewGroupStrokeOpacity(Number(e.target.value))}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Fill Opacity</span>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="0.8"
+                      step="0.02"
+                      value={newGroupFillOpacity}
+                      onChange={(e) => setNewGroupFillOpacity(Number(e.target.value))}
+                      style={{ width: '100%' }}
                     />
                   </div>
                 </div>
@@ -682,7 +936,7 @@ export function MapGenerator({
               </div>
 
               <div>
-                <label className="field-label">Grid Line Opacity ({Math.round((mapData.strokeOpacity ?? 0.8) * 100)}%)</label>
+                <label className="field-label">Border Line Opacity ({Math.round((mapData.strokeOpacity ?? 0.8) * 100)}%)</label>
                 <input
                   type="range"
                   min="0.1"
@@ -695,28 +949,29 @@ export function MapGenerator({
               </div>
 
               <div>
-                <label className="field-label">Default Hex Fill Color & Opacity</label>
+                <label className="field-label">Default Hex Fill Color & Fill Opacity</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', alignItems: 'center' }}>
                   <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
                     <input
                       type="color"
-                      value={mapData.fillColor || '#ffffff'}
+                      value={mapData.fillColor || '#0284c7'}
                       onChange={(e) => onChangeMapData({ ...mapData, fillColor: e.target.value })}
                     />
                     <input
                       type="text"
-                      value={mapData.fillColor || '#ffffff'}
+                      value={mapData.fillColor || '#0284c7'}
                       onChange={(e) => onChangeMapData({ ...mapData, fillColor: e.target.value })}
                       style={{ width: '80px', fontSize: '0.8rem', textTransform: 'uppercase' }}
                     />
                   </div>
                   <div>
+                    <label className="field-label" style={{ fontSize: '0.72rem' }}>Fill Opacity ({Math.round((mapData.fillOpacity ?? 0.1) * 100)}%)</label>
                     <input
                       type="range"
                       min="0.0"
-                      max="0.5"
+                      max="0.8"
                       step="0.02"
-                      value={mapData.fillOpacity ?? 0.0}
+                      value={mapData.fillOpacity ?? 0.1}
                       onChange={(e) => onChangeMapData({ ...mapData, fillOpacity: Number(e.target.value) })}
                       style={{ width: '100%' }}
                     />
@@ -725,7 +980,7 @@ export function MapGenerator({
               </div>
             </div>
 
-            {/* 4. COORDINATE NUMBERS & LABELS */}
+            {/* 5. COORDINATE NUMBERS & LABELS */}
             <div className="tint-card tint-card-text">
               <h3 className="subsection-header">🔢 Coordinate Labels & Fonts</h3>
 
@@ -748,12 +1003,12 @@ export function MapGenerator({
                       <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
                         <input
                           type="color"
-                          value={mapData.coordColor || '#15803d'}
+                          value={mapData.coordColor || '#0284c7'}
                           onChange={(e) => onChangeMapData({ ...mapData, coordColor: e.target.value })}
                         />
                         <input
                           type="text"
-                          value={mapData.coordColor || '#15803d'}
+                          value={mapData.coordColor || '#0284c7'}
                           onChange={(e) => onChangeMapData({ ...mapData, coordColor: e.target.value })}
                           style={{ width: '80px', fontSize: '0.8rem', textTransform: 'uppercase' }}
                         />
@@ -788,7 +1043,7 @@ export function MapGenerator({
                     </div>
 
                     <div>
-                      <label className="field-label">Transparency ({Math.round((mapData.coordOpacity ?? 1.0) * 100)}%)</label>
+                      <label className="field-label">Opacity ({Math.round((mapData.coordOpacity ?? 1.0) * 100)}%)</label>
                       <input
                         type="range"
                         min="0.1"
@@ -822,11 +1077,11 @@ export function MapGenerator({
               )}
             </div>
 
-            {/* 5. TERRAIN COLOR GROUPS */}
+            {/* 6. TERRAIN COLOR GROUPS */}
             <div className="tint-card tint-card-aircraft">
               <h3 className="subsection-header">🏰 Terrain Color Groups</h3>
               <p className="field-help-text" style={{ margin: '0 0 0.6rem 0' }}>
-                Color groups control styling (Naval, Land Easy/Medium/Hard/Very Hard). Editing a group updates all assigned hexes automatically.
+                Color groups control terrain styling (Naval, Land Easy/Medium/Hard/Very Hard). Separate border and fill opacities are supported.
               </p>
 
               {/* EXISTING COLOR GROUPS LIST */}
@@ -866,7 +1121,7 @@ export function MapGenerator({
                             fontWeight: 'bold'
                           }}
                         >
-                          + Apply to Selected ({selectedHexIds.length})
+                          + Apply ({selectedHexIds.length})
                         </button>
 
                         <button
@@ -888,9 +1143,9 @@ export function MapGenerator({
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
                       <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border</span>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border Color & Width</span>
                         <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
                           <input
                             type="color"
@@ -910,22 +1165,38 @@ export function MapGenerator({
                       </div>
 
                       <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Fill</span>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border Opacity ({Math.round((grp.strokeOpacity ?? 0.8) * 100)}%)</span>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1.0"
+                          step="0.05"
+                          value={grp.strokeOpacity ?? 0.8}
+                          onChange={(e) => handleUpdateGroup(grp.id, 'strokeOpacity', Number(e.target.value))}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Fill Color</span>
                         <input
                           type="color"
                           value={grp.fillColor}
                           onChange={(e) => handleUpdateGroup(grp.id, 'fillColor', e.target.value)}
+                          style={{ width: '100%' }}
                         />
                       </div>
 
                       <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Fill Opacity</span>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Fill Opacity ({Math.round((grp.fillOpacity ?? 0.15) * 100)}%)</span>
                         <input
                           type="range"
                           min="0.0"
-                          max="0.5"
+                          max="0.8"
                           step="0.02"
-                          value={grp.fillOpacity}
+                          value={grp.fillOpacity ?? 0.15}
                           onChange={(e) => handleUpdateGroup(grp.id, 'fillOpacity', Number(e.target.value))}
                           style={{ width: '100%' }}
                         />
@@ -1003,7 +1274,7 @@ export function MapGenerator({
               </div>
             </div>
 
-            {/* 6. SELECTED HEXES STYLING & INACCESSIBLE CONTROLS */}
+            {/* 7. SELECTED HEXES STYLING, SOLID COVER & INACCESSIBLE CONTROLS */}
             <div className="tint-card tint-card-grid">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 className="subsection-header" style={{ margin: 0 }}>
@@ -1044,12 +1315,41 @@ export function MapGenerator({
                 </div>
               </div>
 
-              <p className="field-help-text" style={{ margin: '0.4rem 0' }}>
-                Click hexes on the map preview to select them (hold Shift for multi-select). Apply custom styling, mark as inaccessible, or assign terrain groups below.
-              </p>
+              {/* SOLID COVER MASK BUTTON & COLOR PICKER */}
+              <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginTop: '0.4rem' }}>
+                <span className="field-label" style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.4rem' }}>
+                  ⬛ Solid Cover / Mask Hex (Covers All Markings & Numbers)
+                </span>
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={selectedMaskColor}
+                    onChange={(e) => setSelectedMaskColor(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplySolidMaskSelected}
+                    disabled={selectedHexIds.length === 0}
+                    style={{
+                      flex: 1,
+                      padding: '0.4rem',
+                      background: selectedHexIds.length > 0 ? 'var(--accent-cyan)' : 'var(--panel-border)',
+                      color: selectedHexIds.length > 0 ? 'var(--bg-dark)' : 'var(--text-muted)',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      cursor: selectedHexIds.length > 0 ? 'pointer' : 'not-allowed',
+                      fontSize: '0.8rem'
+                    }}
+                  >
+                    Cover Selected ({selectedHexIds.length})
+                  </button>
+                </div>
+              </div>
 
               {/* INACCESSIBLE HEX BUTTONS */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.4rem' }}>
                 <button
                   type="button"
                   onClick={() => handleToggleInaccessibleSelected(true)}
@@ -1087,13 +1387,13 @@ export function MapGenerator({
                 </button>
               </div>
 
-              {/* DIRECT INDIVIDUAL HEX STYLING */}
+              {/* DIRECT INDIVIDUAL HEX STYLING WITH SEPARATE OPACITIES */}
               <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginTop: '0.4rem' }}>
                 <span className="field-label" style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.4rem' }}>
                   🎨 Apply Direct Custom Hex Style
                 </span>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <div>
                     <label className="field-label" style={{ fontSize: '0.72rem' }}>Border Color</label>
                     <input
@@ -1105,7 +1405,7 @@ export function MapGenerator({
                   </div>
 
                   <div>
-                    <label className="field-label" style={{ fontSize: '0.72rem' }}>Border Width (px)</label>
+                    <label className="field-label" style={{ fontSize: '0.72rem' }}>Border Width</label>
                     <input
                       type="number"
                       min="1"
@@ -1115,9 +1415,7 @@ export function MapGenerator({
                       style={{ width: '100%' }}
                     />
                   </div>
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <div>
                     <label className="field-label" style={{ fontSize: '0.72rem' }}>Fill Color</label>
                     <input
@@ -1127,13 +1425,28 @@ export function MapGenerator({
                       style={{ width: '100%' }}
                     />
                   </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                  <div>
+                    <label className="field-label" style={{ fontSize: '0.72rem' }}>Border Opacity</label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1.0"
+                      step="0.05"
+                      value={selectedHexStrokeOpacity}
+                      onChange={(e) => setSelectedHexStrokeOpacity(Number(e.target.value))}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
 
                   <div>
                     <label className="field-label" style={{ fontSize: '0.72rem' }}>Fill Opacity</label>
                     <input
                       type="range"
                       min="0.0"
-                      max="0.5"
+                      max="0.8"
                       step="0.02"
                       value={selectedHexFillOpacity}
                       onChange={(e) => setSelectedHexFillOpacity(Number(e.target.value))}
@@ -1182,7 +1495,7 @@ export function MapGenerator({
               </div>
             </div>
 
-            {/* 7. PRESET STORAGE SAVE CARD */}
+            {/* 8. PRESET STORAGE SAVE CARD */}
             <div className="tint-card tint-card-attributes">
               <h3 className="subsection-header">💾 Save Map Preset</h3>
               <form
@@ -1222,15 +1535,20 @@ export function MapGenerator({
 
           </div>
 
-          {/* MAP CANVAS PREVIEW */}
+          {/* MAP CANVAS PREVIEW (STICKY CONTAINER WITH DUAL-AXIS OVERFLOW SCROLLING) */}
           <div
             style={{
+              position: 'sticky',
+              top: '80px',
+              maxHeight: 'calc(100vh - 100px)',
+              overflow: 'auto',
+              background: '#05080f',
+              border: '1px solid var(--panel-border)',
+              borderRadius: '8px',
+              padding: '1rem',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '0.8rem',
-              alignItems: 'center',
-              width: '100%',
-              overflow: 'hidden'
+              justifyContent: 'center',
+              alignItems: 'flex-start'
             }}
           >
             {!mapData.imageUrl ? (
@@ -1277,171 +1595,219 @@ export function MapGenerator({
                 </button>
               </div>
             ) : (
+              /* CONTAINER FOR HTML-TO-IMAGE PNG EXPORT */
               <div
+                id="tactical-map-export-container"
+                ref={containerRef}
                 style={{
-                  width: '100%',
-                  overflow: 'auto',
+                  position: 'relative',
+                  width: `${naturalWidth}px`,
+                  height: `${naturalHeight}px`,
                   background: '#05080f',
-                  border: '1px solid var(--panel-border)',
-                  borderRadius: '8px',
-                  padding: '1rem',
-                  display: 'flex',
-                  justifyContent: 'center'
+                  lineHeight: 0,
+                  userSelect: 'none'
                 }}
               >
-                {/* CONTAINER FOR HTML-TO-IMAGE PNG EXPORT */}
-                <div
-                  id="tactical-map-export-container"
-                  ref={containerRef}
+                {/* BASE MAP IMAGE */}
+                <img
+                  ref={imageRef}
+                  src={mapData.imageUrl}
+                  alt={mapData.title || 'Tactical Map'}
+                  onLoad={handleImageLoad}
                   style={{
-                    position: 'relative',
-                    width: `${naturalWidth}px`,
-                    height: `${naturalHeight}px`,
-                    maxWidth: '100%',
-                    background: '#05080f',
-                    lineHeight: 0
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    display: 'block',
+                    pointerEvents: 'none'
                   }}
-                >
-                  {/* BASE MAP IMAGE */}
-                  <img
-                    ref={imageRef}
-                    src={mapData.imageUrl}
-                    alt={mapData.title || 'Tactical Map'}
-                    onLoad={handleImageLoad}
+                />
+
+                {/* SVG OVERLAY HEX GRID */}
+                {isGenerated && (
+                  <svg
+                    width={naturalWidth}
+                    height={naturalHeight}
+                    viewBox={`0 0 ${naturalWidth} ${naturalHeight}`}
+                    onMouseDown={() => setIsMouseDown(true)}
+                    onMouseUp={() => setIsMouseDown(false)}
                     style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
                       width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      display: 'block'
+                      height: '100%'
                     }}
-                  />
+                  >
+                    <defs>
+                      {/* INACCESSIBLE DIAGONAL HATCH PATTERN */}
+                      <pattern
+                        id="inaccessible-hatch-pattern"
+                        width="12"
+                        height="12"
+                        patternUnits="userSpaceOnUse"
+                        patternTransform="rotate(45)"
+                      >
+                        <line
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="12"
+                          stroke="#dc2626"
+                          strokeWidth="3"
+                          strokeOpacity="0.85"
+                        />
+                      </pattern>
+                    </defs>
 
-                  {/* SVG OVERLAY HEX GRID */}
-                  {isGenerated && (
-                    <svg
-                      width={naturalWidth}
-                      height={naturalHeight}
-                      viewBox={`0 0 ${naturalWidth} ${naturalHeight}`}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%'
-                      }}
-                    >
-                      <defs>
-                        {/* INACCESSIBLE DIAGONAL HATCH PATTERN */}
-                        <pattern
-                          id="inaccessible-hatch-pattern"
-                          width="12"
-                          height="12"
-                          patternUnits="userSpaceOnUse"
-                          patternTransform="rotate(45)"
-                        >
-                          <line
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="12"
-                            stroke="#dc2626"
-                            strokeWidth="3"
-                            strokeOpacity="0.85"
-                          />
-                        </pattern>
-                      </defs>
+                    {/* LAYER 1: BASE GRID POLYGONS & OVERRIDES */}
+                    {hexes.map((hex) => {
+                      const pointsStr = getHexPoints(hex.cx, hex.cy, radius, orientation);
+                      const isSelected = selectedHexIds.includes(hex.id);
+                      const override = hexOverrides[hex.id];
 
-                      {hexes.map((hex) => {
-                        const pointsStr = getHexPoints(hex.cx, hex.cy, radius, orientation);
-                        const isSelected = selectedHexIds.includes(hex.id);
-                        const override = hexOverrides[hex.id];
+                      let hexStrokeColor = mapData.strokeColor || '#0284c7';
+                      let hexStrokeWidth = mapData.strokeWidth || 2;
+                      let hexStrokeOpacity = mapData.strokeOpacity ?? 0.8;
+                      let hexFillColor = mapData.fillColor || '#0284c7';
+                      let hexFillOpacity = mapData.fillOpacity ?? 0.1;
+                      let isInaccessible = false;
+                      let isSolidMask = false;
 
-                        // Compute styling based on override, color group, or default
-                        let hexStrokeColor = mapData.strokeColor || '#22c55e';
-                        let hexStrokeWidth = mapData.strokeWidth || 2;
-                        let hexFillColor = mapData.fillColor || '#ffffff';
-                        let hexFillOpacity = mapData.fillOpacity ?? 0.0;
-                        let isInaccessible = false;
-
-                        if (override) {
-                          if (override.isInaccessible) {
-                            isInaccessible = true;
-                            hexStrokeColor = '#dc2626';
-                            hexStrokeWidth = Math.max(4, Number(override.strokeWidth) || mapData.strokeWidth || 3);
-                          } else if (override.groupId) {
-                            const group = colorGroups.find((g) => g.id === override.groupId);
-                            if (group) {
-                              hexStrokeColor = group.strokeColor;
-                              hexStrokeWidth = group.strokeWidth;
-                              hexFillColor = group.fillColor;
-                              hexFillOpacity = group.fillOpacity;
-                            }
-                          } else {
-                            if (override.strokeColor) hexStrokeColor = override.strokeColor;
-                            if (override.strokeWidth) hexStrokeWidth = override.strokeWidth;
-                            if (override.fillColor) hexFillColor = override.fillColor;
-                            if (override.fillOpacity !== undefined) hexFillOpacity = override.fillOpacity;
+                      if (override) {
+                        if (override.isSolidMask) {
+                          isSolidMask = true;
+                        } else if (override.isInaccessible) {
+                          isInaccessible = true;
+                          hexStrokeColor = '#dc2626';
+                          hexStrokeWidth = Math.max(4, Number(override.strokeWidth) || mapData.strokeWidth || 3);
+                          hexStrokeOpacity = 1.0;
+                        } else if (override.groupId) {
+                          const group = colorGroups.find((g) => g.id === override.groupId);
+                          if (group) {
+                            hexStrokeColor = group.strokeColor;
+                            hexStrokeWidth = group.strokeWidth;
+                            hexStrokeOpacity = group.strokeOpacity ?? 0.8;
+                            hexFillColor = group.fillColor;
+                            hexFillOpacity = group.fillOpacity;
                           }
+                        } else {
+                          if (override.strokeColor) hexStrokeColor = override.strokeColor;
+                          if (override.strokeWidth) hexStrokeWidth = override.strokeWidth;
+                          if (override.strokeOpacity !== undefined) hexStrokeOpacity = override.strokeOpacity;
+                          if (override.fillColor) hexFillColor = override.fillColor;
+                          if (override.fillOpacity !== undefined) hexFillOpacity = override.fillOpacity;
                         }
+                      }
 
-                        // Label Y Position
-                        let labelY = hex.cy;
-                        if (mapData.coordPosition === 'top') {
-                          labelY = hex.cy - radius * 0.55;
-                        } else if (mapData.coordPosition === 'bottom') {
-                          labelY = hex.cy + radius * 0.55;
-                        }
+                      // If solid mask, skip rendering in base grid layer (will render in TOP layer)
+                      if (isSolidMask) return null;
 
-                        return (
-                          <g
-                            key={hex.id}
-                            onClick={(e) => handleHexClick(hex.id, e)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            {/* Base Hex Fill & Polygon */}
+                      // Label Y Position
+                      let labelY = hex.cy;
+                      if (mapData.coordPosition === 'top') {
+                        labelY = hex.cy - radius * 0.55;
+                      } else if (mapData.coordPosition === 'bottom') {
+                        labelY = hex.cy + radius * 0.55;
+                      }
+
+                      return (
+                        <g
+                          key={hex.id}
+                          onClick={(e) => handleHexClick(hex, e)}
+                          onMouseDown={() => {
+                            if (interactionMode === 'brush') applyBrushToHexes(hex);
+                          }}
+                          onMouseEnter={() => {
+                            if (interactionMode === 'brush' && isMouseDown) applyBrushToHexes(hex);
+                          }}
+                          style={{ cursor: interactionMode === 'brush' ? 'crosshair' : 'pointer' }}
+                        >
+                          {/* Base Hex Fill & Polygon */}
+                          <polygon
+                            points={pointsStr}
+                            fill={isInaccessible ? 'url(#inaccessible-hatch-pattern)' : hexFillColor}
+                            fillOpacity={isInaccessible ? 1.0 : hexFillOpacity}
+                            stroke={isSelected ? '#00f0ff' : hexStrokeColor}
+                            strokeWidth={isSelected ? Math.max(4, hexStrokeWidth + 2) : hexStrokeWidth}
+                            strokeOpacity={isSelected ? 1.0 : hexStrokeOpacity}
+                          />
+
+                          {/* Glow / Highlight Outline for Selected Hex */}
+                          {isSelected && (
                             <polygon
                               points={pointsStr}
-                              fill={isInaccessible ? 'url(#inaccessible-hatch-pattern)' : hexFillColor}
-                              fillOpacity={isInaccessible ? 1.0 : hexFillOpacity}
-                              stroke={isSelected ? '#00f0ff' : hexStrokeColor}
-                              strokeWidth={isSelected ? Math.max(4, hexStrokeWidth + 2) : hexStrokeWidth}
-                              strokeOpacity={isSelected ? 1.0 : (mapData.strokeOpacity ?? 0.8)}
+                              fill="none"
+                              stroke="#00f0ff"
+                              strokeWidth={Math.max(5, hexStrokeWidth + 3)}
+                              strokeDasharray="6,4"
                             />
+                          )}
 
-                            {/* Additional Glow / Highlight Outline for Selected Hex */}
-                            {isSelected && (
-                              <polygon
-                                points={pointsStr}
-                                fill="none"
-                                stroke="#00f0ff"
-                                strokeWidth={Math.max(5, hexStrokeWidth + 3)}
-                                strokeDasharray="6,4"
-                              />
-                            )}
+                          {/* Coordinate Label */}
+                          {mapData.showCoordinates !== false && (
+                            <text
+                              x={hex.cx}
+                              y={labelY}
+                              fill={mapData.coordColor || '#0284c7'}
+                              opacity={mapData.coordOpacity ?? 1.0}
+                              fontSize={mapData.coordFontSize || 10}
+                              fontWeight="bold"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontFamily={mapData.coordFontFamily || "'Share Tech Mono', monospace"}
+                              style={{ pointerEvents: 'none', userSelect: 'none' }}
+                            >
+                              {hex.label}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })}
 
-                            {/* Coordinate Label */}
-                            {mapData.showCoordinates !== false && (
-                              <text
-                                x={hex.cx}
-                                y={labelY}
-                                fill={mapData.coordColor || '#15803d'}
-                                opacity={mapData.coordOpacity ?? 1.0}
-                                fontSize={mapData.coordFontSize || 10}
-                                fontWeight="bold"
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fontFamily={mapData.coordFontFamily || "'Share Tech Mono', monospace"}
-                                style={{ pointerEvents: 'none', userSelect: 'none' }}
-                              >
-                                {hex.label}
-                              </text>
-                            )}
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  )}
-                </div>
+                    {/* LAYER 2: TOP LAYER SOLID COVER / MASK HEXES (Renders over base grid & text labels) */}
+                    {hexes.map((hex) => {
+                      const override = hexOverrides[hex.id];
+                      if (!override || !override.isSolidMask) return null;
+
+                      const pointsStr = getHexPoints(hex.cx, hex.cy, radius, orientation);
+                      const isSelected = selectedHexIds.includes(hex.id);
+                      const maskColor = override.solidMaskColor || '#ffffff';
+
+                      return (
+                        <g
+                          key={`top_${hex.id}`}
+                          onClick={(e) => handleHexClick(hex, e)}
+                          onMouseDown={() => {
+                            if (interactionMode === 'brush') applyBrushToHexes(hex);
+                          }}
+                          onMouseEnter={() => {
+                            if (interactionMode === 'brush' && isMouseDown) applyBrushToHexes(hex);
+                          }}
+                          style={{ cursor: interactionMode === 'brush' ? 'crosshair' : 'pointer' }}
+                        >
+                          <polygon
+                            points={pointsStr}
+                            fill={maskColor}
+                            fillOpacity={1.0}
+                            stroke={isSelected ? '#00f0ff' : maskColor}
+                            strokeWidth={isSelected ? 4 : 1}
+                          />
+
+                          {isSelected && (
+                            <polygon
+                              points={pointsStr}
+                              fill="none"
+                              stroke="#00f0ff"
+                              strokeWidth={5}
+                              strokeDasharray="6,4"
+                            />
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                )}
               </div>
             )}
           </div>

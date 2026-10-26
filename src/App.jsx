@@ -300,11 +300,11 @@ const BUILTIN_GROUP_STYLES = {
 };
 
 const DEFAULT_COLOR_GROUPS = [
-  { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 1, fillColor: '#0284c7', fillOpacity: 0.1 },
-  { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, fillColor: '#22c55e', fillOpacity: 0.1 },
-  { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, fillColor: '#eab308', fillOpacity: 0.1 },
-  { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, fillColor: '#f97316', fillOpacity: 0.15 },
-  { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, fillColor: '#dc2626', fillOpacity: 0.2 }
+  { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 2, strokeOpacity: 0.8, fillColor: '#0284c7', fillOpacity: 0.15 },
+  { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#22c55e', fillOpacity: 0.15 },
+  { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#eab308', fillOpacity: 0.15 },
+  { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, strokeOpacity: 0.9, fillColor: '#f97316', fillOpacity: 0.2 },
+  { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25 }
 ];
 
 const DEFAULT_MAP_DATA = {
@@ -314,13 +314,13 @@ const DEFAULT_MAP_DATA = {
   orientation: 'pointy',
   offsetX: 0,
   offsetY: 0,
-  strokeColor: '#22c55e',
+  strokeColor: '#0284c7',
   strokeWidth: 2,
   strokeOpacity: 0.8,
-  fillColor: '#ffffff',
-  fillOpacity: 0,
+  fillColor: '#0284c7',
+  fillOpacity: 0.1,
   showCoordinates: true,
-  coordColor: '#15803d',
+  coordColor: '#0284c7',
   coordFontSize: 10,
   coordPosition: 'top',
   coordFormat: '0101',
