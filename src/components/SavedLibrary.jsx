@@ -86,6 +86,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
     if (typeFilter === 'tracker' && item.type !== 'tracker') return false;
     if (typeFilter === 'group' && item.type !== 'group') return false;
     if (typeFilter === 'card' && item.type !== 'card') return false;
+    if (typeFilter === 'map' && item.type !== 'map') return false;
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchName = item.name.toLowerCase().includes(query);
@@ -262,6 +263,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
               <option value="tracker">Army Trackers Only</option>
               <option value="group">Group Trackers Only</option>
               <option value="card">Capability Cards Only</option>
+              <option value="map">Map Generators Only</option>
             </select>
           </div>
 
@@ -317,6 +319,7 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
             const isToken = item.type === 'token';
             const isCard = item.type === 'card';
             const isGroup = item.type === 'group';
+            const isMap = item.type === 'map';
             const categoryLabel = isToken
               ? item.category === 'misc'
                 ? 'Misc Token'
@@ -327,9 +330,11 @@ export function SavedLibrary({ items, onLoadItem, onDeleteItem, onUpdateItemName
               ? 'Capability Card'
               : isGroup
               ? 'Group Tracker'
+              : isMap
+              ? 'Tactical Map'
               : 'Army Tracker';
 
-            const badgeColor = isToken ? '#3b82f6' : isCard ? '#8b5cf6' : isGroup ? '#f97316' : '#10b981';
+            const badgeColor = isToken ? '#3b82f6' : isCard ? '#8b5cf6' : isGroup ? '#f97316' : isMap ? '#eab308' : '#10b981';
             const isEditing = editingId === item.id;
 
             return (
