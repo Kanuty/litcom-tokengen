@@ -307,6 +307,14 @@ const DEFAULT_COLOR_GROUPS = [
   { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25 }
 ];
 
+const DEFAULT_MARKER_GROUPS = [
+  { id: 'airfield', name: 'Airfield', iconType: 'svg_preset', svgType: 'plane', color: '#00f0ff', size: 32, customImageUrl: null },
+  { id: 'bridge', name: 'Bridge', iconType: 'svg_preset', svgType: 'bridge', color: '#eab308', size: 32, customImageUrl: null },
+  { id: 'nuclear', name: 'Nuclear Facility', iconType: 'svg_preset', svgType: 'nuclear', color: '#ef4444', size: 32, customImageUrl: null },
+  { id: 'factory', name: 'Factory', iconType: 'svg_preset', svgType: 'factory', color: '#a855f7', size: 32, customImageUrl: null },
+  { id: 'shipyard', name: 'Shipyard', iconType: 'svg_preset', svgType: 'shipyard', color: '#3b82f6', size: 32, customImageUrl: null }
+];
+
 const DEFAULT_MAP_DATA = {
   title: 'INDO-PACIFIC TAIWAN STRAIT',
   imageUrl: null,
@@ -335,7 +343,10 @@ const DEFAULT_MAP_DATA = {
   exportWidth: null,
   exportHeight: null,
   colorGroups: DEFAULT_COLOR_GROUPS,
-  hexOverrides: {}
+  hexOverrides: {},
+  markerGroups: DEFAULT_MARKER_GROUPS,
+  placedMarkers: [],
+  customTexts: []
 };
 
 function App() {
