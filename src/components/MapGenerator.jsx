@@ -325,13 +325,11 @@ export function MapGenerator({
           const textObj = (mapData.customTexts || []).find((t) => t.id === activeTextId);
           if (textObj) {
             setCopiedItem({ type: 'text', data: { ...textObj } });
-            showNotification({ title: 'COPIED', message: `Copied text label "${textObj.text}".` });
           }
         } else if (activeMarkerId) {
           const markerObj = (mapData.placedMarkers || []).find((m) => m.id === activeMarkerId);
           if (markerObj) {
             setCopiedItem({ type: 'marker', data: { ...markerObj } });
-            showNotification({ title: 'COPIED', message: 'Copied selected marker.' });
           }
         }
       } else if (ctrlOrCmd && e.key.toLowerCase() === 'v') {
@@ -350,7 +348,6 @@ export function MapGenerator({
           const updated = [...(mapData.customTexts || []), pastedText];
           onChangeMapData({ ...mapData, customTexts: updated });
           setActiveTextId(newId);
-          showNotification({ title: 'PASTED', message: `Pasted text label "${pastedText.text}".` });
         } else if (copiedItem.type === 'marker') {
           const newId = 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
           const startX = copiedItem.data.x !== undefined ? copiedItem.data.x : 100;
@@ -365,7 +362,6 @@ export function MapGenerator({
           const updated = [...(mapData.placedMarkers || []), pastedMarker];
           onChangeMapData({ ...mapData, placedMarkers: updated });
           setActiveMarkerId(newId);
-          showNotification({ title: 'PASTED', message: 'Pasted marker.' });
         }
       }
     };
@@ -882,6 +878,33 @@ export function MapGenerator({
     onChangeMapData({ ...mapData, placedMarkers: [] });
     setActiveMarkerId(null);
     showNotification({ title: 'ALL MARKERS CLEARED', message: 'Cleared all placed markers from map.' });
+  };
+
+  const handleTogglePlaceMarkerOnHex = (hex) => {
+    if (!hex) return;
+    pushHistoryState();
+
+    const existingIndex = placedMarkers.findIndex(
+      (m) => m.hexId === hex.id || (Math.hypot((m.x ?? -999) - hex.cx, (m.y ?? -999) - hex.cy) < 5)
+    );
+
+    if (existingIndex >= 0) {
+      const updated = placedMarkers.filter((_, idx) => idx !== existingIndex);
+      onChangeMapData({ ...mapData, placedMarkers: updated });
+      showNotification({ title: 'MARKER REMOVED', message: `Removed marker from hex ${hex.label}.` });
+    } else {
+      const newMarker = {
+        id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
+        markerGroupId: activeMarkerGroupId,
+        hexId: hex.id,
+        x: hex.cx,
+        y: hex.cy
+      };
+      const updated = [...placedMarkers, newMarker];
+      onChangeMapData({ ...mapData, placedMarkers: updated });
+      setActiveMarkerId(newMarker.id);
+      showNotification({ title: 'MARKER PLACED', message: `Placed marker on hex ${hex.label}.` });
+    }
   };
 
   // Drag-and-Drop marker placement from left panel to canvas
