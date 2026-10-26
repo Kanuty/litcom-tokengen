@@ -187,6 +187,35 @@ export function MapGenerator({
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [draggingItem, setDraggingItem] = useState(null); // { type: 'marker' | 'text', id: string, startMouseX: number, startMouseY: number, itemStartX: number, itemStartY: number }
 
+  // Clipboard & Undo History State
+  const [copiedItem, setCopiedItem] = useState(null); // { type: 'marker' | 'text', data: object }
+  const historyStackRef = useRef([]);
+
+  // Helper to push state onto undo history stack before modifications
+  const pushHistoryState = () => {
+    historyStackRef.current.push({
+      placedMarkers: mapData.placedMarkers || [],
+      customTexts: mapData.customTexts || [],
+      hexOverrides: mapData.hexOverrides || {}
+    });
+    // Keep stack size capped at 30
+    if (historyStackRef.current.length > 30) {
+      historyStackRef.current.shift();
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyStackRef.current.length === 0) return;
+    const previousState = historyStackRef.current.pop();
+    onChangeMapData({
+      ...mapData,
+      placedMarkers: previousState.placedMarkers,
+      customTexts: previousState.customTexts,
+      hexOverrides: previousState.hexOverrides
+    });
+    showNotification({ title: 'UNDO', message: 'Reverted last map change.' });
+  };
+
   // New Group Form State
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupStrokeColor, setNewGroupStrokeColor] = useState('#3b82f6');
@@ -278,13 +307,78 @@ export function MapGenerator({
       setIsMouseDown(false);
     };
 
+    const handleKeyDown = (e) => {
+      // Ignore keybindings if active element is an input, select, or textarea
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || document.activeElement?.isContentEditable) {
+        return;
+      }
+
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
+      if (ctrlOrCmd && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        handleUndo();
+      } else if (ctrlOrCmd && e.key.toLowerCase() === 'c') {
+        if (activeTextId) {
+          const textObj = (mapData.customTexts || []).find((t) => t.id === activeTextId);
+          if (textObj) {
+            setCopiedItem({ type: 'text', data: { ...textObj } });
+            showNotification({ title: 'COPIED', message: `Copied text label "${textObj.text}".` });
+          }
+        } else if (activeMarkerId) {
+          const markerObj = (mapData.placedMarkers || []).find((m) => m.id === activeMarkerId);
+          if (markerObj) {
+            setCopiedItem({ type: 'marker', data: { ...markerObj } });
+            showNotification({ title: 'COPIED', message: 'Copied selected marker.' });
+          }
+        }
+      } else if (ctrlOrCmd && e.key.toLowerCase() === 'v') {
+        if (!copiedItem) return;
+        e.preventDefault();
+        pushHistoryState();
+
+        if (copiedItem.type === 'text') {
+          const newId = 'txt_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
+          const pastedText = {
+            ...copiedItem.data,
+            id: newId,
+            x: (copiedItem.data.x || 100) + 20,
+            y: (copiedItem.data.y || 100) + 20
+          };
+          const updated = [...(mapData.customTexts || []), pastedText];
+          onChangeMapData({ ...mapData, customTexts: updated });
+          setActiveTextId(newId);
+          showNotification({ title: 'PASTED', message: `Pasted text label "${pastedText.text}".` });
+        } else if (copiedItem.type === 'marker') {
+          const newId = 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
+          const startX = copiedItem.data.x !== undefined ? copiedItem.data.x : 100;
+          const startY = copiedItem.data.y !== undefined ? copiedItem.data.y : 100;
+
+          const pastedMarker = {
+            ...copiedItem.data,
+            id: newId,
+            x: startX + 20,
+            y: startY + 20
+          };
+          const updated = [...(mapData.placedMarkers || []), pastedMarker];
+          onChangeMapData({ ...mapData, placedMarkers: updated });
+          setActiveMarkerId(newId);
+          showNotification({ title: 'PASTED', message: 'Pasted marker.' });
+        }
+      }
+    };
+
     window.addEventListener('mousemove', handleWindowMouseMove);
     window.addEventListener('mouseup', handleWindowMouseUp);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('mousemove', handleWindowMouseMove);
       window.removeEventListener('mouseup', handleWindowMouseUp);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [draggingItem, mapData, naturalWidth, naturalHeight]);
+  }, [draggingItem, mapData, naturalWidth, naturalHeight, activeTextId, activeMarkerId, copiedItem]);
 
   // Default color groups setup
   const colorGroups = mapData.colorGroups || [
@@ -771,20 +865,55 @@ export function MapGenerator({
   };
 
   const handleUpdatePlacedMarker = (markerId, field, value) => {
+    pushHistoryState();
     const updated = placedMarkers.map((m) => (m.id === markerId ? { ...m, [field]: value } : m));
     onChangeMapData({ ...mapData, placedMarkers: updated });
   };
 
   const handleDeletePlacedMarker = (markerId) => {
+    pushHistoryState();
     const updated = placedMarkers.filter((m) => m.id !== markerId);
     onChangeMapData({ ...mapData, placedMarkers: updated });
     if (activeMarkerId === markerId) setActiveMarkerId(null);
   };
 
   const handleClearAllPlacedMarkers = () => {
+    pushHistoryState();
     onChangeMapData({ ...mapData, placedMarkers: [] });
     setActiveMarkerId(null);
     showNotification({ title: 'ALL MARKERS CLEARED', message: 'Cleared all placed markers from map.' });
+  };
+
+  // Drag-and-Drop marker placement from left panel to canvas
+  const handleMarkerDragStart = (groupId, e) => {
+    e.dataTransfer.setData('text/plain', groupId);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleCanvasDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleCanvasDrop = (e) => {
+    e.preventDefault();
+    const groupId = e.dataTransfer.getData('text/plain');
+    if (!groupId) return;
+
+    const { x, y } = getSvgCoords(e);
+    pushHistoryState();
+
+    const newMarker = {
+      id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
+      markerGroupId: groupId,
+      x: Math.round(x),
+      y: Math.round(y)
+    };
+
+    const updated = [...placedMarkers, newMarker];
+    onChangeMapData({ ...mapData, placedMarkers: updated });
+    setActiveMarkerId(newMarker.id);
+    showNotification({ title: 'MARKER DROPPED', message: `Placed marker at (${Math.round(x)}, ${Math.round(y)}).` });
   };
 
   // Custom Text Labels Data & Handlers
@@ -807,6 +936,7 @@ export function MapGenerator({
   };
 
   const handleTextMapClick = (x, y) => {
+    pushHistoryState();
     const newId = 'txt_' + Date.now().toString(36);
     const newTextObj = {
       id: newId,
@@ -829,11 +959,13 @@ export function MapGenerator({
   };
 
   const handleUpdateTextLabel = (textId, field, value) => {
+    pushHistoryState();
     const updated = customTexts.map((t) => (t.id === textId ? { ...t, [field]: value } : t));
     onChangeMapData({ ...mapData, customTexts: updated });
   };
 
   const handleDeleteTextLabel = (textId) => {
+    pushHistoryState();
     const updated = customTexts.filter((t) => t.id !== textId);
     onChangeMapData({ ...mapData, customTexts: updated });
     if (activeTextId === textId) {
@@ -842,6 +974,7 @@ export function MapGenerator({
   };
 
   const handleClearAllTextLabels = () => {
+    pushHistoryState();
     onChangeMapData({ ...mapData, customTexts: [] });
     setActiveTextId(null);
     showNotification({ title: 'ALL TEXT CLEARED', message: 'Cleared all custom text labels from map.' });
@@ -856,6 +989,7 @@ export function MapGenerator({
     const { x, y } = getSvgCoords(e);
 
     if (interactionMode === 'marker') {
+      pushHistoryState();
       const newMarker = {
         id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
         markerGroupId: activeMarkerGroupId,
@@ -2112,12 +2246,14 @@ export function MapGenerator({
               {/* LIST / EDIT MARKER GROUPS */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.6rem' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
-                  Manage Marker Groups (Changes update all instances on map)
+                  Manage & Drag Marker Groups (Drag to map or click + Place)
                 </span>
 
                 {markerGroups.map((mg) => (
                   <div
                     key={mg.id}
+                    draggable={true}
+                    onDragStart={(e) => handleMarkerDragStart(mg.id, e)}
                     style={{
                       background: 'var(--input-bg)',
                       border: mg.id === activeMarkerGroupId ? '1px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
@@ -2125,7 +2261,8 @@ export function MapGenerator({
                       padding: '0.5rem',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.4rem'
+                      gap: '0.4rem',
+                      cursor: 'grab'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -3009,6 +3146,8 @@ export function MapGenerator({
                       setIsMouseDown(true);
                     }}
                     onClick={handleSvgCanvasClick}
+                    onDragOver={handleCanvasDragOver}
+                    onDrop={handleCanvasDrop}
                     style={{
                       position: 'absolute',
                       top: 0,
