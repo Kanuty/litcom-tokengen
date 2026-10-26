@@ -308,11 +308,11 @@ const DEFAULT_COLOR_GROUPS = [
 ];
 
 const DEFAULT_MARKER_GROUPS = [
-  { id: 'airfield', name: 'Airfield', iconType: 'svg_preset', svgType: 'plane', color: '#00f0ff', size: 32, customImageUrl: null },
-  { id: 'bridge', name: 'Bridge', iconType: 'svg_preset', svgType: 'bridge', color: '#eab308', size: 32, customImageUrl: null },
-  { id: 'nuclear', name: 'Nuclear Facility', iconType: 'svg_preset', svgType: 'nuclear', color: '#ef4444', size: 32, customImageUrl: null },
-  { id: 'factory', name: 'Factory', iconType: 'svg_preset', svgType: 'factory', color: '#a855f7', size: 32, customImageUrl: null },
-  { id: 'shipyard', name: 'Shipyard', iconType: 'svg_preset', svgType: 'shipyard', color: '#3b82f6', size: 32, customImageUrl: null }
+  { id: 'airfield', name: 'Airfield', iconType: 'svg_preset', svgType: 'plane', color: '#000000', size: 32, customImageUrl: null },
+  { id: 'bridge', name: 'Bridge', iconType: 'svg_preset', svgType: 'bridge', color: '#000000', size: 32, customImageUrl: null },
+  { id: 'nuclear', name: 'Nuclear Facility', iconType: 'svg_preset', svgType: 'nuclear', color: '#000000', size: 32, customImageUrl: null },
+  { id: 'factory', name: 'Factory', iconType: 'svg_preset', svgType: 'factory', color: '#000000', size: 32, customImageUrl: null },
+  { id: 'shipyard', name: 'Shipyard', iconType: 'svg_preset', svgType: 'shipyard', color: '#000000', size: 32, customImageUrl: null }
 ];
 
 const DEFAULT_MAP_DATA = {

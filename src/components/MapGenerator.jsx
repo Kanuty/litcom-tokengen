@@ -65,19 +65,20 @@ function getHexVertices(cx, cy, r, orientation = 'pointy') {
 /**
  * Renders a marker icon SVG graphic or image for a given marker group
  */
-function renderMarkerIcon(group, size = 32) {
+function renderMarkerIcon(group, size = 32, customColor = null, customSize = null) {
   if (!group) return null;
-  const color = group.color || '#00f0ff';
+  const effectiveSize = customSize || size || group.size || 32;
+  const color = customColor || group.color || '#000000';
   const customUrl = group.customImageUrl;
 
   if (customUrl) {
     return (
       <image
         href={customUrl}
-        x={-size / 2}
-        y={-size / 2}
-        width={size}
-        height={size}
+        x={-effectiveSize / 2}
+        y={-effectiveSize / 2}
+        width={effectiveSize}
+        height={effectiveSize}
         preserveAspectRatio="xMidYMid meet"
       />
     );
@@ -86,14 +87,22 @@ function renderMarkerIcon(group, size = 32) {
   const svgType = group.svgType || 'plane';
 
   return (
-    <g transform={`translate(${-size / 2}, ${-size / 2})`}>
-      <circle cx={size / 2} cy={size / 2} r={size / 2 - 1} fill="#0b1329" fillOpacity="0.85" stroke={color} strokeWidth="2" />
+    <g transform={`translate(${-effectiveSize / 2}, ${-effectiveSize / 2})`}>
+      <circle
+        cx={effectiveSize / 2}
+        cy={effectiveSize / 2}
+        r={effectiveSize / 2 - 1}
+        fill="#ffffff"
+        fillOpacity="1"
+        stroke={color}
+        strokeWidth="2"
+      />
 
       {svgType === 'plane' && (
         <path
           d="M 12 2 L 15 9 L 22 12 L 22 15 L 15 14 L 14 20 L 17 22 L 17 24 L 12 22.5 L 7 24 L 7 22 L 10 20 L 9 14 L 2 15 L 2 12 L 9 9 Z"
           fill={color}
-          transform={`scale(${size / 24})`}
+          transform={`scale(${effectiveSize / 24})`}
         />
       )}
 
@@ -103,12 +112,12 @@ function renderMarkerIcon(group, size = 32) {
           fill="none"
           stroke={color}
           strokeWidth="2"
-          transform={`scale(${size / 24})`}
+          transform={`scale(${effectiveSize / 24})`}
         />
       )}
 
       {svgType === 'nuclear' && (
-        <g transform={`scale(${size / 24})`}>
+        <g transform={`scale(${effectiveSize / 24})`}>
           <circle cx="12" cy="12" r="3" fill={color} />
           <path d="M 12 12 L 8 4 A 9 9 0 0 1 16 4 Z" fill={color} />
           <path d="M 12 12 L 19 15 A 9 9 0 0 1 15 20 Z" fill={color} />
@@ -120,7 +129,7 @@ function renderMarkerIcon(group, size = 32) {
         <path
           d="M 2 20 L 2 12 L 7 15 L 7 10 L 12 13 L 12 8 L 18 8 L 18 20 Z M 19 4 L 21 4 L 21 7 L 19 7 Z M 14 4 L 16 4 L 16 6 L 14 6 Z"
           fill={color}
-          transform={`scale(${size / 24})`}
+          transform={`scale(${effectiveSize / 24})`}
         />
       )}
 
@@ -131,7 +140,7 @@ function renderMarkerIcon(group, size = 32) {
           stroke={color}
           strokeWidth="2.5"
           strokeLinecap="round"
-          transform={`scale(${size / 24})`}
+          transform={`scale(${effectiveSize / 24})`}
         />
       )}
 
@@ -139,7 +148,7 @@ function renderMarkerIcon(group, size = 32) {
         <path
           d="M 3 20 L 3 8 L 6 8 L 6 11 L 9 11 L 9 8 L 12 8 L 12 11 L 15 11 L 15 8 L 18 8 L 18 11 L 21 11 L 21 20 Z M 9 15 A 3 3 0 0 1 15 15 L 15 20 L 9 20 Z"
           fill={color}
-          transform={`scale(${size / 24})`}
+          transform={`scale(${effectiveSize / 24})`}
         />
       )}
     </g>
@@ -159,6 +168,9 @@ export function MapGenerator({
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const jsonImportRef = useRef(null);
+  const textPanelRef = useRef(null);
+  const markerPanelRef = useRef(null);
+  const wasDraggingRef = useRef(false);
 
   const [naturalWidth, setNaturalWidth] = useState(1200);
   const [naturalHeight, setNaturalHeight] = useState(800);
@@ -166,13 +178,14 @@ export function MapGenerator({
   const [saveName, setSaveName] = useState('');
   const [selectedHexIds, setSelectedHexIds] = useState([]);
 
-  // Interactive Brush Tool State
-  const [interactionMode, setInteractionMode] = useState('select'); // 'select' | 'brush'
+  // Interactive Brush & Dragging Tool State
+  const [interactionMode, setInteractionMode] = useState('select'); // 'select' | 'brush' | 'marker' | 'text'
   const [brushAction, setBrushAction] = useState('group'); // 'group' | 'solid_mask' | 'inaccessible' | 'custom' | 'clear'
   const [brushSize, setBrushSize] = useState(1); // 1 (Small), 7 (Medium), 19 (Large)
   const [activeBrushGroup, setActiveBrushGroup] = useState('naval');
   const [brushMaskColor, setBrushMaskColor] = useState('#ffffff');
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const [draggingItem, setDraggingItem] = useState(null); // { type: 'marker' | 'text', id: string, startMouseX: number, startMouseY: number, itemStartX: number, itemStartY: number }
 
   // New Group Form State
   const [newGroupName, setNewGroupName] = useState('');
@@ -199,9 +212,10 @@ export function MapGenerator({
 
   // Marker Group & Placed Markers State
   const [activeMarkerGroupId, setActiveMarkerGroupId] = useState('airfield');
+  const [activeMarkerId, setActiveMarkerId] = useState(null);
   const [newMarkerGroupName, setNewMarkerGroupName] = useState('');
   const [newMarkerGroupSvgType, setNewMarkerGroupSvgType] = useState('fortress');
-  const [newMarkerGroupColor, setNewMarkerGroupColor] = useState('#10b981');
+  const [newMarkerGroupColor, setNewMarkerGroupColor] = useState('#000000');
   const [newMarkerGroupSize, setNewMarkerGroupSize] = useState(32);
 
   // Custom Text Labels State
@@ -215,12 +229,62 @@ export function MapGenerator({
   const [newTextIsBold, setNewTextIsBold] = useState(true);
   const [newTextFontFamily, setNewTextFontFamily] = useState("'Share Tech Mono', monospace");
 
-  // Global mouseup listener for smooth drag brush painting
+  // Helper to convert client mouse coordinates to SVG viewBox coordinates
+  const getSvgCoords = (e) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    const scaleX = naturalWidth / rect.width;
+    const scaleY = naturalHeight / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    return {
+      x: Math.max(0, Math.min(naturalWidth, x)),
+      y: Math.max(0, Math.min(naturalHeight, y))
+    };
+  };
+
+  // Global mousemove and mouseup listeners for dragging and painting
   useEffect(() => {
-    const handleGlobalMouseUp = () => setIsMouseDown(false);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, []);
+    const handleWindowMouseMove = (e) => {
+      if (!draggingItem) return;
+      const { x, y } = getSvgCoords(e);
+      const dx = x - draggingItem.startMouseX;
+      const dy = y - draggingItem.startMouseY;
+
+      if (Math.hypot(dx, dy) > 2) {
+        wasDraggingRef.current = true;
+      }
+
+      const newX = Math.round(draggingItem.itemStartX + dx);
+      const newY = Math.round(draggingItem.itemStartY + dy);
+
+      if (draggingItem.type === 'marker') {
+        const updated = (mapData.placedMarkers || []).map((m) =>
+          m.id === draggingItem.id ? { ...m, x: newX, y: newY } : m
+        );
+        onChangeMapData({ ...mapData, placedMarkers: updated });
+      } else if (draggingItem.type === 'text') {
+        const updated = (mapData.customTexts || []).map((t) =>
+          t.id === draggingItem.id ? { ...t, x: newX, y: newY } : t
+        );
+        onChangeMapData({ ...mapData, customTexts: updated });
+      }
+    };
+
+    const handleWindowMouseUp = () => {
+      if (draggingItem) {
+        setDraggingItem(null);
+      }
+      setIsMouseDown(false);
+    };
+
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+    };
+  }, [draggingItem, mapData, naturalWidth, naturalHeight]);
 
   // Default color groups setup
   const colorGroups = mapData.colorGroups || [
@@ -633,11 +697,11 @@ export function MapGenerator({
 
   // Marker Groups and Placed Markers Data
   const markerGroups = mapData.markerGroups || [
-    { id: 'airfield', name: 'Airfield', iconType: 'svg_preset', svgType: 'plane', color: '#00f0ff', size: 32, customImageUrl: null },
-    { id: 'bridge', name: 'Bridge', iconType: 'svg_preset', svgType: 'bridge', color: '#eab308', size: 32, customImageUrl: null },
-    { id: 'nuclear', name: 'Nuclear Facility', iconType: 'svg_preset', svgType: 'nuclear', color: '#ef4444', size: 32, customImageUrl: null },
-    { id: 'factory', name: 'Factory', iconType: 'svg_preset', svgType: 'factory', color: '#a855f7', size: 32, customImageUrl: null },
-    { id: 'shipyard', name: 'Shipyard', iconType: 'svg_preset', svgType: 'shipyard', color: '#3b82f6', size: 32, customImageUrl: null }
+    { id: 'airfield', name: 'Airfield', iconType: 'svg_preset', svgType: 'plane', color: '#000000', size: 32, customImageUrl: null },
+    { id: 'bridge', name: 'Bridge', iconType: 'svg_preset', svgType: 'bridge', color: '#000000', size: 32, customImageUrl: null },
+    { id: 'nuclear', name: 'Nuclear Facility', iconType: 'svg_preset', svgType: 'nuclear', color: '#000000', size: 32, customImageUrl: null },
+    { id: 'factory', name: 'Factory', iconType: 'svg_preset', svgType: 'factory', color: '#000000', size: 32, customImageUrl: null },
+    { id: 'shipyard', name: 'Shipyard', iconType: 'svg_preset', svgType: 'shipyard', color: '#000000', size: 32, customImageUrl: null }
   ];
 
   const placedMarkers = mapData.placedMarkers || [];
@@ -650,7 +714,7 @@ export function MapGenerator({
       name: newMarkerGroupName.trim(),
       iconType: 'svg_preset',
       svgType: newMarkerGroupSvgType,
-      color: newMarkerGroupColor,
+      color: newMarkerGroupColor || '#000000',
       size: Number(newMarkerGroupSize) || 32,
       customImageUrl: null
     };
@@ -687,37 +751,60 @@ export function MapGenerator({
     }
   };
 
-  const handleTogglePlaceMarkerOnHex = (hex) => {
-    if (!hex) return;
-    const existingIndex = placedMarkers.findIndex((m) => m.hexId === hex.id && m.markerGroupId === activeMarkerGroupId);
-    let updated = [];
-    if (existingIndex >= 0) {
-      updated = placedMarkers.filter((_, idx) => idx !== existingIndex);
-      showNotification({ title: 'MARKER REMOVED', message: `Removed marker from ${hex.label}.` });
-    } else {
-      const newMarker = {
-        id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
-        hexId: hex.id,
-        markerGroupId: activeMarkerGroupId
-      };
-      updated = [...placedMarkers, newMarker];
-      showNotification({ title: 'MARKER PLACED', message: `Placed marker on ${hex.label}.` });
-    }
+  const handleMarkerMouseDown = (pm, e) => {
+    e.stopPropagation();
+    setActiveMarkerId(pm.id);
+    markerPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const { x, y } = getSvgCoords(e);
+    const hex = hexes.find((h) => h.id === pm.hexId);
+    const startX = pm.x !== undefined ? pm.x : (hex ? hex.cx : x);
+    const startY = pm.y !== undefined ? pm.y : (hex ? hex.cy : y);
+
+    setDraggingItem({
+      type: 'marker',
+      id: pm.id,
+      startMouseX: x,
+      startMouseY: y,
+      itemStartX: startX,
+      itemStartY: startY
+    });
+  };
+
+  const handleUpdatePlacedMarker = (markerId, field, value) => {
+    const updated = placedMarkers.map((m) => (m.id === markerId ? { ...m, [field]: value } : m));
     onChangeMapData({ ...mapData, placedMarkers: updated });
   };
 
   const handleDeletePlacedMarker = (markerId) => {
     const updated = placedMarkers.filter((m) => m.id !== markerId);
     onChangeMapData({ ...mapData, placedMarkers: updated });
+    if (activeMarkerId === markerId) setActiveMarkerId(null);
   };
 
   const handleClearAllPlacedMarkers = () => {
     onChangeMapData({ ...mapData, placedMarkers: [] });
+    setActiveMarkerId(null);
     showNotification({ title: 'ALL MARKERS CLEARED', message: 'Cleared all placed markers from map.' });
   };
 
   // Custom Text Labels Data & Handlers
   const customTexts = mapData.customTexts || [];
+
+  const handleTextMouseDown = (txt, e) => {
+    e.stopPropagation();
+    setActiveTextId(txt.id);
+    textPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const { x, y } = getSvgCoords(e);
+
+    setDraggingItem({
+      type: 'text',
+      id: txt.id,
+      startMouseX: x,
+      startMouseY: y,
+      itemStartX: txt.x,
+      itemStartY: txt.y
+    });
+  };
 
   const handleTextMapClick = (x, y) => {
     const newId = 'txt_' + Date.now().toString(36);
@@ -758,6 +845,30 @@ export function MapGenerator({
     onChangeMapData({ ...mapData, customTexts: [] });
     setActiveTextId(null);
     showNotification({ title: 'ALL TEXT CLEARED', message: 'Cleared all custom text labels from map.' });
+  };
+
+  // SVG Canvas Click Handler for placing markers or text when clicking empty map areas
+  const handleSvgCanvasClick = (e) => {
+    if (wasDraggingRef.current) {
+      wasDraggingRef.current = false;
+      return;
+    }
+    const { x, y } = getSvgCoords(e);
+
+    if (interactionMode === 'marker') {
+      const newMarker = {
+        id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
+        markerGroupId: activeMarkerGroupId,
+        x: Math.round(x),
+        y: Math.round(y)
+      };
+      const updated = [...placedMarkers, newMarker];
+      onChangeMapData({ ...mapData, placedMarkers: updated });
+      setActiveMarkerId(newMarker.id);
+      showNotification({ title: 'MARKER PLACED', message: `Placed marker at (${Math.round(x)}, ${Math.round(y)}).` });
+    } else if (interactionMode === 'text') {
+      handleTextMapClick(x, y);
+    }
   };
 
   const renderMiniHexSelector = () => {
@@ -1720,7 +1831,7 @@ export function MapGenerator({
             </div>
 
             {/* CUSTOM MAP TEXT LABELS PANEL */}
-            <div className="tint-card tint-card-text">
+            <div ref={textPanelRef} className="tint-card tint-card-text">
               <h3 className="subsection-header">✍️ Custom Map Text Labels</h3>
 
               <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
@@ -1974,7 +2085,7 @@ export function MapGenerator({
             </div>
 
             {/* MARKERS & MARKER GROUPS PANEL */}
-            <div className="tint-card tint-card-aircraft">
+            <div ref={markerPanelRef} className="tint-card tint-card-aircraft">
               <h3 className="subsection-header">📍 Map Markers & Marker Groups</h3>
 
               <div>
@@ -2187,7 +2298,7 @@ export function MapGenerator({
                 </div>
               </div>
 
-              {/* PLACED MARKERS SUMMARY */}
+              {/* PLACED MARKERS SUMMARY & INDIVIDUAL OVERRIDES */}
               {placedMarkers.length > 0 && (
                 <div style={{ marginTop: '0.6rem', background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
@@ -2199,24 +2310,116 @@ export function MapGenerator({
                       onClick={handleClearAllPlacedMarkers}
                       style={{ fontSize: '0.7rem', padding: '2px 5px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                     >
-                      Clear All Markers
+                      Clear All
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: '150px', overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '220px', overflowY: 'auto' }}>
                     {placedMarkers.map((pm) => {
                       const hex = hexes.find((h) => h.id === pm.hexId);
                       const grp = markerGroups.find((g) => g.id === pm.markerGroupId);
+                      const posX = pm.x !== undefined ? pm.x : (hex ? hex.cx : 0);
+                      const posY = pm.y !== undefined ? pm.y : (hex ? hex.cy : 0);
+                      const isSelected = activeMarkerId === pm.id;
+
                       return (
-                        <div key={pm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', background: 'var(--panel-bg)', padding: '2px 6px', borderRadius: '3px' }}>
-                          <span>{grp?.name || 'Marker'} @ {hex?.label || pm.hexId}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePlacedMarker(pm.id)}
-                            style={{ fontSize: '0.68rem', background: 'none', color: '#ef4444', border: 'none', cursor: 'pointer' }}
-                          >
-                            ✖
-                          </button>
+                        <div
+                          key={pm.id}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.3rem',
+                            background: 'var(--panel-bg)',
+                            border: isSelected ? '1px solid var(--accent-cyan)' : '1px solid var(--panel-border)',
+                            padding: '0.4rem',
+                            borderRadius: '4px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <select
+                                value={pm.markerGroupId}
+                                onChange={(e) => handleUpdatePlacedMarker(pm.id, 'markerGroupId', e.target.value)}
+                                style={{ fontSize: '0.75rem', fontWeight: 'bold' }}
+                              >
+                                {markerGroups.map((g) => (
+                                  <option key={g.id} value={g.id}>
+                                    {g.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => setActiveMarkerId(pm.id)}
+                                style={{
+                                  fontSize: '0.68rem',
+                                  padding: '1px 4px',
+                                  background: isSelected ? 'var(--accent-cyan)' : 'var(--panel-border)',
+                                  color: isSelected ? 'var(--bg-dark)' : 'var(--text-primary)',
+                                  border: 'none',
+                                  borderRadius: '3px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {isSelected ? 'Selected' : 'Select'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePlacedMarker(pm.id)}
+                                style={{ fontSize: '0.68rem', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '3px', cursor: 'pointer', padding: '1px 4px' }}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.3rem', fontSize: '0.7rem' }}>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>Color</span>
+                              <input
+                                type="color"
+                                value={pm.customColor || grp?.color || '#000000'}
+                                onChange={(e) => handleUpdatePlacedMarker(pm.id, 'customColor', e.target.value)}
+                                style={{ display: 'block', width: '100%', height: '20px' }}
+                              />
+                            </div>
+
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>Size</span>
+                              <input
+                                type="number"
+                                min="16"
+                                max="80"
+                                value={pm.customSize || grp?.size || 32}
+                                onChange={(e) => handleUpdatePlacedMarker(pm.id, 'customSize', Number(e.target.value))}
+                                style={{ width: '100%', fontSize: '0.7rem' }}
+                              />
+                            </div>
+
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>X</span>
+                              <input
+                                type="number"
+                                value={posX}
+                                onChange={(e) => handleUpdatePlacedMarker(pm.id, 'x', Number(e.target.value))}
+                                style={{ width: '100%', fontSize: '0.7rem' }}
+                              />
+                            </div>
+
+                            <div>
+                              <span style={{ color: 'var(--text-muted)' }}>Y</span>
+                              <input
+                                type="number"
+                                value={posY}
+                                onChange={(e) => handleUpdatePlacedMarker(pm.id, 'y', Number(e.target.value))}
+                                style={{ width: '100%', fontSize: '0.7rem' }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
@@ -2802,8 +3005,10 @@ export function MapGenerator({
                     width={naturalWidth}
                     height={naturalHeight}
                     viewBox={`0 0 ${naturalWidth} ${naturalHeight}`}
-                    onMouseDown={() => setIsMouseDown(true)}
-                    onMouseUp={() => setIsMouseDown(false)}
+                    onMouseDown={() => {
+                      setIsMouseDown(true);
+                    }}
+                    onClick={handleSvgCanvasClick}
                     style={{
                       position: 'absolute',
                       top: 0,
@@ -3118,25 +3323,67 @@ export function MapGenerator({
 
                     {/* LAYER 1C: PLACED MARKERS (Renders on top of hex borders & side features, below solid mask/unavailable covers) */}
                     {placedMarkers.map((pm) => {
-                      const targetHex = hexes.find((h) => h.id === pm.hexId);
-                      if (!targetHex) return null;
+                      const hex = hexes.find((h) => h.id === pm.hexId);
+                      const posX = pm.x !== undefined ? pm.x : (hex ? hex.cx : 0);
+                      const posY = pm.y !== undefined ? pm.y : (hex ? hex.cy : 0);
                       const group = markerGroups.find((g) => g.id === pm.markerGroupId);
                       if (!group) return null;
-                      const size = Number(group.size) || 32;
+
+                      const size = Number(pm.customSize || group.size) || 32;
+                      const color = pm.customColor || group.color || '#000000';
+                      const isActive = activeMarkerId === pm.id;
 
                       return (
                         <g
                           key={`placed_marker_${pm.id}`}
-                          transform={`translate(${targetHex.cx}, ${targetHex.cy})`}
-                          style={{ cursor: 'pointer' }}
+                          transform={`translate(${posX}, ${posY})`}
+                          onMouseDown={(e) => handleMarkerMouseDown(pm, e)}
                           onClick={(e) => {
-                            if (interactionMode === 'marker') {
-                              e.stopPropagation();
-                              handleDeletePlacedMarker(pm.id);
-                            }
+                            e.stopPropagation();
+                            if (wasDraggingRef.current) return;
+                            setActiveMarkerId(pm.id);
+                            markerPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                           }}
+                          style={{ cursor: 'grab' }}
                         >
-                          {renderMarkerIcon(group, size)}
+                          {renderMarkerIcon(group, size, color, size)}
+
+                          {/* Active outline selection ring */}
+                          {isActive && (
+                            <circle
+                              cx="0"
+                              cy="0"
+                              r={size / 2 + 4}
+                              fill="none"
+                              stroke="#00f0ff"
+                              strokeWidth="2"
+                              strokeDasharray="4,3"
+                            />
+                          )}
+
+                          {/* Map-level delete button badge */}
+                          {isActive && (
+                            <g
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePlacedMarker(pm.id);
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <circle cx={size / 2 + 2} cy={-size / 2 - 2} r="8" fill="#dc2626" stroke="#ffffff" strokeWidth="1.5" />
+                              <text
+                                x={size / 2 + 2}
+                                y={-size / 2 - 2}
+                                fill="#ffffff"
+                                fontSize="10"
+                                fontWeight="bold"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                              >
+                                ×
+                              </text>
+                            </g>
+                          )}
                         </g>
                       );
                     })}
@@ -3207,15 +3454,22 @@ export function MapGenerator({
                     {/* LAYER 3: CUSTOM MAP TEXT LABELS (Renders on top of all hex layers, markers & solid covers) */}
                     {customTexts.map((txt) => {
                       const isActive = activeTextId === txt.id;
+                      const fontSz = txt.fontSize || 20;
+                      const boxWidth = (txt.text || '').length * fontSz * 0.6 + 12;
+                      const boxHeight = fontSz + 8;
+
                       return (
                         <g
                           key={`custom_text_${txt.id}`}
                           transform={`translate(${txt.x}, ${txt.y})`}
+                          onMouseDown={(e) => handleTextMouseDown(txt, e)}
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (wasDraggingRef.current) return;
                             setActiveTextId(txt.id);
+                            textPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                           }}
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: 'grab' }}
                         >
                           <text
                             x="0"
@@ -3223,7 +3477,7 @@ export function MapGenerator({
                             fill={txt.color || '#00f0ff'}
                             stroke={txt.strokeColor || '#000000'}
                             strokeWidth={txt.strokeWidth ?? 2}
-                            fontSize={txt.fontSize || 20}
+                            fontSize={fontSz}
                             fontWeight={txt.isBold ? 'bold' : 'normal'}
                             fontStyle={txt.isItalic ? 'italic' : 'normal'}
                             fontFamily={txt.fontFamily || "'Share Tech Mono', monospace"}
@@ -3234,17 +3488,42 @@ export function MapGenerator({
                             {txt.text}
                           </text>
 
+                          {/* Active bounding box */}
                           {isActive && (
                             <rect
-                              x={-((txt.text.length * (txt.fontSize || 20)) / 3) - 8}
-                              y={-((txt.fontSize || 20) / 2) - 4}
-                              width={(txt.text.length * (txt.fontSize || 20)) * 0.7 + 16}
-                              height={(txt.fontSize || 20) + 8}
+                              x={-boxWidth / 2}
+                              y={-boxHeight / 2}
+                              width={boxWidth}
+                              height={boxHeight}
                               fill="none"
                               stroke="#00f0ff"
                               strokeWidth="1.5"
                               strokeDasharray="4,3"
                             />
+                          )}
+
+                          {/* Map-level delete button badge */}
+                          {isActive && (
+                            <g
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTextLabel(txt.id);
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <circle cx={boxWidth / 2 + 2} cy={-boxHeight / 2 - 2} r="8" fill="#dc2626" stroke="#ffffff" strokeWidth="1.5" />
+                              <text
+                                x={boxWidth / 2 + 2}
+                                y={-boxHeight / 2 - 2}
+                                fill="#ffffff"
+                                fontSize="10"
+                                fontWeight="bold"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                              >
+                                ×
+                              </text>
+                            </g>
                           )}
                         </g>
                       );
