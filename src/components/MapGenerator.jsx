@@ -80,6 +80,7 @@ export function MapGenerator({
   const [newGroupStrokeOpacity, setNewGroupStrokeOpacity] = useState(0.8);
   const [newGroupFillColor, setNewGroupFillColor] = useState('#3b82f6');
   const [newGroupFillOpacity, setNewGroupFillOpacity] = useState(0.15);
+  const [newGroupImportance, setNewGroupImportance] = useState(1);
 
   // Selected Hex Direct Styling State
   const [selectedHexStrokeColor, setSelectedHexStrokeColor] = useState('#ef4444');
@@ -87,6 +88,7 @@ export function MapGenerator({
   const [selectedHexStrokeOpacity, setSelectedHexStrokeOpacity] = useState(1.0);
   const [selectedHexFillColor, setSelectedHexFillColor] = useState('#ef4444');
   const [selectedHexFillOpacity, setSelectedHexFillOpacity] = useState(0.25);
+  const [selectedHexImportance, setSelectedHexImportance] = useState(5);
   const [selectedMaskColor, setSelectedMaskColor] = useState('#ffffff');
 
   // Global mouseup listener for smooth drag brush painting
@@ -96,13 +98,13 @@ export function MapGenerator({
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
 
-  // Default color groups setup (Naval Configuration)
+  // Default color groups setup (Naval Configuration with Gradation Importance Levels)
   const colorGroups = mapData.colorGroups || [
-    { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 2, strokeOpacity: 0.8, fillColor: '#0284c7', fillOpacity: 0.15 },
-    { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#22c55e', fillOpacity: 0.15 },
-    { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#eab308', fillOpacity: 0.15 },
-    { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, strokeOpacity: 0.9, fillColor: '#f97316', fillOpacity: 0.2 },
-    { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25 }
+    { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 2, strokeOpacity: 0.8, fillColor: '#0284c7', fillOpacity: 0.15, importance: 0 },
+    { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#22c55e', fillOpacity: 0.15, importance: 1 },
+    { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#eab308', fillOpacity: 0.15, importance: 2 },
+    { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, strokeOpacity: 0.9, fillColor: '#f97316', fillOpacity: 0.2, importance: 3 },
+    { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25, importance: 4 }
   ];
 
   const hexOverrides = mapData.hexOverrides || {};
@@ -113,6 +115,13 @@ export function MapGenerator({
     if (w && h) {
       setNaturalWidth(w);
       setNaturalHeight(h);
+      if (!mapData.exportWidth || !mapData.exportHeight) {
+        onChangeMapData({
+          ...mapData,
+          exportWidth: w,
+          exportHeight: h
+        });
+      }
     }
   };
 
@@ -231,11 +240,23 @@ export function MapGenerator({
     }
   }
 
+  // Helper to compute hex importance level
+  const getHexImportance = (hexId) => {
+    const override = hexOverrides[hexId];
+    if (!override) return -1; // Default grid
+    if (override.isSolidMask) return 100;
+    if (override.isInaccessible) return 50;
+    if (override.groupId) {
+      const group = colorGroups.find((g) => g.id === override.groupId);
+      return group ? (group.importance ?? 0) : 0;
+    }
+    return override.importance ?? 10;
+  };
+
   // Brush Painting Handler
   const applyBrushToHexes = (targetHex) => {
     if (!targetHex) return;
 
-    // Find all hexes within brush radius
     let thresholdDist = radius * 0.8; // Small (1 hex)
     if (brushSize === 7) thresholdDist = radius * 2.2; // Medium (7 hexes)
     if (brushSize === 19) thresholdDist = radius * 4.0; // Large (19 hexes)
@@ -275,6 +296,7 @@ export function MapGenerator({
           strokeOpacity: selectedHexStrokeOpacity,
           fillColor: selectedHexFillColor,
           fillOpacity: selectedHexFillOpacity,
+          importance: selectedHexImportance,
           groupId: null,
           isSolidMask: false,
           isInaccessible: false
@@ -319,7 +341,8 @@ export function MapGenerator({
       strokeWidth: Number(newGroupStrokeWidth) || 2,
       strokeOpacity: Number(newGroupStrokeOpacity),
       fillColor: newGroupFillColor,
-      fillOpacity: Number(newGroupFillOpacity)
+      fillOpacity: Number(newGroupFillOpacity),
+      importance: Number(newGroupImportance) || 0
     };
 
     const updatedGroups = [...colorGroups, newGroup];
@@ -409,6 +432,7 @@ export function MapGenerator({
         strokeOpacity: Number(selectedHexStrokeOpacity),
         fillColor: selectedHexFillColor,
         fillOpacity: Number(selectedHexFillOpacity),
+        importance: Number(selectedHexImportance) || 5,
         groupId: null,
         isSolidMask: false
       };
@@ -427,6 +451,9 @@ export function MapGenerator({
     onChangeMapData({ ...mapData, hexOverrides: updated });
     showNotification({ title: 'STYLING RESET', message: `Reset styling for ${selectedHexIds.length} hex(es) to default.` });
   };
+
+  // Sort hexes by style importance level for rendering order
+  const sortedHexes = [...hexes].sort((a, b) => getHexImportance(a.id) - getHexImportance(b.id));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -472,7 +499,7 @@ export function MapGenerator({
               🗺️ Tactical Map & Hex Grid Generator
             </h2>
             <p style={{ margin: '0.2rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Upload any map image, paint terrain with the interactive brush tool, configure separate line/fill opacities, and cover hexes with solid masks.
+              Upload map images, paint terrain with brush tools, adjust style importance levels, cover non-hex spaces, and set custom PNG export resolution.
             </p>
           </div>
 
@@ -570,9 +597,9 @@ export function MapGenerator({
           {/* CONTROLS PANEL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
 
-            {/* 1. MAP FILE UPLOAD & NAME */}
+            {/* 1. MAP FILE UPLOAD, NAME & PNG EXPORT RESOLUTION */}
             <div className="tint-card tint-card-attributes">
-              <h3 className="subsection-header">🖼️ Map Image File</h3>
+              <h3 className="subsection-header">🖼️ Map Image File & PNG Export Size</h3>
 
               <div>
                 <label className="field-label">Upload Map Image File</label>
@@ -594,6 +621,61 @@ export function MapGenerator({
                   placeholder="e.g. TAIWAN STRAIT MAP"
                   style={{ width: '100%' }}
                 />
+              </div>
+
+              {/* PNG EXPORT DIMENSIONS SETUP */}
+              <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginTop: '0.2rem' }}>
+                <span className="field-label" style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                  📐 Custom PNG Export Resolution (Width x Height px)
+                </span>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <div>
+                    <label className="field-label" style={{ fontSize: '0.75rem' }}>Export Width (px)</label>
+                    <input
+                      type="number"
+                      placeholder={String(naturalWidth)}
+                      value={mapData.exportWidth || ''}
+                      onChange={(e) => onChangeMapData({ ...mapData, exportWidth: e.target.value ? Number(e.target.value) : null })}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="field-label" style={{ fontSize: '0.75rem' }}>Export Height (px)</label>
+                    <input
+                      type="number"
+                      placeholder={String(naturalHeight)}
+                      value={mapData.exportHeight || ''}
+                      onChange={(e) => onChangeMapData({ ...mapData, exportHeight: e.target.value ? Number(e.target.value) : null })}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => onChangeMapData({ ...mapData, exportWidth: naturalWidth, exportHeight: naturalHeight })}
+                    style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'var(--panel-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    Reset to Natural ({naturalWidth}x{naturalHeight})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChangeMapData({ ...mapData, exportWidth: 1920, exportHeight: 1080 })}
+                    style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'var(--panel-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    1080p (1920x1080)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChangeMapData({ ...mapData, exportWidth: 3840, exportHeight: 2160 })}
+                    style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'var(--panel-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                  >
+                    4K (3840x2160)
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -695,7 +777,7 @@ export function MapGenerator({
                       >
                         {colorGroups.map((g) => (
                           <option key={g.id} value={g.id}>
-                            {g.name}
+                            {g.name} (Lvl {g.importance ?? 0})
                           </option>
                         ))}
                       </select>
@@ -871,7 +953,7 @@ export function MapGenerator({
               </div>
             </div>
 
-            {/* 4. DEFAULT NAVAL GRID STYLING & SEPARATE OPACITIES */}
+            {/* 4. DEFAULT NAVAL GRID STYLING & UNCOVERED SPACES BACKDROP FILL */}
             <div className="tint-card tint-card-colors">
               <h3 className="subsection-header">🎨 Default Grid Line & Fill Opacity Setup</h3>
 
@@ -889,34 +971,6 @@ export function MapGenerator({
                       value={mapData.strokeColor || '#0284c7'}
                       onChange={(e) => onChangeMapData({ ...mapData, strokeColor: e.target.value })}
                       style={{ width: '80px', fontSize: '0.8rem', textTransform: 'uppercase' }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem' }}>
-                  <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Border Opacity</span>
-                    <input
-                      type="range"
-                      min="0.1"
-                      max="1.0"
-                      step="0.05"
-                      value={newGroupStrokeOpacity}
-                      onChange={(e) => setNewGroupStrokeOpacity(Number(e.target.value))}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Fill Opacity</span>
-                    <input
-                      type="range"
-                      min="0.0"
-                      max="0.8"
-                      step="0.02"
-                      value={newGroupFillOpacity}
-                      onChange={(e) => setNewGroupFillOpacity(Number(e.target.value))}
-                      style={{ width: '100%' }}
                     />
                   </div>
                 </div>
@@ -977,6 +1031,52 @@ export function MapGenerator({
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* COVER UNCOVERED MAP SPACES WITH BACKDROP COLOR */}
+              <div style={{ background: 'var(--input-bg)', padding: '0.6rem', borderRadius: '4px', border: '1px solid var(--panel-border)', marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(mapData.coverUncoveredSpaces)}
+                    onChange={(e) => onChangeMapData({ ...mapData, coverUncoveredSpaces: e.target.checked })}
+                  />
+                  Cover All Non-Hex Spaces with Backdrop Color
+                </label>
+
+                {mapData.coverUncoveredSpaces && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.4rem', alignItems: 'center' }}>
+                    <div>
+                      <label className="field-label" style={{ fontSize: '0.72rem' }}>Backdrop Color</label>
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                        <input
+                          type="color"
+                          value={mapData.uncoveredSpaceColor || mapData.fillColor || '#0284c7'}
+                          onChange={(e) => onChangeMapData({ ...mapData, uncoveredSpaceColor: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          value={mapData.uncoveredSpaceColor || mapData.fillColor || '#0284c7'}
+                          onChange={(e) => onChangeMapData({ ...mapData, uncoveredSpaceColor: e.target.value })}
+                          style={{ width: '70px', fontSize: '0.75rem', textTransform: 'uppercase' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="field-label" style={{ fontSize: '0.72rem' }}>Opacity ({Math.round((mapData.uncoveredSpaceOpacity ?? 0.1) * 100)}%)</label>
+                      <input
+                        type="range"
+                        min="0.0"
+                        max="1.0"
+                        step="0.02"
+                        value={mapData.uncoveredSpaceOpacity ?? 0.1}
+                        onChange={(e) => onChangeMapData({ ...mapData, uncoveredSpaceOpacity: Number(e.target.value) })}
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1077,11 +1177,11 @@ export function MapGenerator({
               )}
             </div>
 
-            {/* 6. TERRAIN COLOR GROUPS */}
+            {/* 6. TERRAIN COLOR GROUPS WITH GRADATION IMPORTANCE */}
             <div className="tint-card tint-card-aircraft">
-              <h3 className="subsection-header">🏰 Terrain Color Groups</h3>
+              <h3 className="subsection-header">🏰 Terrain Color Groups & Height Importance</h3>
               <p className="field-help-text" style={{ margin: '0 0 0.6rem 0' }}>
-                Color groups control terrain styling (Naval, Land Easy/Medium/Hard/Very Hard). Separate border and fill opacities are supported.
+                Higher importance levels render on top of lower ones (e.g. Land level 1 renders on top of Naval level 0).
               </p>
 
               {/* EXISTING COLOR GROUPS LIST */}
@@ -1100,9 +1200,14 @@ export function MapGenerator({
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                        {grp.name}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                          {grp.name}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', padding: '1px 5px', background: 'var(--accent-cyan)', color: 'var(--bg-dark)', borderRadius: '3px', fontWeight: 'bold' }}>
+                          Lvl {grp.importance ?? 0}
+                        </span>
+                      </div>
 
                       <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
                         <button
@@ -1143,9 +1248,9 @@ export function MapGenerator({
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
                       <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border Color & Width</span>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border & Width</span>
                         <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
                           <input
                             type="color"
@@ -1158,14 +1263,14 @@ export function MapGenerator({
                             max="10"
                             value={grp.strokeWidth}
                             onChange={(e) => handleUpdateGroup(grp.id, 'strokeWidth', Number(e.target.value))}
-                            style={{ width: '45px', fontSize: '0.75rem' }}
+                            style={{ width: '40px', fontSize: '0.75rem' }}
                           />
                           px
                         </div>
                       </div>
 
                       <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border Opacity ({Math.round((grp.strokeOpacity ?? 0.8) * 100)}%)</span>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Border Opacity</span>
                         <input
                           type="range"
                           min="0.1"
@@ -1174,6 +1279,18 @@ export function MapGenerator({
                           value={grp.strokeOpacity ?? 0.8}
                           onChange={(e) => handleUpdateGroup(grp.id, 'strokeOpacity', Number(e.target.value))}
                           style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Importance Lvl</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="20"
+                          value={grp.importance ?? 0}
+                          onChange={(e) => handleUpdateGroup(grp.id, 'importance', Number(e.target.value))}
+                          style={{ width: '100%', fontSize: '0.75rem' }}
                         />
                       </div>
                     </div>
@@ -1238,7 +1355,7 @@ export function MapGenerator({
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
                   <div>
                     <span style={{ color: 'var(--text-muted)' }}>Border Color</span>
                     <input
@@ -1250,7 +1367,7 @@ export function MapGenerator({
                   </div>
 
                   <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Width (px)</span>
+                    <span style={{ color: 'var(--text-muted)' }}>Width</span>
                     <input
                       type="number"
                       min="1"
@@ -1262,12 +1379,52 @@ export function MapGenerator({
                   </div>
 
                   <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Fill Color</span>
+                    <span style={{ color: 'var(--text-muted)' }}>Fill</span>
                     <input
                       type="color"
                       value={newGroupFillColor}
                       onChange={(e) => setNewGroupFillColor(e.target.value)}
                       style={{ display: 'block', width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Importance</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      value={newGroupImportance}
+                      onChange={(e) => setNewGroupImportance(Number(e.target.value))}
+                      style={{ width: '100%', fontSize: '0.75rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Border Opacity</span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1.0"
+                      step="0.05"
+                      value={newGroupStrokeOpacity}
+                      onChange={(e) => setNewGroupStrokeOpacity(Number(e.target.value))}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Fill Opacity</span>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="0.8"
+                      step="0.02"
+                      value={newGroupFillOpacity}
+                      onChange={(e) => setNewGroupFillOpacity(Number(e.target.value))}
+                      style={{ width: '100%' }}
                     />
                   </div>
                 </div>
@@ -1427,7 +1584,7 @@ export function MapGenerator({
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <div>
                     <label className="field-label" style={{ fontSize: '0.72rem' }}>Border Opacity</label>
                     <input
@@ -1450,6 +1607,18 @@ export function MapGenerator({
                       step="0.02"
                       value={selectedHexFillOpacity}
                       onChange={(e) => setSelectedHexFillOpacity(Number(e.target.value))}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="field-label" style={{ fontSize: '0.72rem' }}>Importance Lvl</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      value={selectedHexImportance}
+                      onChange={(e) => setSelectedHexImportance(Number(e.target.value))}
                       style={{ width: '100%' }}
                     />
                   </div>
@@ -1660,8 +1829,21 @@ export function MapGenerator({
                       </pattern>
                     </defs>
 
-                    {/* LAYER 1: BASE GRID POLYGONS & OVERRIDES */}
-                    {hexes.map((hex) => {
+                    {/* BACKDROP COVER FOR UNCOVERED SPACES */}
+                    {mapData.coverUncoveredSpaces && (
+                      <rect
+                        x="0"
+                        y="0"
+                        width={naturalWidth}
+                        height={naturalHeight}
+                        fill={mapData.uncoveredSpaceColor || mapData.fillColor || '#0284c7'}
+                        fillOpacity={mapData.uncoveredSpaceOpacity ?? 0.1}
+                        style={{ pointerEvents: 'none' }}
+                      />
+                    )}
+
+                    {/* LAYER 1: BASE GRID POLYGONS & OVERRIDES (SORTED BY IMPORTANCE LEVEL) */}
+                    {sortedHexes.map((hex) => {
                       const pointsStr = getHexPoints(hex.cx, hex.cy, radius, orientation);
                       const isSelected = selectedHexIds.includes(hex.id);
                       const override = hexOverrides[hex.id];

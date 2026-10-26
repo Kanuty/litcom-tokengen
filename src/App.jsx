@@ -300,11 +300,11 @@ const BUILTIN_GROUP_STYLES = {
 };
 
 const DEFAULT_COLOR_GROUPS = [
-  { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 2, strokeOpacity: 0.8, fillColor: '#0284c7', fillOpacity: 0.15 },
-  { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#22c55e', fillOpacity: 0.15 },
-  { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#eab308', fillOpacity: 0.15 },
-  { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, strokeOpacity: 0.9, fillColor: '#f97316', fillOpacity: 0.2 },
-  { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25 }
+  { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 2, strokeOpacity: 0.8, fillColor: '#0284c7', fillOpacity: 0.15, importance: 0 },
+  { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#22c55e', fillOpacity: 0.15, importance: 1 },
+  { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, strokeOpacity: 0.8, fillColor: '#eab308', fillOpacity: 0.15, importance: 2 },
+  { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, strokeOpacity: 0.9, fillColor: '#f97316', fillOpacity: 0.2, importance: 3 },
+  { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, strokeOpacity: 1.0, fillColor: '#dc2626', fillOpacity: 0.25, importance: 4 }
 ];
 
 const DEFAULT_MAP_DATA = {
@@ -329,6 +329,11 @@ const DEFAULT_MAP_DATA = {
   startRow: 1,
   coordFontFamily: "'Share Tech Mono', monospace",
   coordOpacity: 1.0,
+  coverUncoveredSpaces: false,
+  uncoveredSpaceColor: '#0284c7',
+  uncoveredSpaceOpacity: 0.1,
+  exportWidth: null,
+  exportHeight: null,
   colorGroups: DEFAULT_COLOR_GROUPS,
   hexOverrides: {}
 };
@@ -1586,7 +1591,12 @@ function App() {
   };
 
   const handleDownloadMapPNG = () => {
-    downloadMapAsPNG('tactical-map-export-container', mapData.title);
+    downloadMapAsPNG(
+      'tactical-map-export-container',
+      mapData.title,
+      mapData.exportWidth ? Number(mapData.exportWidth) : null,
+      mapData.exportHeight ? Number(mapData.exportHeight) : null
+    );
   };
 
   const handleExportMapJSON = () => {

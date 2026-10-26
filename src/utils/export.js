@@ -265,7 +265,9 @@ export async function downloadTacticalGroupTrackerAsPNG(
  */
 export async function downloadMapAsPNG(
   containerId = 'tactical-map-export-container',
-  title = 'tactical-map'
+  title = 'tactical-map',
+  exportWidth = null,
+  exportHeight = null
 ) {
   const element = document.getElementById(containerId);
   if (!element) {
@@ -276,10 +278,19 @@ export async function downloadMapAsPNG(
   const filename = `${cleanTitle}-map.png`;
 
   try {
-    const dataUrl = await toPng(element, {
+    const opts = {
       pixelRatio: 3,
       cacheBust: true
-    });
+    };
+
+    if (exportWidth && exportHeight) {
+      opts.canvasWidth = exportWidth;
+      opts.canvasHeight = exportHeight;
+      opts.width = exportWidth;
+      opts.height = exportHeight;
+    }
+
+    const dataUrl = await toPng(element, opts);
     const link = document.createElement('a');
     link.download = filename;
     link.href = dataUrl;
