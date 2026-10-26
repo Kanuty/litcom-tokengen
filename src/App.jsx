@@ -299,6 +299,14 @@ const BUILTIN_GROUP_STYLES = {
   }
 };
 
+const DEFAULT_COLOR_GROUPS = [
+  { id: 'naval', name: 'Naval', strokeColor: '#0284c7', strokeWidth: 1, fillColor: '#0284c7', fillOpacity: 0.1 },
+  { id: 'land_easy', name: 'Land Easy', strokeColor: '#22c55e', strokeWidth: 3, fillColor: '#22c55e', fillOpacity: 0.1 },
+  { id: 'land_med', name: 'Land Medium', strokeColor: '#eab308', strokeWidth: 3, fillColor: '#eab308', fillOpacity: 0.1 },
+  { id: 'land_hard', name: 'Land Hard', strokeColor: '#f97316', strokeWidth: 4, fillColor: '#f97316', fillOpacity: 0.15 },
+  { id: 'land_vhard', name: 'Land Very Hard', strokeColor: '#dc2626', strokeWidth: 5, fillColor: '#dc2626', fillOpacity: 0.2 }
+];
+
 const DEFAULT_MAP_DATA = {
   title: 'INDO-PACIFIC TAIWAN STRAIT',
   imageUrl: null,
@@ -315,7 +323,14 @@ const DEFAULT_MAP_DATA = {
   coordColor: '#15803d',
   coordFontSize: 10,
   coordPosition: 'top',
-  coordFormat: '0101'
+  coordFormat: '0101',
+  startColLetter: 'A',
+  startColNum: 1,
+  startRow: 1,
+  coordFontFamily: "'Share Tech Mono', monospace",
+  coordOpacity: 1.0,
+  colorGroups: DEFAULT_COLOR_GROUPS,
+  hexOverrides: {}
 };
 
 function App() {
