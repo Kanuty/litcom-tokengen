@@ -292,6 +292,19 @@ export function MapGenerator({
           m.id === draggingItem.id ? { ...m, x: newX, y: newY } : m
         );
         onChangeMapData({ ...mapData, placedMarkers: updated });
+      } else if (draggingItem.type === 'marker_rotate') {
+        const centerSvgX = draggingItem.centerX;
+        const centerSvgY = draggingItem.centerY;
+        const angleRad = Math.atan2(y - centerSvgY, x - centerSvgX);
+        let angleDeg = (angleRad * 180) / Math.PI + 90;
+        let newRot = Math.round(((angleDeg % 360) + 360) % 360);
+        if (e.shiftKey) {
+          newRot = (Math.round(newRot / 15) * 15) % 360;
+        }
+        const updated = (mapData.placedMarkers || []).map((m) =>
+          m.id === draggingItem.id ? { ...m, rotation: newRot } : m
+        );
+        onChangeMapData({ ...mapData, placedMarkers: updated });
       } else if (draggingItem.type === 'text') {
         const updated = (mapData.customTexts || []).map((t) =>
           t.id === draggingItem.id ? { ...t, x: newX, y: newY } : t
@@ -2580,6 +2593,76 @@ export function MapGenerator({
                               />
                             </div>
                           </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.3rem', alignItems: 'center', fontSize: '0.7rem', marginTop: '0.2rem' }}>
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block' }}>Rotation (°)</span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="359"
+                                value={pm.rotation || 0}
+                                onChange={(e) => {
+                                  let val = Number(e.target.value) || 0;
+                                  val = ((val % 360) + 360) % 360;
+                                  handleUpdatePlacedMarker(pm.id, 'rotation', val);
+                                }}
+                                style={{ width: '100%', fontSize: '0.7rem' }}
+                              />
+                            </div>
+
+                            <div>
+                              <span style={{ color: 'var(--text-muted)', display: 'block' }}>Quick Rotate</span>
+                              <div style={{ display: 'flex', gap: '0.2rem' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const current = pm.rotation || 0;
+                                    const newRot = ((current - 45) % 360 + 360) % 360;
+                                    handleUpdatePlacedMarker(pm.id, 'rotation', newRot);
+                                  }}
+                                  title="Rotate counter-clockwise 45°"
+                                  style={{ flex: 1, padding: '1px 3px', fontSize: '0.65rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                                >
+                                  ⟲-45°
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const current = pm.rotation || 0;
+                                    const newRot = ((current + 45) % 360 + 360) % 360;
+                                    handleUpdatePlacedMarker(pm.id, 'rotation', newRot);
+                                  }}
+                                  title="Rotate clockwise 45°"
+                                  style={{ flex: 1, padding: '1px 3px', fontSize: '0.65rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                                >
+                                  ⟳+45°
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const current = pm.rotation || 0;
+                                    const newRot = ((current + 180) % 360 + 360) % 360;
+                                    handleUpdatePlacedMarker(pm.id, 'rotation', newRot);
+                                  }}
+                                  title="Flip 180°"
+                                  style={{ flex: 1, padding: '1px 3px', fontSize: '0.65rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                                >
+                                  180°
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleUpdatePlacedMarker(pm.id, 'rotation', 0);
+                                  }}
+                                  title="Reset to 0°"
+                                  style={{ flex: 1, padding: '1px 3px', fontSize: '0.65rem', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                                >
+                                  0°
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
@@ -3493,12 +3576,14 @@ export function MapGenerator({
 
                       const size = Number(pm.customSize || group.size) || 32;
                       const color = pm.customColor || group.color || '#000000';
+                      const rotation = Number(pm.rotation) || 0;
                       const isActive = activeMarkerId === pm.id;
+                      const handleDist = size / 2 + 18;
 
                       return (
                         <g
                           key={`placed_marker_${pm.id}`}
-                          transform={`translate(${posX}, ${posY})`}
+                          transform={`translate(${posX}, ${posY}) rotate(${rotation})`}
                           onMouseDown={(e) => handleMarkerMouseDown(pm, e)}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -3521,6 +3606,49 @@ export function MapGenerator({
                               strokeWidth="2"
                               strokeDasharray="4,3"
                             />
+                          )}
+
+                          {/* Interactive rotation handle line & knob */}
+                          {isActive && (
+                            <g>
+                              <line
+                                x1="0"
+                                y1={-(size / 2 + 4)}
+                                x2="0"
+                                y2={-handleDist}
+                                stroke="#00f0ff"
+                                strokeWidth="1.5"
+                                strokeDasharray="2,2"
+                              />
+                              <g
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  setDraggingItem({
+                                    type: 'marker_rotate',
+                                    id: pm.id,
+                                    centerX: posX,
+                                    centerY: posY
+                                  });
+                                }}
+                                style={{ cursor: 'crosshair' }}
+                                title="Drag to rotate marker (Hold Shift to snap to 15°)"
+                              >
+                                <circle
+                                  cx="0"
+                                  cy={-handleDist}
+                                  r="6"
+                                  fill="#00f0ff"
+                                  stroke="#05080f"
+                                  strokeWidth="1.5"
+                                />
+                                <path
+                                  d={`M -2.5 ${-handleDist - 0.5} A 2.5 2.5 0 1 1 2.5 ${-handleDist - 0.5}`}
+                                  fill="none"
+                                  stroke="#05080f"
+                                  strokeWidth="1"
+                                />
+                              </g>
+                            </g>
                           )}
 
                           {/* Map-level delete button badge */}
