@@ -536,6 +536,39 @@ textarea:focus {
   border-color: var(--accent-cyan) !important;
 }
 
+/* Number input spinner styling matching active theme */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  border-left: 1px solid var(--input-border);
+  cursor: pointer;
+  height: auto;
+  opacity: 0.9;
+}
+
+[data-theme="cyber-blue"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="cyber-blue"] input[type="number"]::-webkit-outer-spin-button {
+  background-color: #0f172a;
+  filter: invert(85%) sepia(15%) saturate(300%) hue-rotate(180deg) brightness(105%);
+}
+
+[data-theme="vaporwave"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="vaporwave"] input[type="number"]::-webkit-outer-spin-button {
+  background-color: #200f38;
+  filter: invert(85%) sepia(20%) saturate(350%) hue-rotate(260deg) brightness(105%);
+}
+
+[data-theme="blueprint"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="blueprint"] input[type="number"]::-webkit-outer-spin-button {
+  background-color: #eff6ff;
+  filter: invert(20%) sepia(40%) saturate(800%) hue-rotate(195deg) brightness(80%);
+}
+
+[data-theme="oldschool"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="oldschool"] input[type="number"]::-webkit-outer-spin-button {
+  background-color: #f5eedb;
+  filter: invert(25%) sepia(35%) saturate(600%) hue-rotate(75deg) brightness(75%);
+}
+
 /* Custom File Upload Styling */
 input[type="file"] {
   background-color: var(--input-bg) !important;
