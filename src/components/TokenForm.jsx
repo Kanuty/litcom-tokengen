@@ -201,6 +201,81 @@ export function TokenForm({ tokenData, onChange }) {
           </div>
 
           <div className="color-cell">
+            <span className="cell-label">Token Outer Border</span>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <input
+                type="color"
+                value={tokenData.tokenBorderColor || '#70b5ff'}
+                onChange={(e) => handleChange('tokenBorderColor', e.target.value)}
+                disabled={!tokenData.showTokenBorder}
+              />
+              <input
+                type="text"
+                value={tokenData.tokenBorderColor || '#70b5ff'}
+                onChange={(e) => handleChange('tokenBorderColor', e.target.value)}
+                disabled={!tokenData.showTokenBorder}
+                style={{ width: '65px', fontSize: '0.78rem' }}
+              />
+              <label style={{ fontSize: '0.78rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(tokenData.showTokenBorder)}
+                  onChange={(e) => handleChange('showTokenBorder', e.target.checked)}
+                />
+                Show
+              </label>
+            </div>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center', alignItems: 'center' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Width:</span>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={tokenData.tokenBorderWidth ?? 3}
+                onChange={(e) => handleChange('tokenBorderWidth', Math.max(1, parseInt(e.target.value) || 1))}
+                disabled={!tokenData.showTokenBorder}
+                style={{ width: '45px', fontSize: '0.78rem', padding: '2px 4px', textAlign: 'center' }}
+              />
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>px</span>
+            </div>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange({
+                    ...tokenData,
+                    showTokenBorder: true,
+                    tokenBorderColor: '#70b5ff'
+                  });
+                }}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#70b5ff', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Cyan
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange({
+                    ...tokenData,
+                    showTokenBorder: true,
+                    tokenBorderColor: '#ffffff'
+                  });
+                }}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#ffffff', color: '#000', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                White
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange('showTokenBorder', false)}
+                style={{ fontSize: '10px', padding: '2px 6px', background: 'var(--input-bg)', color: 'var(--text-muted)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+              >
+                None
+              </button>
+            </div>
+          </div>
+
+          <div className="color-cell">
             <span className="cell-label">Bottom Stripe Color</span>
             <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
               <input

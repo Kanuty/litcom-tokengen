@@ -1127,10 +1127,17 @@ export function LandToken({
     dice = [
       { type: 'red', bigValue: 10, smallValue: '4' },
       { type: 'red', bigValue: 12, smallValue: '9' }
-    ]
+    ],
+    showTokenBorder = false,
+    tokenBorderColor = '#70b5ff',
+    tokenBorderWidth = 3
   } = tokenData || {};
 
   const size = sizeProp || tokenSize || 240;
+  const scaledBorderWidth = Math.max(1, Math.round((Number(tokenBorderWidth) || 3) * (size / 240)));
+  const effectiveBorder = showTokenBorder && tokenBorderColor
+    ? `${scaledBorderWidth}px solid ${tokenBorderColor}`
+    : 'none';
 
   if (side === 'back') {
     return (
@@ -1141,8 +1148,8 @@ export function LandToken({
           height: size,
           backgroundColor: bgColor,
           borderRadius: size * 0.08,
-          border: '3px solid rgba(0,0,0,0.7)',
-          boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)',
+          border: effectiveBorder,
+          boxShadow: showTokenBorder ? 'none' : 'inset 0 0 10px rgba(0,0,0,0.3)',
           position: 'relative',
           overflow: 'hidden',
           boxSizing: 'border-box',
@@ -1175,8 +1182,8 @@ export function LandToken({
           height: size,
           backgroundColor: bgColor,
           borderRadius: size * 0.08,
-          border: '3px solid rgba(0,0,0,0.7)',
-          boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)',
+          border: effectiveBorder,
+          boxShadow: showTokenBorder ? 'none' : 'inset 0 0 10px rgba(0,0,0,0.3)',
           position: 'relative',
           overflow: 'hidden',
           boxSizing: 'border-box',
@@ -1414,8 +1421,8 @@ export function LandToken({
         height: size,
         backgroundColor: bgColor,
         borderRadius: size * 0.08,
-        border: '3px solid rgba(0,0,0,0.7)',
-        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)',
+        border: effectiveBorder,
+        boxShadow: showTokenBorder ? 'none' : 'inset 0 0 10px rgba(0,0,0,0.3)',
         position: 'relative',
         overflow: 'hidden',
         boxSizing: 'border-box',
