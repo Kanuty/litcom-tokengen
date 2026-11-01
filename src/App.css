@@ -536,6 +536,36 @@ textarea:focus {
   border-color: var(--accent-cyan) !important;
 }
 
+/* Number input spinner styling matching active theme */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  background-color: var(--input-bg);
+  border-left: 1px solid var(--input-border);
+  opacity: 0.85;
+  cursor: pointer;
+  filter: drop-shadow(0 0 1px var(--accent-cyan));
+}
+
+[data-theme="cyber-blue"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="cyber-blue"] input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(65%) sepia(90%) saturate(1200%) hue-rotate(150deg) brightness(110%);
+}
+
+[data-theme="blueprint"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="blueprint"] input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(30%) sepia(80%) saturate(1500%) hue-rotate(200deg) brightness(90%);
+}
+
+[data-theme="oldschool"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="oldschool"] input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(35%) sepia(60%) saturate(800%) hue-rotate(60deg) brightness(85%);
+}
+
+[data-theme="vaporwave"] input[type="number"]::-webkit-inner-spin-button,
+[data-theme="vaporwave"] input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(50%) sepia(95%) saturate(2000%) hue-rotate(290deg) brightness(120%);
+}
+
 /* Custom File Upload Styling */
 input[type="file"] {
   background-color: var(--input-bg) !important;

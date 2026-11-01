@@ -475,7 +475,7 @@ function App() {
     natoSymbolColor: '#ffffff',
     showTokenBorder: false,
     tokenBorderColor: '#70b5ff',
-    tokenBorderWidth: 3,
+    tokenBorderWidth: 4,
     fontFamily: "'Trebuchet MS', 'Arial Bold', sans-serif",
     echelon: '••',
     affiliation: 'friendly',

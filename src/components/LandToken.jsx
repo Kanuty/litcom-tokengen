@@ -1130,11 +1130,11 @@ export function LandToken({
     ],
     showTokenBorder = false,
     tokenBorderColor = '#70b5ff',
-    tokenBorderWidth = 3
+    tokenBorderWidth = 4
   } = tokenData || {};
 
   const size = sizeProp || tokenSize || 240;
-  const scaledBorderWidth = Math.max(1, Math.round((Number(tokenBorderWidth) || 3) * (size / 240)));
+  const scaledBorderWidth = Math.max(1, Math.round((Number(tokenBorderWidth) || 4) * (size / 240)));
   const effectiveBorder = showTokenBorder && tokenBorderColor
     ? `${scaledBorderWidth}px solid ${tokenBorderColor}`
     : 'none';

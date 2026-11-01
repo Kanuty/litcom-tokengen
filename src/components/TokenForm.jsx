@@ -231,7 +231,7 @@ export function TokenForm({ tokenData, onChange }) {
                 type="number"
                 min="1"
                 max="30"
-                value={tokenData.tokenBorderWidth ?? 3}
+                value={tokenData.tokenBorderWidth ?? 4}
                 onChange={(e) => handleChange('tokenBorderWidth', Math.max(1, parseInt(e.target.value) || 1))}
                 disabled={!tokenData.showTokenBorder}
                 style={{ width: '45px', fontSize: '0.78rem', padding: '2px 4px', textAlign: 'center' }}
@@ -267,10 +267,16 @@ export function TokenForm({ tokenData, onChange }) {
               </button>
               <button
                 type="button"
-                onClick={() => handleChange('showTokenBorder', false)}
-                style={{ fontSize: '10px', padding: '2px 6px', background: 'var(--input-bg)', color: 'var(--text-muted)', border: '1px solid var(--panel-border)', borderRadius: '3px', cursor: 'pointer' }}
+                onClick={() => {
+                  onChange({
+                    ...tokenData,
+                    showTokenBorder: true,
+                    tokenBorderColor: '#c83232'
+                  });
+                }}
+                style={{ fontSize: '10px', padding: '2px 6px', background: '#c83232', color: '#ffffff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
               >
-                None
+                Red
               </button>
             </div>
           </div>
