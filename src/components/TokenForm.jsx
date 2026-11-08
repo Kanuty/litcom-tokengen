@@ -57,6 +57,33 @@ const FLAG_OPTIONS = [
 
 export function TokenForm({ tokenData, onChange }) {
   const [flagSearchQuery, setFlagSearchQuery] = React.useState('');
+  const bgFileInputRef = React.useRef(null);
+
+  const handleBgImageUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        onChange({
+          ...tokenData,
+          customBgImage: e.target?.result,
+          customBgOpacity: tokenData.customBgOpacity ?? 0.35,
+          customBgFit: tokenData.customBgFit || 'cover'
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleClearBgImage = () => {
+    if (bgFileInputRef.current) {
+      bgFileInputRef.current.value = '';
+    }
+    onChange({
+      ...tokenData,
+      customBgImage: ''
+    });
+  };
 
   const handleChange = (field, value) => {
     onChange({
@@ -167,37 +194,197 @@ export function TokenForm({ tokenData, onChange }) {
         <h3 className="subsection-header">🎨 Colors & Background Styling</h3>
 
         <div className="color-picker-grid-3">
-          <div className="color-cell">
-            <span className="cell-label">Base Card Color</span>
-            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
-              <input
-                type="color"
-                value={tokenData.bgColor || '#2b6cb0'}
-                onChange={(e) => handleChange('bgColor', e.target.value)}
-              />
-              <input
-                type="text"
-                value={tokenData.bgColor || '#2b6cb0'}
-                onChange={(e) => handleChange('bgColor', e.target.value)}
-                style={{ width: '70px', fontSize: '0.78rem' }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+          <div className="color-cell" style={{ minWidth: '170px' }}>
+            <span className="cell-label" style={{ textAlign: 'center', width: '100%', display: 'block', margin: '0 0 0.35rem 0', minHeight: 'auto' }}>
+              Base Card Color
+            </span>
+            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginBottom: '0.45rem', width: '100%' }}>
               <button
                 type="button"
-                onClick={() => handleChange('bgColor', '#2b6cb0')}
-                style={{ background: '#2b6cb0', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+                onClick={() => handleChange('useBgGradient', false)}
+                style={{
+                  fontSize: '9px',
+                  padding: '2px 8px',
+                  background: !tokenData.useBgGradient ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                  color: !tokenData.useBgGradient ? '#000' : 'var(--text-secondary)',
+                  border: '1px solid var(--panel-border)',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: !tokenData.useBgGradient ? 'bold' : 'normal'
+                }}
               >
-                Blue
+                Solid
               </button>
               <button
                 type="button"
-                onClick={() => handleChange('bgColor', '#c83232')}
-                style={{ background: '#c83232', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+                onClick={() => {
+                  onChange({
+                    ...tokenData,
+                    useBgGradient: true,
+                    bgGradientTop: tokenData.bgGradientTop || tokenData.bgColor || '#2b6cb0',
+                    bgGradientBottom: tokenData.bgGradientBottom || '#102a43'
+                  });
+                }}
+                style={{
+                  fontSize: '9px',
+                  padding: '2px 8px',
+                  background: tokenData.useBgGradient ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                  color: tokenData.useBgGradient ? '#000' : 'var(--text-secondary)',
+                  border: '1px solid var(--panel-border)',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: tokenData.useBgGradient ? 'bold' : 'normal'
+                }}
               >
-                Red
+                Gradient
               </button>
             </div>
+
+            {!tokenData.useBgGradient ? (
+              <>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
+                  <input
+                    type="color"
+                    value={tokenData.bgColor || '#2b6cb0'}
+                    onChange={(e) => handleChange('bgColor', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    value={tokenData.bgColor || '#2b6cb0'}
+                    onChange={(e) => handleChange('bgColor', e.target.value)}
+                    style={{ width: '70px', fontSize: '0.78rem' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('bgColor', '#2b6cb0')}
+                    style={{ background: '#2b6cb0', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+                  >
+                    Blue
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('bgColor', '#c83232')}
+                    style={{ background: '#c83232', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+                  >
+                    Red
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('bgColor', '#2e7d32')}
+                    style={{ background: '#2e7d32', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px' }}
+                  >
+                    Green
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '8px',
+                    borderRadius: '3px',
+                    background: `linear-gradient(180deg, ${tokenData.bgGradientTop || tokenData.bgColor || '#2b6cb0'} 0%, ${tokenData.bgGradientBottom || '#102a43'} 100%)`,
+                    border: '1px solid rgba(255,255,255,0.15)'
+                  }}
+                />
+
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Top:</span>
+                  <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={tokenData.bgGradientTop || tokenData.bgColor || '#2b6cb0'}
+                      onChange={(e) => handleChange('bgGradientTop', e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      value={tokenData.bgGradientTop || tokenData.bgColor || '#2b6cb0'}
+                      onChange={(e) => handleChange('bgGradientTop', e.target.value)}
+                      style={{ width: '60px', fontSize: '0.75rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Bottom:</span>
+                  <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={tokenData.bgGradientBottom || '#102a43'}
+                      onChange={(e) => handleChange('bgGradientBottom', e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      value={tokenData.bgGradientBottom || '#102a43'}
+                      onChange={(e) => handleChange('bgGradientBottom', e.target.value)}
+                      style={{ width: '60px', fontSize: '0.75rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '0.1rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange({
+                        ...tokenData,
+                        useBgGradient: true,
+                        bgGradientTop: '#2b6cb0',
+                        bgGradientBottom: '#0d1b2a'
+                      });
+                    }}
+                    style={{ background: 'linear-gradient(180deg, #2b6cb0 0%, #0d1b2a 100%)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '2px 5px', borderRadius: '3px', cursor: 'pointer', fontSize: '9px' }}
+                  >
+                    Blue Grad
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange({
+                        ...tokenData,
+                        useBgGradient: true,
+                        bgGradientTop: '#c83232',
+                        bgGradientBottom: '#4a0e0e'
+                      });
+                    }}
+                    style={{ background: 'linear-gradient(180deg, #c83232 0%, #4a0e0e 100%)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '2px 5px', borderRadius: '3px', cursor: 'pointer', fontSize: '9px' }}
+                  >
+                    Red Grad
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange({
+                        ...tokenData,
+                        useBgGradient: true,
+                        bgGradientTop: '#3d5a40',
+                        bgGradientBottom: '#142016'
+                      });
+                    }}
+                    style={{ background: 'linear-gradient(180deg, #3d5a40 0%, #142016 100%)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '2px 5px', borderRadius: '3px', cursor: 'pointer', fontSize: '9px' }}
+                  >
+                    Green Grad
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange({
+                        ...tokenData,
+                        useBgGradient: true,
+                        bgGradientTop: '#475569',
+                        bgGradientBottom: '#0f172a'
+                      });
+                    }}
+                    style={{ background: 'linear-gradient(180deg, #475569 0%, #0f172a 100%)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '2px 5px', borderRadius: '3px', cursor: 'pointer', fontSize: '9px' }}
+                  >
+                    Slate Grad
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="color-cell">
@@ -286,8 +473,9 @@ export function TokenForm({ tokenData, onChange }) {
             <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', justifyContent: 'center' }}>
               <input
                 type="color"
-                value={tokenData.stripeColor || '#ffffff'}
+                value={tokenData.stripeColor === 'transparent' ? '#ffffff' : (tokenData.stripeColor || '#ffffff')}
                 onChange={(e) => handleChange('stripeColor', e.target.value)}
+                disabled={tokenData.stripeColor === 'transparent'}
               />
               <input
                 type="text"
@@ -296,13 +484,38 @@ export function TokenForm({ tokenData, onChange }) {
                 style={{ width: '70px', fontSize: '0.78rem' }}
               />
             </div>
-            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={() => handleChange('stripeColor', '#ffffff')}
-                style={{ fontSize: '10px', padding: '2px 6px', background: '#1e293b', color: '#9ca3af', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                style={{
+                  fontSize: '10px',
+                  padding: '2px 6px',
+                  background: tokenData.stripeColor === '#ffffff' || !tokenData.stripeColor ? 'var(--accent-cyan)' : '#1e293b',
+                  color: tokenData.stripeColor === '#ffffff' || !tokenData.stripeColor ? '#000' : '#9ca3af',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: tokenData.stripeColor === '#ffffff' || !tokenData.stripeColor ? 'bold' : 'normal'
+                }}
               >
-                Default (White)
+                White
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange('stripeColor', 'transparent')}
+                style={{
+                  fontSize: '10px',
+                  padding: '2px 6px',
+                  background: tokenData.stripeColor === 'transparent' ? 'var(--accent-cyan)' : '#1e293b',
+                  color: tokenData.stripeColor === 'transparent' ? '#000' : '#9ca3af',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: tokenData.stripeColor === 'transparent' ? 'bold' : 'normal'
+                }}
+              >
+                Transparent
               </button>
             </div>
           </div>
@@ -495,30 +708,81 @@ export function TokenForm({ tokenData, onChange }) {
         {tokenData.backFlag === 'custom' && (
           <div style={{ marginTop: '0.4rem' }}>
             <label className="field-label">Custom Backside Image Upload</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileUpload('customBackImage', e)}
-              style={{ width: '100%', fontSize: '0.8rem', color: 'var(--text-muted)' }}
-            />
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '4px 10px',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--accent-cyan)',
+                  borderRadius: '4px',
+                  color: 'var(--accent-cyan)',
+                  fontSize: '0.78rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload('customBackImage', e)}
+                  style={{ display: 'none' }}
+                />
+                <span>📁 Browse Backside Image...</span>
+              </label>
+              <span style={{ fontSize: '0.75rem', color: tokenData.customBackImage ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                {tokenData.customBackImage ? 'Custom image loaded' : 'No file chosen'}
+              </span>
+              {tokenData.customBackImage && (
+                <button
+                  type="button"
+                  onClick={() => handleChange('customBackImage', '')}
+                  style={{ padding: '2px 7px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 'bold' }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         )}
 
         {tokenData.category === 'naval' && (
           <div style={{ marginTop: '0.4rem' }}>
             <label className="field-label">Naval Ship Silhouette Upload</label>
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileUpload('customShipImage', e)}
-                style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text-muted)' }}
-              />
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '4px 10px',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--accent-cyan)',
+                  borderRadius: '4px',
+                  color: 'var(--accent-cyan)',
+                  fontSize: '0.78rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload('customShipImage', e)}
+                  style={{ display: 'none' }}
+                />
+                <span>📁 Browse Silhouette Image...</span>
+              </label>
+              <span style={{ fontSize: '0.75rem', color: tokenData.customShipImage ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                {tokenData.customShipImage ? 'Silhouette loaded' : 'No file chosen'}
+              </span>
               {tokenData.customShipImage && (
                 <button
                   type="button"
                   onClick={() => handleChange('customShipImage', '')}
-                  style={{ padding: '0.35rem 0.6rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                  style={{ padding: '2px 7px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 'bold' }}
                 >
                   Reset
                 </button>
@@ -526,6 +790,202 @@ export function TokenForm({ tokenData, onChange }) {
             </div>
           </div>
         )}
+
+        {/* Custom Background Image Overlay */}
+        <div
+          style={{
+            marginTop: '0.8rem',
+            paddingTop: '0.8rem',
+            borderTop: '1px dashed var(--panel-border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.55rem'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.3rem' }}>
+            <span style={{ fontSize: '0.88rem', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              🖼️ Custom Token Background Image
+            </span>
+            {tokenData.customBgImage && (
+              <button
+                type="button"
+                onClick={handleClearBgImage}
+                style={{
+                  padding: '2px 8px',
+                  background: '#dc2626',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontSize: '0.72rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Clear Image
+              </button>
+            )}
+          </div>
+
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.35' }}>
+            Place a custom image or watermark above the token background color. Dice, movement range hex, NATO symbology, unit designation, and borders will never be covered.
+          </p>
+
+          {/* Upload input with mini preview */}
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+            {tokenData.customBgImage && (
+              <div
+                title="Current Background Overlay Preview"
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '5px',
+                  border: '1px solid var(--accent-cyan)',
+                  background: tokenData.useBgGradient
+                    ? `linear-gradient(180deg, ${tokenData.bgGradientTop || tokenData.bgColor || '#2b6cb0'} 0%, ${tokenData.bgGradientBottom || '#102a43'} 100%)`
+                    : (tokenData.bgColor || '#2b6cb0'),
+                  position: 'relative',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <img
+                  src={tokenData.customBgImage}
+                  alt="Thumb"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: tokenData.customBgFit || 'cover',
+                    opacity: tokenData.customBgOpacity ?? 0.35
+                  }}
+                />
+              </div>
+            )}
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '5px 12px',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--accent-cyan)',
+                borderRadius: '4px',
+                color: 'var(--accent-cyan)',
+                fontSize: '0.8rem',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              <input
+                ref={bgFileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleBgImageUpload}
+                style={{ display: 'none' }}
+              />
+              <span>📁 Browse Custom Image...</span>
+            </label>
+            <span style={{ fontSize: '0.78rem', color: tokenData.customBgImage ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+              {tokenData.customBgImage ? 'Custom image loaded' : 'No image chosen'}
+            </span>
+          </div>
+
+          {/* Controls when an image/texture is active */}
+          {tokenData.customBgImage && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', background: 'var(--color-cell-bg)', padding: '0.6rem', borderRadius: '5px', border: '1px solid var(--color-cell-border)', marginTop: '0.2rem' }}>
+              {/* Opacity Slider */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
+                    Overlay Opacity (Transparency):
+                  </span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                    {Math.round(((tokenData.customBgOpacity ?? 0.35) * 100))}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.05"
+                  max="1.0"
+                  step="0.05"
+                  value={tokenData.customBgOpacity ?? 0.35}
+                  onChange={(e) => handleChange('customBgOpacity', parseFloat(e.target.value))}
+                  style={{ width: '100%', cursor: 'pointer' }}
+                />
+                <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.35rem', justifyContent: 'center' }}>
+                  {[
+                    { label: '15% Ghost', val: 0.15 },
+                    { label: '35% Subtle', val: 0.35 },
+                    { label: '60% Bold', val: 0.60 },
+                    { label: '100% Solid', val: 1.0 }
+                  ].map((preset) => (
+                    <button
+                      key={preset.val}
+                      type="button"
+                      onClick={() => handleChange('customBgOpacity', preset.val)}
+                      style={{
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        background: Math.abs((tokenData.customBgOpacity ?? 0.35) - preset.val) < 0.01 ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                        color: Math.abs((tokenData.customBgOpacity ?? 0.35) - preset.val) < 0.01 ? '#000' : 'var(--text-secondary)',
+                        border: '1px solid var(--panel-border)',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: Math.abs((tokenData.customBgOpacity ?? 0.35) - preset.val) < 0.01 ? 'bold' : 'normal'
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scaling / Fit Mode */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.2rem', borderTop: '1px solid var(--panel-border)' }}>
+                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>Image Fit:</span>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {[
+                    { id: 'cover', label: 'Cover (Fill)' },
+                    { id: 'contain', label: 'Contain' },
+                    { id: 'fill', label: 'Stretch' }
+                  ].map((mode) => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => handleChange('customBgFit', mode.id)}
+                      style={{
+                        fontSize: '10px',
+                        padding: '2px 7px',
+                        background: (tokenData.customBgFit || 'cover') === mode.id ? 'var(--accent-cyan)' : 'var(--input-bg)',
+                        color: (tokenData.customBgFit || 'cover') === mode.id ? '#000' : 'var(--text-secondary)',
+                        border: '1px solid var(--panel-border)',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: (tokenData.customBgFit || 'cover') === mode.id ? 'bold' : 'normal'
+                      }}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingTop: '0.25rem', borderTop: '1px solid var(--panel-border)' }}>
+                <label style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(tokenData.showCustomBgOnBack)}
+                    onChange={(e) => handleChange('showCustomBgOnBack', e.target.checked)}
+                  />
+                  <span>Also apply background overlay to reverse (back) side</span>
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 3. MISC TOKEN CONTROLS (IF MISC) */}
@@ -664,12 +1124,43 @@ export function TokenForm({ tokenData, onChange }) {
             {(tokenData.miscType === 'text_image' || tokenData.miscType === 'image_number') && (
               <div>
                 <label className="field-label">Center Image Upload</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileUpload('customMiscImage', e)}
-                  style={{ width: '100%', fontSize: '0.8rem', color: 'var(--text-muted)' }}
-                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '4px 10px',
+                      background: 'var(--input-bg)',
+                      border: '1px solid var(--accent-cyan)',
+                      borderRadius: '4px',
+                      color: 'var(--accent-cyan)',
+                      fontSize: '0.78rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload('customMiscImage', e)}
+                      style={{ display: 'none' }}
+                    />
+                    <span>📁 Browse Center Image...</span>
+                  </label>
+                  <span style={{ fontSize: '0.75rem', color: tokenData.customMiscImage ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    {tokenData.customMiscImage ? 'Center image loaded' : 'No file chosen'}
+                  </span>
+                  {tokenData.customMiscImage && (
+                    <button
+                      type="button"
+                      onClick={() => handleChange('customMiscImage', '')}
+                      style={{ padding: '2px 7px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 'bold' }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -722,12 +1213,43 @@ export function TokenForm({ tokenData, onChange }) {
           {tokenData.symbolType === 'custom' && (
             <div style={{ marginBottom: '0.5rem' }}>
               <label className="field-label">Upload Custom NATO Symbol Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileUpload('customNatoImage', e)}
-                style={{ width: '100%', fontSize: '0.8rem', color: 'var(--text-muted)' }}
-              />
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '4px 10px',
+                    background: 'var(--input-bg)',
+                    border: '1px solid var(--accent-cyan)',
+                    borderRadius: '4px',
+                    color: 'var(--accent-cyan)',
+                    fontSize: '0.78rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload('customNatoImage', e)}
+                    style={{ display: 'none' }}
+                  />
+                  <span>📁 Browse NATO Symbol...</span>
+                </label>
+                <span style={{ fontSize: '0.75rem', color: tokenData.customNatoImage ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                  {tokenData.customNatoImage ? 'Symbol image loaded' : 'No file chosen'}
+                </span>
+                {tokenData.customNatoImage && (
+                  <button
+                    type="button"
+                    onClick={() => handleChange('customNatoImage', '')}
+                    style={{ padding: '2px 7px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 'bold' }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

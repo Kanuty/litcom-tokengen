@@ -469,6 +469,9 @@ function App() {
   const [tokenData, setTokenData] = useState({
     category: 'land',
     bgColor: '#2b6cb0',
+    useBgGradient: false,
+    bgGradientTop: '#2b6cb0',
+    bgGradientBottom: '#102a43',
     stripeColor: '#ffffff',
     hexColor: '#7e8388',
     hexBorderColor: '#ffffff',
@@ -486,7 +489,11 @@ function App() {
     dice: [
       { type: 'red', bigValue: 10, smallValue: '4' },
       { type: 'red', bigValue: 12, smallValue: '9' }
-    ]
+    ],
+    customBgImage: '',
+    customBgOpacity: 0.35,
+    customBgFit: 'cover',
+    showCustomBgOnBack: false
   });
 
   const [exportFace, setExportFace] = useState('both');
