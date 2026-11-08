@@ -1107,6 +1107,9 @@ export function LandToken({
   const {
     category = 'land',
     bgColor = '#2b6cb0',
+    useBgGradient = false,
+    bgGradientTop = '#2b6cb0',
+    bgGradientBottom = '#102a43',
     stripeColor = '#ffffff',
     hexColor = '#7e8388',
     hexBorderColor = '',
@@ -1124,6 +1127,10 @@ export function LandToken({
     customBackImage = '',
     customShipImage = '',
     customNatoImage = '',
+    customBgImage = '',
+    customBgOpacity = 0.35,
+    customBgFit = 'cover',
+    showCustomBgOnBack = false,
     dice = [
       { type: 'red', bigValue: 10, smallValue: '4' },
       { type: 'red', bigValue: 12, smallValue: '9' }
@@ -1139,6 +1146,18 @@ export function LandToken({
     ? `${scaledBorderWidth}px solid ${tokenBorderColor}`
     : 'none';
 
+  const isGradient = Boolean(useBgGradient || tokenData?.useBgGradient);
+  const gradTop = bgGradientTop || tokenData?.bgGradientTop || bgColor || '#2b6cb0';
+  const gradBottom = bgGradientBottom || tokenData?.bgGradientBottom || '#102a43';
+  const effectiveBg = isGradient
+    ? `linear-gradient(180deg, ${gradTop} 0%, ${gradBottom} 100%)`
+    : bgColor;
+
+  const bgImg = customBgImage || tokenData?.tokenBgImage || tokenData?.bgImage || '';
+  const bgOpacity = customBgOpacity ?? tokenData?.bgOpacity ?? 0.35;
+  const bgFit = customBgFit || tokenData?.bgFit || 'cover';
+  const bgOnBack = Boolean(showCustomBgOnBack || tokenData?.bgOnBack);
+
   if (side === 'back') {
     return (
       <div
@@ -1146,7 +1165,7 @@ export function LandToken({
         style={{
           width: size,
           height: size,
-          backgroundColor: bgColor,
+          background: effectiveBg,
           borderRadius: size * 0.08,
           border: effectiveBorder,
           boxShadow: showTokenBorder ? 'none' : 'inset 0 0 10px rgba(0,0,0,0.3)',
@@ -1158,7 +1177,37 @@ export function LandToken({
           justifyContent: 'center'
         }}
       >
-        <RenderFlag flagKey={backFlag} customUrl={customBackImage} />
+        {bgImg && bgOnBack && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <img
+              src={bgImg}
+              alt="Token Background Overlay"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: bgFit,
+                opacity: bgOpacity
+              }}
+            />
+          </div>
+        )}
+        <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <RenderFlag flagKey={backFlag} customUrl={customBackImage} />
+        </div>
       </div>
     );
   }
@@ -1180,7 +1229,7 @@ export function LandToken({
         style={{
           width: size,
           height: size,
-          backgroundColor: bgColor,
+          background: effectiveBg,
           borderRadius: size * 0.08,
           border: effectiveBorder,
           boxShadow: showTokenBorder ? 'none' : 'inset 0 0 10px rgba(0,0,0,0.3)',
@@ -1195,8 +1244,37 @@ export function LandToken({
           userSelect: 'none'
         }}
       >
+        {bgImg && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <img
+              src={bgImg}
+              alt="Token Background Overlay"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: bgFit,
+                opacity: bgOpacity
+              }}
+            />
+          </div>
+        )}
+
         {miscType === 'task_force' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.08, width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.08, width: '100%', position: 'relative', zIndex: 2 }}>
             <div
               style={{
                 width: '100%',
@@ -1231,7 +1309,7 @@ export function LandToken({
         )}
 
         {miscType === 'text_number' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100%', padding: `${size * 0.06}px 0` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100%', padding: `${size * 0.06}px 0`, position: 'relative', zIndex: 2 }}>
             <div
               style={{
                 color: textColor,
@@ -1260,7 +1338,7 @@ export function LandToken({
         )}
 
         {miscType === 'text_image' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100%', padding: `${size * 0.05}px 0` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100%', padding: `${size * 0.05}px 0`, position: 'relative', zIndex: 2 }}>
             <div
               style={{
                 color: textColor,
@@ -1284,7 +1362,7 @@ export function LandToken({
         )}
 
         {miscType === 'image_number' && (
-          <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: size * 0.05 }}>
+          <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: size * 0.05, zIndex: 2 }}>
             {miscNumberShow && (
               <div
                 style={{
@@ -1301,7 +1379,7 @@ export function LandToken({
                 {miscNumber}
               </div>
             )}
-            <div style={{ width: '85%', height: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+            <div style={{ width: '85%', height: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
               {customMiscImage ? (
                 <img src={customMiscImage} alt="Misc Center" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
@@ -1419,7 +1497,7 @@ export function LandToken({
       style={{
         width: size,
         height: size,
-        backgroundColor: bgColor,
+        background: effectiveBg,
         borderRadius: size * 0.08,
         border: effectiveBorder,
         boxShadow: showTokenBorder ? 'none' : 'inset 0 0 10px rgba(0,0,0,0.3)',
@@ -1433,6 +1511,36 @@ export function LandToken({
         userSelect: 'none'
       }}
     >
+      {/* Background Image Overlay */}
+      {bgImg && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <img
+            src={bgImg}
+            alt="Token Background Overlay"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: bgFit,
+              opacity: bgOpacity
+            }}
+          />
+        </div>
+      )}
+
       {/* Top Section */}
       {category === 'naval' ? (
         <div
@@ -1582,7 +1690,7 @@ export function LandToken({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1
+            zIndex: 3
           }}
         >
           {customShipImage ? (
@@ -1629,18 +1737,20 @@ export function LandToken({
       </div>
 
       {/* Bottom White/Custom Stripe */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '20%',
-          backgroundColor: stripeColor,
-          borderTop: '1px solid rgba(0,0,0,0.15)',
-          zIndex: 2
-        }}
-      />
+      {stripeColor !== 'transparent' && stripeColor !== 'none' && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '20%',
+            backgroundColor: stripeColor,
+            borderTop: '1px solid rgba(0,0,0,0.15)',
+            zIndex: 2
+          }}
+        />
+      )}
     </div>
   );
 }
